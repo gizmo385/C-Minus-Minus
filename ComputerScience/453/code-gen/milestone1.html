@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+<title>CSc 453 : Programming Assignment 4, Milestone 1</title>
+<link href="../style.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body bgcolor="white">
+<p>
+<img src="../IMGS/uadcs.gif" alt="University of Arizona, Department of Computer Science"/>
+</p>
+
+<h1>CSc 453 : Programming Assignment 4 (Code Generation): Milestone 1</h1>
+
+<h3>Start Date: Tue Nov 3, 2015</h3>
+
+<h3>Due Date: 11:59 PM, Fri Nov. 13, 2015</font></h3>
+
+<h2>1. General</h2>
+This milestone involves MIPS assembly code generation for the 
+subset of <a href="../DOCS/cminusminusspec.html">C--</a> described below.
+The generated code should adhere to the
+<a href="../DOCS/cminusminusspec.html#opsem">
+operational semantics of C--</a>.
+
+<h3>1.1. Language Subset Considered</h3>
+
+For this milestone, you need to handle C-- programs containing the following
+language features, but not features that are excluded in the list below:
+<p>
+<ul>
+<li>
+<strong><u>Variables</u>:</strong>
+<ul>
+<li>Globals: variables of type <b>int</b>, <b>char</b>, <b>array of int</b>,
+<b>array of char</b>;</li>
+<p>
+<li>Locals: at most one formal parameter, which is of type
+<b>int</b>, <b>char</b>, <b>array of int</b>,
+<b>array of char</b> (but no additional local variables).</li>
+</ul>
+<p>
+<li>
+<strong><u>Statements</u>:</strong>
+a sequence of zero or more assignments and procedure calls only (i.e., no
+<b>if</b>, <b>for</b>, <b>while</b> statements), with these additional
+restrictions:
+<ul>
+<li>
+Assignments are &quot;simple&quot, in the following sense: the
+left-hand-side is a scalar variable (i.e., not an array reference) and the
+right-hand-side is a scalar variable or a constant.  
+<p>
+<em>(This means that for
+this milestone we won't have 
+any references to array elements: the only reason for including arrays under
+&quot;<b>Variables</b>&quot; (above) is to allow us to call
+<b>print_string(&quot;\n&quot;)</b>, which makes it easier to print out
+values.</b>.)</em>
+<p>
+<li>
+A procedure call takes at most one argument, which is of type
+<b>int</b>, <b>char</b>, <b>array of int</b>, or
+<b>array of char</b>.
+</ul>
+<p>
+<li>
+<strong><u>Expressions</u>:</strong>
+scalar variables, constants of type <b>int</b> or <b>char</b>, and
+string constants (i.e., no operators, array references, function calls).
+</ul>
+<p>
+
+<h3>1.2. The Target Architecture</h3>
+
+The target architecture for this assignment will be the MIPS R2000
+processor.  The requirements in this regard are the same as for the
+overall <a href="prog4_codegen.html">Assignment 4</a>.
+
+<h3>1.3. I/O Operations</h3>
+
+Test programs will use the following two functions to print out the results
+of computations:
+
+<blockquote>
+<b>extern void print_int(int x);</b><br>
+<b>extern void print_string(char x[]);</b>
+</blockquote>
+
+For example, a program might look like this:
+
+<blockquote>
+extern void print_int(int x);<br>
+extern void print_string(char x[]);<br>
+<br>
+void main( void ) {<br>
+&nbsp; print_int(12345); print_string("\n");<br>
+}
+</blockquote>
+
+In addition to the assembly code generated for the program, you should
+generate the instruction sequence for the functions <b>print_int()</b>
+and <b>print_string()</b>, as described in the document
+<a href="../DOCS/3addr2spim.pdf">Notes on Translating Three-Address Code to
+  MIPS Assembly Code</a>.  
+
+<h3>1.4. Testing Your Programs</h3>
+
+You can obtain the &quot;expected output&quot; for your test cases by
+compiling them using <b>gcc</b>, with definitions for <b>print_int()</b>
+and <b>print_string()</b> supplied in a separate file and linked in in the
+    obvious way.
+
+<h3>1.5. Supporting Documents</h3>
+
+Same as for the
+overall <a href="prog4_codegen.html">Assignment 4</a>.
+
+<h2>2. Output</h2>
+As before, your program will take its input from <b>stdin</b> and generate all
+output on <b>stdout</b>.  Error messages, if any, will be sent to <b>stderr</b>.
+In case any errors are encountered during lexical or syntax analysis
+or during type checking, you should stop generating code, but continue
+to process the user program as best as possible.
+
+<h2>3. Turnin</h2>
+You should turn in all the sources to all the phases of your compiler.
+You should also turn in a Makefile that supports at least the
+following:
+
+<dl>
+<dt>
+<b>make clean</b> 
+</dt>
+<dd>
+remove all <b>*.o</b> files as well as the
+file <b>compile</b> from the current directory.
+</dd>
+<dt><b>make compile</b> :
+<dd>
+Creates an executable file in the current directory called <b>compile</b>
+that implements your compiler.  Note that this should build your compiler
+from scratch, i.e. starting from the lex specification.</dd>
+</dl>
+To turn in your program, execute the command 
+<b>turnin &nbsp;&nbsp; cs453f15-assg4ms1</b>&nbsp;&nbsp; <i>files</i>.
+</body>
+</html>

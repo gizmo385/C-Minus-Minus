@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+<title>CSc 453 : Programming Assignment 4</title>
+<link href="../style.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body bgcolor="white">
+<p>
+<img src="../IMGS/uadcs.gif" alt="University of Arizona, Department of Computer Science"/>
+</p>
+
+<h1>CSc 453 : Programming Assignment 4 (Code Generation)</h1>
+
+<h3>Start Date: Tue Nov 3, 2015</h3>
+
+<h3>Due Date: 11:59 PM, Mon Nov. 23, 2015</h3>
+
+<h2>1. General</h2>
+This assignment involves generating assembly code for C--.  The
+generated code should adhere to the
+<a href="../DOCS/cminusminusspec.html#opsem">
+operational semantics of C--</a>.
+
+<h3>The Target Architecture</h3>
+
+The target architecture for this assignment will be the MIPS R2000
+processor.  Your compiler will generate assembly code for this processor;
+this assembly code will be executed using the
+<a href="http://www.cs.wisc.edu/~larus/spim.html">SPIM simulator</a>.
+(The code is free: it is available on <b>lectura</b>, and executables
+for PCs running MS-DOS and Microsoft Windows, together with
+documentation, are available from
+<a href="http://www.cs.wisc.edu/~larus/spim.html">the SPIM homepage</a>.
+<i>However, note that SPIM inherits the endian-ness of the underlying
+processor, and this can cause it to give different results for the
+same program on different machines.</i>)
+
+<h3>Output Operations</h3>
+
+These will be implemented using functions <b>print_int()</b> and 
+<b>print_string</b>, as for <a href="prog4_codegen-milestone1.html">Milestone 1</a>.
+
+<h3>Supporting Documents</h3>
+
+The following documents may be useful for this assignment:
+
+<ul>
+<li> <a href="../DOCS/intcode.html">
+     A Three-Address Intermediate Code Instruction Set for C--</a>
+<li> SPIM User Manual [ 
+     <a href="../DOCS/spim.ps">Postscript</a>
+   | <a href="../DOCS/spim.pdf">PDF</a>
+     ]
+<li> Notes on translating Three-address Code to MIPS Assembly Code [
+     <a href="../DOCS/3addr2spim.ps">Postscript </a>
+   | <a href="../DOCS/3addr2spim.pdf">PDF</a>
+     ]
+</ul>
+
+<h2>2. Output</h2>
+As before, your program will take its input from <b>stdin</b> and generate all
+output on <b>stdout</b>.  Error messages, if any, will be sent to <b>stderr</b>.
+In case any errors are encountered during lexical or syntax analysis
+or during type checking, you should stop generating code, but continue
+to process the user program as best as possible.
+
+<h2>3. Turnin</h2>
+You should turn in all the sources to all the phases of your compiler.
+You should also turn in a Makefile that supports at least the
+following:
+
+<dl>
+<dt>
+<b>make clean</b> 
+</dt>
+<dd>
+remove all <b>*.o</b> files as well as the
+file <b>compile</b> from the current directory.
+</dd>
+<dt><b>make compile</b> :
+<dd>
+Creates an executable file in the current directory called <b>compile</b>
+that implements your compiler.  Note that this should build your compiler
+from scratch, i.e. starting from the lex specification.</dd>
+</dl>
+To turn in your program, execute the command 
+<b>turnin&nbsp;&nbsp; cs453f15-assg4</b>&nbsp;&nbsp; <i>files</i>.
+<p>
+<h2>4. Milestones</h2>
+
+There is one intermediate milestone for this assignment, the spec for this
+is available <a href="prog4_codegen-milestone1.html">here</a>.
+
+</body>
+</html>
