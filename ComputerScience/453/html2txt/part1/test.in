@@ -1,0 +1,33 @@
+<html>
+<head>
+<title>A simple HTML document</title>
+</head>
+<body>
+Some stuff < this is not a tag> <but this is>
+<b>Bold stuff</b>
+<i>Italicized stuff</i>
+<b><i>Bold and italicized</i></b>
+<b><i>Also bold and italicized, but with improperly nested tags</b></i>.
+This arrow is not part of a comment, and should be visible: -->
+
+<!-- This is not a tag according to our definitions
+because it spans multiple lines (i.e., contains '\n' characters,
+     which are considered not printable)>
+
+<this should not be visible,   since  it's within a tag>
+
+XXX YYY ZZZ
+<!-- <a> </a> -->
+
+&amp; &gt; &lt; &quot;
+
+<this string contains a control character  and therefore is not a tag>
+
+<	this sequence begins with a tab>
+<this sequence contains a tab (here: 	)>
+
+</body>
+<a partial tag -- since it doesn't contain the right angle bracket this is not a tag and so should be visible
+</html>
+
+
