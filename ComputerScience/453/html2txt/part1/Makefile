@@ -7,17 +7,17 @@ OS = $(shell uname -s)
 
 # Load the proper library for Flex
 ifeq ($(OS),Darwin)
-	CFLAGS += -ll
+	FLEX_LIB = -ll
 endif
 
 ifeq ($(OS),Linux)
-	CFLAGS += -lfl
+	FLEX_LIB = -lfl
 endif
 
 
 myhtml2text: myhtml2text.l
 	flex -o myhtml2text.c myhtml2text.l
-	${CC} ${CFLAGS} -o myhtml2text myhtml2text.c
+	${CC} ${CFLAGS} -o myhtml2text myhtml2text.c ${FLEX_LIB}
 
 clean:
 	@rm *.o myhtml2text 2> /dev/null || true
