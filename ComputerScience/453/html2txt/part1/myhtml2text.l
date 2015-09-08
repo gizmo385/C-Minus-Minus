@@ -11,8 +11,8 @@
 \&lt; printf("<");
 \&quot; printf("\"");
 
-    /* Handling tags (This should be states) */
-\<[^[:space:]>][[:print:]]{-}[>]*\> printf("");
+    /* Handling tags */
+\<[^[:space:]>][[:print:]]{-}[>]*\>
 %%
 int main()
 {
