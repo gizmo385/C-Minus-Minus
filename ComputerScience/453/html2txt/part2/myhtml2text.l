@@ -14,7 +14,3 @@
     /* Handling tags */
 \<[^[:space:]>][[:print:]]{-}[>]*\>
 %%
-int main()
-{
-    yylex();
-}
