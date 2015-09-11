@@ -15,10 +15,9 @@ yylineno = 1;
 
 %%
 
-[[:space:]]{-}[\n]+ { yycolno += strlen(yytext); return SPACE;}
-[[:space:]]+ {
-    yycolno = 0;
+[[:space:]]{-}[\n]+\n {
     yylineno += 1;
+    yycolno = 0;
     return SPACE;
 }
 
@@ -48,12 +47,6 @@ yylineno = 1;
 
     /* Handling tags */
 \<[^[:space:]>][:print:]{-}[>]*> { yycolno += strlen(yytext); return TAG;}
-
-\n {
-    yylineno += 1;
-    yycolno = 0;
-    printf("\n");
-}
 
 [:print:]{-}[<]+ { return TEXT; }
 
