@@ -1,0 +1,30 @@
+[submodule "ComputerScience/homework/422/ParallelProject"]
+	path = ComputerScience/homework/422/ParallelProject
+	url = git@github.com:gizmo385/n-bodies.git
+[submodule "ComputerScience/homework/422/DistributedProject"]
+	path = ComputerScience/homework/422/DistributedProject
+	url = git@github.com:gizmo385/distributed-chat.git
+[submodule "ComputerScience/homework/335/FinalProject"]
+	path = ComputerScience/homework/335/FinalProject
+	url = https://github.com/gizmo385/TheFourNations.git
+[submodule "ComputerScience/homework/335/WumpusProject"]
+	path = ComputerScience/homework/335/WumpusProject
+	url = https://github.com/gizmo385/HuntTheWumpus
+[submodule "ComputerScience/422/DistributedProject"]
+	path = ComputerScience/422/DistributedProject
+	url = https://github.com/gizmo385/distributed-chat
+[submodule "ComputerScience/422/ParallelProject"]
+	path = ComputerScience/422/ParallelProject
+	url = https://github.com/gizmo385/n-bodies
+[submodule "ComputerScience/335/FinalProject"]
+	path = ComputerScience/335/FinalProject
+	url = https://github.com/gizmo385/TheFourNations
+[submodule "ComputerScience/335/WumpusProject"]
+	path = ComputerScience/335/WumpusProject
+	url = https://github.com/gizmo385/HuntTheWumpus
+[submodule "ComputerScience/453/html2txt/part1/csc453-fall15-hw1-1-tests"]
+	path = ComputerScience/453/html2txt/part1/csc453-fall15-hw1-1-tests
+	url = git@github.com:luigiinred/csc453-fall15-hw1-1-tests.git
+[submodule "ComputerScience/453/html2txt/part2/csc453-fall15-hw1-2-tests"]
+	path = ComputerScience/453/html2txt/part2/csc453-fall15-hw1-2-tests
+	url = git://github.com/luigiinred/csc453-fall15-hw1-2-tests.git
