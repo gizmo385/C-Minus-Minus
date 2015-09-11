@@ -22,7 +22,7 @@ yylineno = 1;
 }
 
 '\n' {
-    yylineno += 1;
+    yycolno = 0;
     yylineno += 1;
     return SPACE;
 }
