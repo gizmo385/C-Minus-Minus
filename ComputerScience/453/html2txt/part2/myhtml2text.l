@@ -15,9 +15,15 @@ yylineno = 1;
 
 %%
 
-[[:space:]]{-}[\n]+\n {
+[[:space:]{-}[\n]]+ {
+    /*yylineno += 1;*/
+    yycolno = 1;
+    return SPACE;
+}
+
+'\n' {
     yylineno += 1;
-    yycolno = 0;
+    yylineno += 1;
     return SPACE;
 }
 
@@ -46,7 +52,10 @@ yylineno = 1;
 \<\/li\> { yycolno += strlen(yytext); return LI_END; }
 
     /* Handling tags */
-\<[^[:space:]>][:print:]{-}[>]*> { yycolno += strlen(yytext); return TAG;}
+\<[^[:space:]>][:print:]{-}[>]*> {
+    yycolno += strlen(yytext);
+    return TAG;
+}
 
 [:print:]{-}[<]+ { return TEXT; }
 
