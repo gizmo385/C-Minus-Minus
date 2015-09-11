@@ -52,11 +52,14 @@ yylineno = 1;
 \<\/li\> { yycolno += strlen(yytext); return LI_END; }
 
     /* Handling tags */
-\<[^[:space:]>][:print:]{-}[>]*> {
+\<[^[:space:]>][[:print:]]{-}[>]*\> {
     yycolno += strlen(yytext);
     return TAG;
 }
 
-[:print:]{-}[<]+ { return TEXT; }
+[[:print:]{-}[<]]+ {
+    yycolno += strlen(yytext);
+    return TEXT;
+}
 
 %%
