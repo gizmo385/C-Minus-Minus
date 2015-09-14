@@ -51,6 +51,12 @@ yylineno = 1;
 \<li\> { yycolno += strlen(yytext); return LI_START; }
 \<\/li\> { yycolno += strlen(yytext); return LI_END; }
 
+    /* HTML SPECIAL ENTITIES */
+\&amp; { yytext = "&"; return TEXT; }
+\&gt; { yytext = ">"; return TEXT; }
+\&lt; { yytext = "<"; return TEXT; }
+\&quot; { yytext = "\""; return TEXT; }
+
     /* Handling tags */
 \<[^[:space:]>][[:print:]]{-}[>]*\> {
     yycolno += strlen(yytext);
