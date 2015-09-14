@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "myhtml2txt.tab.h"
 extern int mylineno;
-extern int yycolno;
+extern int mycolno;
 extern char *yytext;
 %}
 
@@ -58,6 +58,6 @@ int main(int argc, char **argv){
 }
 
 int yyerror() {
-   fprintf(stderr, "Encountered error while parsing \"%s\" on line %d\n", yytext, mylineno);
-   exit(1);
+    fprintf(stderr, "%d:%d - Encountered error while parsing: \"%s\"\n", mylineno, mycolno, yytext);
+    exit(1);
 }
