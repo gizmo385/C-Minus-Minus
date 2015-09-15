@@ -22,9 +22,3 @@
 [submodule "ComputerScience/335/WumpusProject"]
 	path = ComputerScience/335/WumpusProject
 	url = https://github.com/gizmo385/HuntTheWumpus
-[submodule "ComputerScience/453/html2txt/part1/csc453-fall15-hw1-1-tests"]
-	path = ComputerScience/453/html2txt/part1/csc453-fall15-hw1-1-tests
-	url = git@github.com:luigiinred/csc453-fall15-hw1-1-tests.git
-[submodule "ComputerScience/453/html2txt/part2/csc453-fall15-hw1-2-tests"]
-	path = ComputerScience/453/html2txt/part2/csc453-fall15-hw1-2-tests
-	url = git://github.com/luigiinred/csc453-fall15-hw1-2-tests.git
