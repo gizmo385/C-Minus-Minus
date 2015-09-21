@@ -1,0 +1,5 @@
+compile
+compile.dSYM/*
+cmm.lex.c
+cmm.tab.c
+cmm.tab.h
