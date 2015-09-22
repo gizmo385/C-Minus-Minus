@@ -9,45 +9,19 @@ extern char *yytext;
 
 /* tokens */
 
-%token DOC_START DOC_END
-%token HEAD_START HEAD_END
-%token BODY_START BODY_END
-%token BF_START BF_END
-%token IT_START IT_END
-%token UL_START UL_END
-%token OL_START OL_END
-%token LI_START LI_END
+%token WHILE_KEYWORD FOR_KEYWORD
+%token INT_KEYWORD CHAR_KEYWORD VOID_KEYWORD
+%token LEFT_PAREN RIGHT_PAREN
+%token LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+%token LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET
+%token IF_KEYWORD ELSE_KEYWORD
 
-%token TAG
 %token SPACE
-%token TEXT
 
 %%
 
-Doc     : Wspace DOC_START Wspace Head Wspace Body Wspace DOC_END Wspace;
-Head    : HEAD_START Html HEAD_END;
-Body    : BODY_START Html BODY_END;
 Wspace  : SPACE
         |
-        ;
-Html    : Item Html
-        |
-        ;
-Item    : BF_START Html BF_END
-        | IT_START Html IT_END
-        | List
-        | Other
-        ;
-List    : UL_START Wspace ItemList Wspace UL_END
-        | OL_START Wspace ItemList Wspace OL_END
-        ;
-ItemList: ItemList Wspace OneItem
-        | OneItem
-        ;
-OneItem : LI_START Html LI_END;
-Other   : TAG
-        | TEXT                      { printf("%s", yytext); }
-        | SPACE                     { printf("%s", yytext); }
         ;
 
 %%
