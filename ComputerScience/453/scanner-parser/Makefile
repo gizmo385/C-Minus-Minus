@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS = -g
 CFLAGS += -Wall
+CFLAGS += -DYYDEBUG=1
 CFLAGS += -std=gnu99
 
 OS = $(shell uname -s)
@@ -16,7 +17,7 @@ endif
 
 
 compile: cmm.l cmm.y
-	bison -d cmm.y
+	bison -d --debug --verbose cmm.y
 	flex -o cmm.lex.c cmm.l
 	${CC} ${CFLAGS} -o compile cmm.tab.c cmm.lex.c ${FLEX_LIB}
 
