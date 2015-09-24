@@ -90,13 +90,18 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      | SEMICOLON
      ;
 
-optional_assign: assg | epsilon;
+optional_assign: assg
+               | epsilon
+               ;
 
-optional_expr : expr | epsilon;
+optional_expr : expr
+              | epsilon
+              ;
 
-stmt_list : stmt SEMICOLON stmt_list
+stmt_list : stmt stmt_list
           | epsilon
           ;
+
 assg : ID ASSIGN expr
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr
      ;
