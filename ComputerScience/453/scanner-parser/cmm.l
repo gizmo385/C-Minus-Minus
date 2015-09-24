@@ -17,7 +17,6 @@ int mycolno = 1;
 \n {
     mylineno += 1;
     mycolno = 1;
-    printf("\n");
 }
 
     /* EQUALITY OPERATORS */
