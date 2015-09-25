@@ -90,7 +90,7 @@ int func_nested
 int func_with_params
 (int a, int b)
 {
-    return a + b;
+    return "test";
 }
 
 extern int test_extern1(), test_extern2(int a);
