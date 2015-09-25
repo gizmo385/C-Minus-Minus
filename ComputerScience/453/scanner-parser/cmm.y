@@ -147,10 +147,14 @@ epsilon:
 %%
 
 int main(int argc, char **argv){
-    /*yydebug = 1;*/
     return yyparse();
 }
 
 int yyerror() {
-    fprintf(stderr, "%d:%d - Encountered error while parsing: \"%s\"\n", mylineno, mycolno, yytext);
+    if(yytext[0] == 0) {
+        fprintf(stderr, "%d:%d - Encountered error while parsing: \"%s\"\n", mylineno, mycolno, yytext);
+    } else {
+        fprintf(stderr, "Encountered unexpected EOF while parsing \"%s\" starting on line %d.\n",
+                yytext, mylineno);
+    }
 }
