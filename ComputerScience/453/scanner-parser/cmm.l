@@ -44,7 +44,7 @@ int mycolno = 1;
 
     /* Match string literals */
 \"[^\"]*\" {mycolno += strlen(yytext); return STRINGCON; }
-\'([[:print:]]{-}[\"\\]|\n\0)\' {mycolno += strlen(yytext); return CHARCON; }
+\'(\\n|\\0|[[:print:]]{-}[\\\"])\' {mycolno += strlen(yytext); return CHARCON; }
 
     /* RESERVED KEYWORDS */
 "for" {mycolno += strlen(yytext); return FOR; }
@@ -60,5 +60,11 @@ int mycolno = 1;
     /* LITERALS */
 [a-zA-Z][a-zA-Z0-9_]* { mycolno += strlen(yytext); return ID; }
 [0-9]+ { mycolno += strlen(yytext); return INTCON; }
+
+[[:space:]]{-}[\n]+ {mycolno += strlen(yytext);}
+\n {
+    mylineno += 1;
+    mycolno = 1;
+}
 
 %%
