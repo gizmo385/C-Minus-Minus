@@ -53,7 +53,8 @@ decl : type var_decl_list SEMICOLON
 var_decl : ID
          | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET
 
-var_decl_list : type var_decl SEMICOLON var_decl_list
+var_decl_list : var_decl
+              | var_decl_list COMMA var_decl
               | epsilon
               ;
 
@@ -74,12 +75,20 @@ param_types_list : non_void_param_type
                  | epsilon
                  ;
 
+<<<<<<< HEAD
 func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list stmt_list RIGHT_CURLY_BRACKET
      | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list  stmt_list RIGHT_CURLY_BRACKET
      | EXTERN type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list stmt_list RIGHT_CURLY_BRACKET
      | EXTERN VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list  stmt_list RIGHT_CURLY_BRACKET
 
+=======
+func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET
+     | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET
+>>>>>>> c5dbbae... 453 2: Add leading variable declarations in fn
      ;
+
+optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
+                       | epsilon
 
 stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt
