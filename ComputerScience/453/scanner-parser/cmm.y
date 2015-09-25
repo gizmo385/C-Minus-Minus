@@ -75,7 +75,7 @@ param_types_list : non_void_param_type
                  ;
 
 func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list stmt_list RIGHT_CURLY_BRACKET
-     | "void" ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list  stmt_list RIGHT_CURLY_BRACKET
+     | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list  stmt_list RIGHT_CURLY_BRACKET
      ;
 
 stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
