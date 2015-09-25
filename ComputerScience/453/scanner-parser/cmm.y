@@ -115,8 +115,12 @@ expr : '-' expr %prec UMINUS
      | expr SUB expr %prec add_sub
      | expr MUL expr %prec mul_div
      | expr DIV expr %prec mul_div
-     | expr relop expr
-     | expr equality_op expr
+     | expr EQ expr %prec equality_op
+     | expr NEQ expr %prec equality_op
+     | expr GTE expr %prec relop
+     | expr LTE expr %prec relop
+     | expr GT expr %prec relop
+     | expr LT expr %prec relop
      | ID
      | ID LEFT_PAREN param_list RIGHT_PAREN /* Function call with arguments */
      | ID LEFT_PAREN RIGHT_PAREN /* Calling a thunk */
