@@ -47,6 +47,9 @@ int mycolno = 1;
 ";" { mycolno += strlen(yytext); return SEMICOLON; }
 "," { mycolno += strlen(yytext); return COMMA; }
 
+    /* Match string literals */
+\"[^\"]*\" {mycolno += strlen(yytext); return STRINGCON; }
+
     /* RESERVED KEYWORDS */
 "for" {mycolno += strlen(yytext); return FOR; }
 "while" {mycolno += strlen(yytext); return WHILE; }
