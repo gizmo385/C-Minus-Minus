@@ -1,0 +1,97 @@
+int func_assg
+(void)
+{
+ foo = 1;
+}
+
+int func_if
+(void)
+{
+ if
+ (foo == 1)
+ {
+  foo = 1;
+ }
+ else
+ {
+  foo = 2;
+ }
+}
+
+int func_while
+(void)
+{
+ foo = 1;
+ while
+ (1 == asdf)
+ {
+
+ }
+}
+
+void void_func_while
+(void)
+{
+ foo = 1;
+ while
+ (1 == asdf)
+ {
+
+ }
+}
+
+char char_func_while
+(void)
+{
+ foo = 1;
+ while
+ (1 == asdf)
+ {
+
+ }
+}
+
+int func_for
+(void)
+{
+ for
+ (;;)
+ {
+
+ }
+
+ for
+ (
+ i = 0;
+ i >= 0;
+ i = i + 1
+ )
+ {
+
+ }
+}
+
+int func_nested
+(void)
+{
+ if (x == 1) {
+   while (x > 1){
+     for (i = 0; i < count; i = i + 1) {
+       if (i == 1 ){
+         i = 5;
+       }else{
+
+       }
+     }
+   }
+ }
+}
+
+int func_with_params
+(int a, int b)
+{
+    return a + b;
+}
+
+extern int test_extern1(), test_extern2(int a);
+extern void test_extern3(void), test_extern4(int a, char x, int abcdefg);
