@@ -62,7 +62,6 @@ type : CHAR
      ;
 
 param_types : VOID
-            | non_void_param_type
             | param_types_list
             ;
 
@@ -70,7 +69,8 @@ non_void_param_type : type ID
                     | type ID LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
                     ;
 
-param_types_list : non_void_param_type COMMA param_types_list
+param_types_list : non_void_param_type
+                 | param_types_list COMMA non_void_param_type
                  | epsilon
                  ;
 
