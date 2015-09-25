@@ -21,7 +21,7 @@ extern char *yytext;
     /* Operators */
 %token EQ NEQ LTE LT GT GTE NOT
 %token AND OR
-%token ADD SUB MUL DIV
+%token ADD MINUS MUL DIV
 %token ASSIGN
 
     /* Text tokens */
@@ -38,7 +38,7 @@ extern char *yytext;
 %left AND
 %left EQ NEQ equality_op
 %left GTE LTE GT LT relop
-%left ADD SUB add_sub
+%left ADD MINUS add_sub
 %left MUL DIV mul_div
 %right UMINUS '!'
 
@@ -109,10 +109,10 @@ assg : ID ASSIGN expr
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr
      ;
 
-expr : '-' expr %prec UMINUS
+expr : MINUS expr %prec UMINUS
      | '!' expr %prec UMINUS
      | expr ADD expr %prec add_sub
-     | expr SUB expr %prec add_sub
+     | expr MINUS expr %prec add_sub
      | expr MUL expr %prec mul_div
      | expr DIV expr %prec mul_div
      | expr EQ expr %prec equality_op

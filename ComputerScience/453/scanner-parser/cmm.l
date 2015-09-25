@@ -13,15 +13,10 @@ int mycolno = 1;
 
 %%
 
-[[:space:]{-}[\n]]+ {mycolno += strlen(yytext);}
-\n {
-    mylineno += 1;
-    mycolno = 1;
-}
-
     /* EQUALITY OPERATORS */
 "==" { mycolno += strlen(yytext); return EQ; }
 "!=" { mycolno += strlen(yytext); return NEQ; }
+"!" { mycolno += strlen(yytext); return NOT; }
 
     /* RELATIONAL OPERATORS */
 ">=" { mycolno += strlen(yytext); return GTE; }
@@ -31,7 +26,7 @@ int mycolno = 1;
 
     /* RELATIONAL OPERATORS */
 "+" { mycolno += strlen(yytext); return ADD; }
-"-" { mycolno += strlen(yytext); return SUB; }
+"-" { mycolno += strlen(yytext); return MINUS; }
 "*" { mycolno += strlen(yytext); return MUL; }
 "/" { mycolno += strlen(yytext); return DIV; }
 
