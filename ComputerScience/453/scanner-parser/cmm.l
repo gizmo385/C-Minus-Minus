@@ -49,6 +49,7 @@ int mycolno = 1;
 
     /* Match string literals */
 \"[^\"]*\" {mycolno += strlen(yytext); return STRINGCON; }
+\'([[:print:]]{-}[\"\\]|\n\0)\' {mycolno += strlen(yytext); return CHARCON; }
 
     /* RESERVED KEYWORDS */
 "for" {mycolno += strlen(yytext); return FOR; }

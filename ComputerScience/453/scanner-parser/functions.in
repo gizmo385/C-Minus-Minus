@@ -90,6 +90,9 @@ int func_nested
 int func_with_params
 (int a, int b)
 {
+    x = 'c';
+    y = '\n';
+    z = '\0';
     return "test";
 }
 
