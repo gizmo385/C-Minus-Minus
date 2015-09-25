@@ -11,7 +11,10 @@ int mycolno = 1;
 %option noinput
 %option noyywrap
 
+
+%x comment
 %%
+
 
     /* EQUALITY OPERATORS */
 "=="                                { mycolno += strlen(yytext); return EQ; }
@@ -59,6 +62,13 @@ int mycolno = 1;
 "void"                              { mycolno += strlen(yytext); return VOID; }
 "int"                               { mycolno += strlen(yytext); return INT; }
 "extern"                            { mycolno += strlen(yytext); return EXTERN; }
+
+    /* DISCARD COMMENTS */
+"/*"                                { mycolno += strlen(yytext); BEGIN(comment); }
+<comment>[^*\n]*                    { mycolno += strlen(yytext); }
+<comment>"*"+[^*/\n]*               { mycolno += strlen(yytext); }
+<comment>\n                         { mylineno += 1; mycolno = 1;}
+<comment>"*"+"/"                    { mycolno += strlen(yytext); BEGIN(INITIAL); }
 
     /* IDENTIFIERS */
 [a-zA-Z][a-zA-Z0-9_]*               { mycolno += strlen(yytext); return ID; }

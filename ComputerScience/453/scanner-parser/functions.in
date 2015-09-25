@@ -90,11 +90,25 @@ int func_nested
 int func_with_params
 (int a, int b)
 {
+    x = /* inline comment */ 5;
     x = 'c';
     y = '\n';
     z = '\0';
     return "test";
 }
+
+/*
+ *
+ * Here is a comment
+ *
+ *
+ *
+ * Pretty long
+ *
+ *
+ * int test(void) { printf("testing\n"); }
+ */
+
 
 extern int test_extern1(), test_extern2(int a);
 extern void test_extern3(void), test_extern4(int a, char x, int abcdefg);
