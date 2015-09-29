@@ -40,7 +40,7 @@ extern char *yytext;
 %left GTE LTE GT LT relop
 %left ADD MINUS add_sub
 %left MUL DIV mul_div
-%right UMINUS '!'
+%right UMINUS NOT
 
 %%
 
