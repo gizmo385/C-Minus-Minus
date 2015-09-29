@@ -96,8 +96,7 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
      | RETURN optional_expr SEMICOLON
      | assg SEMICOLON
-     | ID LEFT_PAREN param_list RIGHT_PAREN /* Function call with arguments */
-     | ID LEFT_PAREN RIGHT_PAREN /* Calling a thunk */
+     | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call */
      | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET
      | SEMICOLON
      ;
@@ -131,22 +130,23 @@ expr : MINUS expr %prec UMINUS
      | expr GT expr %prec relop
      | expr LT expr %prec relop
      | ID
-     | ID LEFT_PAREN param_list RIGHT_PAREN /* Function call with arguments */
-     | ID LEFT_PAREN RIGHT_PAREN /* Calling a thunk */
+     | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call with arguments */
      | LEFT_PAREN expr RIGHT_PAREN
      | INTCON
      | CHARCON
      | STRINGCON
      ;
 
-param_list : ID
-           | ID COMMA param_list
+expr_list : expr
+          | expr_list COMMA expr
+          | epsilon
 
 epsilon:
        ;
 %%
 
 int main(int argc, char **argv){
+    /*yydebug = 1;*/
     return yyparse();
 }
 
