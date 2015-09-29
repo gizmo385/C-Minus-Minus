@@ -96,7 +96,11 @@ int func_with_params
     x = 'c';
     y = '\n';
     z = '\0';
-    return "test";
+
+    printf("This is a test");
+    printf("/*Looks like a comment in a string*/");
+
+    return (1 + (a * 27 - b));
 }
 
 /*
