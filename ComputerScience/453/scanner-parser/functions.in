@@ -100,6 +100,8 @@ int func_with_params
     printf("This is a test");
     printf("/*Looks like a comment in a string*/");
 
+    x = !y;
+
     return (1 + (a * 27 - b));
 }
 
