@@ -1,10 +1,13 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "cmm.tab.h"
 extern int mylineno;
 extern int mycolno;
 extern char *yytext;
+
+bool foundError = false;
 %}
 
     /* Language Tokens */
@@ -55,10 +58,12 @@ decl : type var_decl_list SEMICOLON
      | VOID name_args_lists SEMICOLON
      | EXTERN type name_args_lists SEMICOLON
      | EXTERN VOID name_args_lists SEMICOLON
+     | error SEMICOLON {foundError = true}
      ;
 
 func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET
      | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET
+     | error RIGHT_CURLY_BRACKET {foundError = true}
      ;
 
 stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
@@ -67,9 +72,11 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
      | RETURN optional_expr SEMICOLON
      | assg SEMICOLON
-     | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call */
+     | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON/* Function call */
      | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET
      | SEMICOLON
+     | error SEMICOLON {foundError = true}
+     | error RIGHT_CURLY_BRACKET {foundError = true}
      ;
 
 expr : MINUS expr %prec UMINUS
@@ -90,6 +97,7 @@ expr : MINUS expr %prec UMINUS
      | INTCON
      | CHARCON
      | STRINGCON
+     | error {foundError = true}
      ;
 
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
@@ -142,6 +150,7 @@ optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
                        | epsilon
 
 optional_assign: assg
+               | error {foundError = true}
                | epsilon
                ;
 
@@ -163,11 +172,18 @@ expr_list : expr
 
 epsilon:
        ;
+
 %%
 
 int main(int argc, char **argv){
     /*yydebug = 1;*/
-    return yyparse();
+    yyparse();
+
+    if(foundError) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 int yyerror() {
@@ -178,4 +194,6 @@ int yyerror() {
         fprintf(stderr, "%d:%d - Encountered error while parsing: \"%s\"\n", mylineno, mycolno,
                 yytext);
     }
+
+    return 1;
 }
