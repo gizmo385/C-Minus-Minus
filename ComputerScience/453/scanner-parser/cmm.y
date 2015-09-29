@@ -118,7 +118,7 @@ assg : ID ASSIGN expr
      ;
 
 expr : MINUS expr %prec UMINUS
-     | '!' expr %prec UMINUS
+     | NOT expr %prec UMINUS
      | expr ADD expr %prec add_sub
      | expr MINUS expr %prec add_sub
      | expr MUL expr %prec mul_div
