@@ -49,9 +49,57 @@ prog : decl prog
      | epsilon
 
 decl : type var_decl_list SEMICOLON
+<<<<<<< HEAD
+=======
+     | type name_args_lists SEMICOLON
+     | VOID name_args_lists SEMICOLON
+     | EXTERN type name_args_lists SEMICOLON
+     | EXTERN VOID name_args_lists SEMICOLON
+     ;
+
+func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET
+     | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET
+     ;
+
+stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
+     | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt
+     | WHILE LEFT_PAREN expr RIGHT_PAREN stmt
+     | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
+     | RETURN optional_expr SEMICOLON
+     | assg SEMICOLON
+     | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call */
+     | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET
+     | SEMICOLON
+     ;
+
+expr : MINUS expr %prec UMINUS
+     | NOT expr %prec UMINUS
+     | expr ADD expr %prec add_sub
+     | expr MINUS expr %prec add_sub
+     | expr MUL expr %prec mul_div
+     | expr DIV expr %prec mul_div
+     | expr EQ expr %prec equality_op
+     | expr NEQ expr %prec equality_op
+     | expr GTE expr %prec relop
+     | expr LTE expr %prec relop
+     | expr GT expr %prec relop
+     | expr LT expr %prec relop
+     | ID
+     | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call with arguments */
+     | LEFT_PAREN expr RIGHT_PAREN
+     | INTCON
+     | CHARCON
+     | STRINGCON
+     ;
+
+name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
+                | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
+                ;
+>>>>>>> 38c0cc5... 453 2: Move important rules to top of file
 
 var_decl : ID
          | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET
+         ;
 
 var_decl_list : var_decl
               | var_decl_list COMMA var_decl
@@ -76,6 +124,7 @@ param_types_list : non_void_param_type
                  ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list stmt_list RIGHT_CURLY_BRACKET
      | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list  stmt_list RIGHT_CURLY_BRACKET
      | EXTERN type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET var_decl_list stmt_list RIGHT_CURLY_BRACKET
@@ -87,19 +136,10 @@ func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_va
 >>>>>>> c5dbbae... 453 2: Add leading variable declarations in fn
      ;
 
+=======
+>>>>>>> 38c0cc5... 453 2: Move important rules to top of file
 optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
                        | epsilon
-
-stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
-     | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt
-     | WHILE LEFT_PAREN expr RIGHT_PAREN stmt
-     | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
-     | RETURN optional_expr SEMICOLON
-     | assg SEMICOLON
-     | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call */
-     | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET
-     | SEMICOLON
-     ;
 
 optional_assign: assg
                | epsilon
@@ -117,26 +157,6 @@ assg : ID ASSIGN expr
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr
      ;
 
-expr : MINUS expr %prec UMINUS
-     | NOT expr %prec UMINUS
-     | expr ADD expr %prec add_sub
-     | expr MINUS expr %prec add_sub
-     | expr MUL expr %prec mul_div
-     | expr DIV expr %prec mul_div
-     | expr EQ expr %prec equality_op
-     | expr NEQ expr %prec equality_op
-     | expr GTE expr %prec relop
-     | expr LTE expr %prec relop
-     | expr GT expr %prec relop
-     | expr LT expr %prec relop
-     | ID
-     | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call with arguments */
-     | LEFT_PAREN expr RIGHT_PAREN
-     | INTCON
-     | CHARCON
-     | STRINGCON
-     ;
-
 expr_list : expr
           | expr_list COMMA expr
           | epsilon
@@ -152,9 +172,10 @@ int main(int argc, char **argv){
 
 int yyerror() {
     if(yytext[0] == 0) {
-        fprintf(stderr, "%d:%d - Encountered error while parsing: \"%s\"\n", mylineno, mycolno, yytext);
-    } else {
         fprintf(stderr, "Encountered unexpected EOF while parsing \"%s\" starting on line %d.\n",
                 yytext, mylineno);
+    } else {
+        fprintf(stderr, "%d:%d - Encountered error while parsing: \"%s\"\n", mylineno, mycolno,
+                yytext);
     }
 }
