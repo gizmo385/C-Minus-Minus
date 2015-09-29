@@ -16,6 +16,22 @@ int mycolno = 1;
 %%
 
 
+    /* LITERALS */
+\"[[:print:]]{-}[\n\"]*\"           { mycolno += strlen(yytext); return STRINGCON; }
+\'(\\n|\\0|[[:print:]]{-}[\\\"])\'  { mycolno += strlen(yytext); return CHARCON; }
+[0-9]+                              { mycolno += strlen(yytext); return INTCON; }
+
+    /* RESERVED KEYWORDS */
+"for"                               { mycolno += strlen(yytext); return FOR; }
+"while"                             { mycolno += strlen(yytext); return WHILE; }
+"if"                                { mycolno += strlen(yytext); return IF; }
+"return"                            { mycolno += strlen(yytext); return RETURN; }
+"else"                              { mycolno += strlen(yytext); return ELSE; }
+"char"                              { mycolno += strlen(yytext); return CHAR; }
+"void"                              { mycolno += strlen(yytext); return VOID; }
+"int"                               { mycolno += strlen(yytext); return INT; }
+"extern"                            { mycolno += strlen(yytext); return EXTERN; }
+
     /* EQUALITY OPERATORS */
 "=="                                { mycolno += strlen(yytext); return EQ; }
 "!="                                { mycolno += strlen(yytext); return NEQ; }
@@ -46,23 +62,6 @@ int mycolno = 1;
     /* Delimiters */
 ";"                                 { mycolno += strlen(yytext); return SEMICOLON; }
 ","                                 { mycolno += strlen(yytext); return COMMA; }
-
-    /* LITERALS */
-\"[^\"]*\"                          { mycolno += strlen(yytext); return STRINGCON; }
-\'(\\n|\\0|[[:print:]]{-}[\\\"])\'  { mycolno += strlen(yytext); return CHARCON; }
-[0-9]+                              { mycolno += strlen(yytext); return INTCON; }
-
-    /* RESERVED KEYWORDS */
-"for"                               { mycolno += strlen(yytext); return FOR; }
-"while"                             { mycolno += strlen(yytext); return WHILE; }
-"if"                                { mycolno += strlen(yytext); return IF; }
-"return"                            { mycolno += strlen(yytext); return RETURN; }
-"else"                              { mycolno += strlen(yytext); return ELSE; }
-"char"                              { mycolno += strlen(yytext); return CHAR; }
-"void"                              { mycolno += strlen(yytext); return VOID; }
-"int"                               { mycolno += strlen(yytext); return INT; }
-"extern"                            { mycolno += strlen(yytext); return EXTERN; }
-
     /* DISCARD COMMENTS */
 "/*"                                { mycolno += strlen(yytext); BEGIN(comment); }
 <comment>[^*\n]*                    { mycolno += strlen(yytext); }
@@ -74,7 +73,7 @@ int mycolno = 1;
 [a-zA-Z][a-zA-Z0-9_]*               { mycolno += strlen(yytext); return ID; }
 
     /* WHITESPACE */
-[[:space:]]{-}[\n]+                 {mycolno += strlen(yytext);}
+[[:space:]]{-}[\n]+                 { mycolno += strlen(yytext); }
 \n                                  { mylineno += 1; mycolno = 1; }
 
 %%
