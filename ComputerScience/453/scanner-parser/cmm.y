@@ -93,6 +93,7 @@ expr : MINUS expr %prec UMINUS
      | expr LT expr %prec relop
      | ID
      | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call with arguments */
+     | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET /* Array access */
      | LEFT_PAREN expr RIGHT_PAREN
      | INTCON
      | CHARCON
