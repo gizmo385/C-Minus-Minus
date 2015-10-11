@@ -3,11 +3,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "cmm.tab.h"
+#include "symtab.h"
+#include "utils.h"
+#include "list.h"
+
 extern int mylineno;
 extern int mycolno;
 extern char *yytext;
 
 bool foundError = false;
+List *symbolTable = NULL;
 %}
 
     /* Language Tokens */
@@ -17,6 +22,7 @@ bool foundError = false;
 %token EXTERN RETURN
 %token COMMA SEMICOLON
 
+    /* Brackets */
 %token LEFT_PAREN RIGHT_PAREN
 %token LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
 %token LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET
@@ -56,12 +62,12 @@ decl : type var_decl_list SEMICOLON
      | VOID name_args_lists SEMICOLON
      | EXTERN type name_args_lists SEMICOLON
      | EXTERN VOID name_args_lists SEMICOLON
-     | error SEMICOLON {foundError = true}
+     | error SEMICOLON
      ;
 
 func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET
      | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET
-     | error RIGHT_CURLY_BRACKET {foundError = true}
+     | error RIGHT_CURLY_BRACKET
      ;
 
 stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
@@ -73,8 +79,8 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON/* Function call */
      | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET
      | SEMICOLON
-     | error SEMICOLON {foundError = true}
-     | error RIGHT_CURLY_BRACKET {foundError = true}
+     | error SEMICOLON
+     | error RIGHT_CURLY_BRACKET
      ;
 
 expr : MINUS expr %prec UMINUS
@@ -96,7 +102,7 @@ expr : MINUS expr %prec UMINUS
      | INTCON
      | CHARCON
      | STRINGCON
-     | error {foundError = true}
+     | error
      ;
 
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
@@ -133,7 +139,7 @@ optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
                        | epsilon
 
 optional_assign: assg
-               | error {foundError = true}
+               | error
                | epsilon
                ;
 
@@ -159,7 +165,10 @@ epsilon:
 %%
 
 int main(int argc, char **argv){
-    /*yydebug = 1;*/
+#ifdef DEBUG
+    setDebuggingLevel( E_ALL );
+#endif
+    symbolTable = newList(compareSymbolNodes);
     yyparse();
 
     if(foundError) {
@@ -170,6 +179,9 @@ int main(int argc, char **argv){
 }
 
 int yyerror() {
+    debug(E_ERROR, "Found an error :D\n");
+    foundError = true;
+
     if(yytext[0] == 0) {
         fprintf(stderr, "Encountered unexpected EOF while parsing \"%s\" starting on line %d.\n",
                 yytext, mylineno);
