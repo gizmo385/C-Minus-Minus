@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "ast.h"
 #include "cmm.tab.h"
 
 int mylineno = 1;
