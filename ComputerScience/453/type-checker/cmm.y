@@ -2,47 +2,58 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "cmm.tab.h"
-#include "symtab.h"
+#include <string.h>
+#include "ast.h"
 #include "utils.h"
 #include "list.h"
+#include "cmm.tab.h"
 
 extern int mylineno;
 extern int mycolno;
 extern char *yytext;
 
 bool foundError = false;
-List *symbolTable = NULL;
+
 %}
 
-    /* Language Tokens */
+%union {
+    Expression *expression;
+    Statement *statement;
+    char *string;
+}
+
+%type<expression> expr
+
+/* Language Tokens */
 %token WHILE FOR
 %token INT CHAR VOID
 %token IF ELSE
 %token EXTERN RETURN
 %token COMMA SEMICOLON
 
-    /* Brackets */
+/* Brackets */
 %token LEFT_PAREN RIGHT_PAREN
 %token LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
 %token LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET
 
-    /* Operators */
+/* Operators */
 %token EQ NEQ LTE LT GT GTE NOT
 %token AND OR
 %token ADD MINUS MUL DIV
 %token ASSIGN
 
-    /* Text tokens */
-%token INTCON CHARCON STRINGCON
-%token ID
+/* Text tokens */
+%token <expression> INTCON
+%token CHARCON
+%token STRINGCON
+%token <expression> ID
 %token TEXT SPACE
 
-    /* If/Else Precedence fix */
+/* If/Else Precedence fix */
 %nonassoc WITHOUT_ELSE
 %nonassoc ELSE WITH_ELSE
 
-    /* Operator Precedence specification */
+/* Operator Precedence specification */
 %left OR
 %left AND
 %left EQ NEQ equality_op
@@ -83,25 +94,25 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      | error RIGHT_CURLY_BRACKET
      ;
 
-expr : MINUS expr %prec UMINUS
-     | NOT expr %prec UMINUS
-     | expr ADD expr %prec add_sub
-     | expr MINUS expr %prec add_sub
-     | expr MUL expr %prec mul_div
-     | expr DIV expr %prec mul_div
-     | expr EQ expr %prec equality_op
-     | expr NEQ expr %prec equality_op
-     | expr GTE expr %prec relop
-     | expr LTE expr %prec relop
-     | expr GT expr %prec relop
-     | expr LT expr %prec relop
+expr : MINUS expr %prec UMINUS          { $$ = newUnaryExpression(NEG_OP, $2); }
+     | NOT expr %prec UMINUS            { $$ = newUnaryExpression(NOT_OP, $2); debug(E_DEBUG, "%d\n", sizeof($2));}
+     | expr ADD expr %prec add_sub      { $$ = newBinaryExpression(ADD_OP, $1, $3); }
+     | expr MINUS expr %prec add_sub    { $$ = newBinaryExpression(SUB_OP, $1, $3); }
+     | expr MUL expr %prec mul_div      { $$ = newBinaryExpression(MUL_OP, $1, $3); }
+     | expr DIV expr %prec mul_div      { $$ = newBinaryExpression(DIV_OP, $1, $3); }
+     | expr EQ expr %prec equality_op   { $$ = newBinaryExpression(EQ_OP, $1, $3); }
+     | expr NEQ expr %prec equality_op  { $$ = newBinaryExpression(NEQ_OP, $1, $3); }
+     | expr GTE expr %prec relop        { $$ = newBinaryExpression(GTE_OP, $1, $3); }
+     | expr LTE expr %prec relop        { $$ = newBinaryExpression(LTE_OP, $1, $3); }
+     | expr GT expr %prec relop         { $$ = newBinaryExpression(GT_OP, $1, $3); }
+     | expr LT expr %prec relop         { $$ = newBinaryExpression(LT_OP, $1, $3); }
      | ID
      | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call with arguments */
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET /* Array access */
-     | LEFT_PAREN expr RIGHT_PAREN
-     | INTCON
-     | CHARCON
-     | STRINGCON
+     | LEFT_PAREN expr RIGHT_PAREN      { $$ = $2; }
+     | INTCON                           { $$ = newIntConstExpression(atoi(yytext)); }
+     | CHARCON                          { $$ = newCharConstExpression(yytext[0]); }
+     | STRINGCON                        { $$ = newCharArrayConstExpression(strdup(yytext)); }
      | error
      ;
 
@@ -166,12 +177,11 @@ epsilon:
 
 int main(int argc, char **argv){
 #ifdef DEBUG
-    setDebuggingLevel( E_ALL );
+    setDebuggingLevel(E_ALL);
 #endif
-    symbolTable = newList(compareSymbolNodes);
     yyparse();
 
-    if(foundError) {
+if(foundError) {
         return 1;
     } else {
         return 0;
@@ -179,10 +189,9 @@ int main(int argc, char **argv){
 }
 
 int yyerror() {
-    debug(E_ERROR, "Found an error :D\n");
     foundError = true;
 
-    if(yytext[0] == 0) {
+if(yytext[0] == 0) {
         fprintf(stderr, "Encountered unexpected EOF while parsing \"%s\" starting on line %d.\n",
                 yytext, mylineno);
     } else {
@@ -190,5 +199,5 @@ int yyerror() {
                 yytext);
     }
 
-    return 1;
+return 1;
 }
