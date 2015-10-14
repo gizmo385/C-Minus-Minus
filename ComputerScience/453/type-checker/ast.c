@@ -176,11 +176,10 @@ StatementList *newStatementList(Statement *statement, StatementList *rest) {
 }
 
 /* Constructor functions for Declarations */
-VariableDeclaration *newVariable(Type type, char *identifier, Expression *expression) {
+VariableDeclaration *newVariable(Type type, char *identifier) {
     VariableDeclaration *varDecl = malloc(sizeof(VariableDeclaration));
     varDecl->type = type;
     varDecl->identifier = identifier;
-    varDecl->expression = expression;
 
     return varDecl;
 }
