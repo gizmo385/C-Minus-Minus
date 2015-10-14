@@ -1,3 +1,5 @@
+#ifndef AST_H
+#define AST_H
 #include <stdbool.h>
 #include "list.h"
 
@@ -159,3 +161,5 @@ extern FunctionDeclaration *newFunction(Type type, char *identifier, FunctionPar
 
 /* Utility functions */
 char *expressionTypeName(ExpressionType et);
+
+#endif
