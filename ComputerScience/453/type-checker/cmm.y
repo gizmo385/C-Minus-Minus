@@ -3,9 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "ast.h"
+#include "symtab.h"
 #include "utils.h"
-#include "list.h"
 #include "cmm.tab.h"
 
 extern int mylineno;
@@ -95,7 +94,7 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      ;
 
 expr : MINUS expr %prec UMINUS          { $$ = newUnaryExpression(NEG_OP, $2); }
-     | NOT expr %prec UMINUS            { $$ = newUnaryExpression(NOT_OP, $2); debug(E_DEBUG, "%d\n", sizeof($2));}
+     | NOT expr %prec UMINUS            { $$ = newUnaryExpression(NOT_OP, $2); }
      | expr ADD expr %prec add_sub      { $$ = newBinaryExpression(ADD_OP, $1, $3); }
      | expr MINUS expr %prec add_sub    { $$ = newBinaryExpression(SUB_OP, $1, $3); }
      | expr MUL expr %prec mul_div      { $$ = newBinaryExpression(MUL_OP, $1, $3); }
