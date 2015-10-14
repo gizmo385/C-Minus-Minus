@@ -1,6 +1,8 @@
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include "symtab.h"
+#include "utils.h"
 
 static inline int compareScopeVariables(ScopeVariable *a, ScopeVariable *b) {
     if(a && b) {
@@ -60,8 +62,29 @@ static inline ScopeVariable *newScopeVariable(Type type, char *identifier, Value
     scopeVariable->type = type;
     scopeVariable->identifier = identifier;
     scopeVariable->value = value;
+    scopeVariable->initialized = false;
 
     return scopeVariable;
+}
+
+static inline void addVarToScope(Scope *scope, ScopeVariable *var) {
+    ListNode *node = listFind(scope->variables, var);
+
+    if(node) {
+        node->data = var;
+    } else {
+        listInsert(scope->variables, var);
+    }
+}
+
+void declareUndeclaredVar(Scope *scope, Type type, char *identifier) {
+    Value empty;
+    empty.integer_value = 0;
+    ScopeVariable *var = newScopeVariable(type, identifier, empty);
+
+    debug(E_DEBUG, "Declaring undeclared variable \"%s\"\n", identifier);
+
+    listInsert(scope->variables, var);
 }
 
 void declareIntVariable(Scope *scope, char *identifier, int val) {
@@ -69,13 +92,7 @@ void declareIntVariable(Scope *scope, char *identifier, int val) {
     value.integer_value = val;
     ScopeVariable *var = newScopeVariable(INT_TYPE, identifier, value);
 
-    ListNode *node = listFind(scope->variables, var);
-
-    if(node) {
-        node->data = var;
-    } else {
-        listInsert(scope->variables, var);
-    }
+    addVarToScope(scope, var);
 }
 
 void declareCharVariable(Scope *scope, char *identifier, char val) {
@@ -83,27 +100,16 @@ void declareCharVariable(Scope *scope, char *identifier, char val) {
     value.char_value = val;
     ScopeVariable *var = newScopeVariable(CHAR_TYPE, identifier, value);
 
-    ListNode *node = listFind(scope->variables, var);
-
-    if(node) {
-        node->data = var;
-    } else {
-        listInsert(scope->variables, var);
-    }
+    addVarToScope(scope, var);
 }
 
 void declareCharArrayVariable(Scope *scope, char *identifier, char val[]) {
     Value value;
     value.char_array_value = val;
     ScopeVariable *var = newScopeVariable(CHAR_ARRAY_TYPE, identifier, value);
+    var->initialized = true;
 
-    ListNode *node = listFind(scope->variables, var);
-
-    if(node) {
-        node->data = var;
-    } else {
-        listInsert(scope->variables, var);
-    }
+    addVarToScope(scope, var);
 }
 
 void declareIntArrayVariable(Scope *scope, char *identifier, int val[]) {
@@ -111,11 +117,5 @@ void declareIntArrayVariable(Scope *scope, char *identifier, int val[]) {
     value.int_array_value = val;
     ScopeVariable *var = newScopeVariable(INT_ARRAY_TYPE, identifier, value);
 
-    ListNode *node = listFind(scope->variables, var);
-
-    if(node) {
-        node->data = var;
-    } else {
-        listInsert(scope->variables, var);
-    }
+    addVarToScope(scope, var);
 }
