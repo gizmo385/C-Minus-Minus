@@ -26,7 +26,7 @@ typedef enum { ADD_OP, SUB_OP, MUL_OP, DIV_OP, AND_OP, OR_OP, EQ_OP, NEQ_OP, LTE
     GT_OP, LT_OP } BinaryOperation;
 
 /* Different kinds of expressions */
-typedef enum { CONST, UNARY, BINARY } ExpressionType;
+typedef enum { CONST, VARIABLE, UNARY, BINARY } ExpressionType;
 typedef struct Expression Expression;
 typedef struct {
     // Constant expressions just have a value and a type
@@ -48,12 +48,17 @@ typedef struct {
     BinaryOperation operation;
 } BinaryExpression;
 
+typedef struct {
+    char *identifier;
+} VariableExpression;
+
 struct Expression {
     ExpressionType type;
     union {
+        VariableExpression *variableExpression;
         ConstExpression *constantExpression;
-        BinaryExpression *binaryExpression;
         UnaryExpression *unaryExpression;
+        BinaryExpression *binaryExpression;
     };
 };
 
@@ -115,7 +120,6 @@ struct Statement {
 typedef struct VariableDeclaration {
     Type type;
     char *identifier;
-    Expression *expression;
 } VariableDeclaration;
 
 typedef struct FunctionParameter {
@@ -133,6 +137,8 @@ typedef struct FunctionDeclaration {
 /* Constructor functions for Expressions */
 extern Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right);
 extern Expression *newUnaryExpression(UnaryOperation op, Expression *operand);
+extern Expression *newVariableExpression(char *identifier);
+extern Expression *newConstExpression(Type type, Value value);
 extern Expression *newIntConstExpression(int val);
 extern Expression *newCharConstExpression(char val);
 extern Expression *newCharArrayConstExpression(char val[]);
@@ -147,14 +153,14 @@ extern Statement *newIfElseStatement(Expression *condition, Statement *satisfied
         Statement *unsatisfied);
 extern Statement *newReturnStatement(Expression *returnValue);
 extern Statement *newAssignmentStatement(char *identifier, Expression *expression);
-extern Statement *newStatementList(Statement *statement);
+extern StatementList *newStatementList(Statement *statement, StatementList *rest);
 
 /* Constructor functions for Declarations */
-extern VariableDeclaration *newVariable(Type type, char *identifier, Expression *expression);
+extern VariableDeclaration *newVariable(Type type, char *identifier);
 extern FunctionDeclaration *newFunction(Type type, char *identifier, FunctionParameter *parameters,
         Statement *body);
 
 /* Utility functions */
-char *expressionTypeName(ExpressionType et);
+extern char *expressionTypeName(ExpressionType et);
 
 #endif
