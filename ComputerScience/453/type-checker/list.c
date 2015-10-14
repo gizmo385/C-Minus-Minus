@@ -14,8 +14,8 @@
  * Returns:
  * The newly allocated node
  */
-ListNode *newListNode(void* data, ListNode *next) {
-    ListNode *node = malloc(sizeof(ListNode));
+ListNode *newListNode( void* data, ListNode *next ) {
+    ListNode *node = malloc( sizeof(ListNode) );
     node->data = data;
     node->next = next;
 
@@ -28,12 +28,12 @@ ListNode *newListNode(void* data, ListNode *next) {
  * Returns:
  * The newly allocated linked list
  */
-List *newList(ComparisonFunction comparisonFunction) {
-    List *list = malloc(sizeof(List));
+List *newList( ComparisonFunction comparisonFunction ) {
+    List *list = malloc( sizeof(List) );
     list->size = 0;
     list->head = newListNode(NULL, NULL);
 
-    if(comparisonFunction != NULL) {
+    if( comparisonFunction != NULL ) {
         list->comparisonFunction = comparisonFunction;
     }
 
@@ -47,9 +47,9 @@ List *newList(ComparisonFunction comparisonFunction) {
  * list -- The to add the element into
  * data -- The data to be added into the list
  */
-void listInsert(List *list, void *data) {
+void listInsert( List *list, void *data ) {
     // You cannot insert NULL into the list
-    if(data == NULL) {
+    if( data == NULL ) {
         return;
     }
 
@@ -57,12 +57,12 @@ void listInsert(List *list, void *data) {
     ComparisonFunction compare = list->comparisonFunction;
 
     // Determine where the data will be inserted
-    while(current->next != NULL && compare(current->data, data) < 0) {
+    while( current->next != NULL && compare(current->data, data) < 0 ) {
         current = current->next;
     }
 
     // Insert the element
-    ListNode *tempNode = newListNode(current->data, current->next);
+    ListNode *tempNode = newListNode( current->data, current->next );
     current->data = data;
     current->next = tempNode;
     list->size += 1;
@@ -78,9 +78,9 @@ void listInsert(List *list, void *data) {
  * Returns:
  * The element that was removed from the list
  */
-void *listRemove(List *list, void *data) {
+void *listRemove( List *list, void *data ) {
     // You cannot remove NULL from the list
-    if(data == NULL) {
+    if( data == NULL ) {
         return NULL;
     }
 
@@ -88,7 +88,7 @@ void *listRemove(List *list, void *data) {
     ComparisonFunction compare = list->comparisonFunction;
 
     // Determine where the data will be inserted
-    while(current->next != NULL && compare(current->data, data) != 0) {
+    while( current->next != NULL && compare(current->data, data) != 0 ) {
         current = current->next;
     }
 
@@ -98,7 +98,7 @@ void *listRemove(List *list, void *data) {
     current->data = temp->data;
     current->next = temp->next;
 
-    free(temp);
+    free( temp );
 
     list->size -= 1;
     return elementRemoved;
@@ -114,16 +114,16 @@ void *listRemove(List *list, void *data) {
  * Returns:
  * The Node containing the desired data, or NULL if it can't be found
  */
-ListNode *listFind(List *list, void *data) {
+ListNode *listFind( List *list, void *data ) {
     ListNode *current = list->head;
     ComparisonFunction compare = list->comparisonFunction;
 
-    while(current->next != NULL && compare(current->data, data) != 0) {
+    while( current->next != NULL && compare( current->data, data ) != 0 ) {
         current = current->next;
     }
 
     // If the data in current isn't equal to the data we're trying to find, return NULL
-    if(compare(current->data, data) != 0) {
+    if( compare( current->data, data ) != 0 ) {
         return NULL;
     } else {
         return current;
@@ -136,19 +136,19 @@ ListNode *listFind(List *list, void *data) {
  * Arguments:
  * list -- The list that is being freed
  */
-void listFree(List *list) {
+void listFree( List *list ) {
     ListNode *current = list->head;
 
     // Free the nodes along the list
-    while(current->next != NULL) {
+    while( current->next != NULL ) {
         ListNode *next = current->next;
-        free(current->data);
-        free(current);
+        free( current->data );
+        free( current );
         current = next;
     }
 
     // Free the last node and the list
-    free(current->data);
-    free(current);
-    free(list);
+    free( current->data );
+    free( current );
+    free( list );
 }

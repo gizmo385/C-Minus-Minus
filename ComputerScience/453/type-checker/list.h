@@ -1,5 +1,5 @@
-#ifndef LIST_H
-#define LIST_H
+#ifndef LLIST_H
+#define LLIST_H
 
 typedef int (*ComparisonFunction)(void *, void *);
 
@@ -25,7 +25,7 @@ typedef struct List {
  * Returns:
  * The newly allocated node
  */
-extern ListNode *newListNode(void* data, ListNode *next);
+extern ListNode *newListNode( void* data, ListNode *next );
 
 /*
  * Creates a list that starts with a NULL node.
@@ -33,7 +33,7 @@ extern ListNode *newListNode(void* data, ListNode *next);
  * Returns:
  * The newly allocated linked list
  */
-extern List *newList();
+extern List *newList(ComparisonFunction comparisonFunction);
 
 /*
  * Inserts the element into the list.
@@ -42,7 +42,7 @@ extern List *newList();
  * list -- The to add the element into
  * data -- The data to be added into the list
  */
-extern void listInsert(List *list, void *data);
+extern void listInsert( List *list, void *data );
 
 /*
  * Removes the specified data element from the list
@@ -54,7 +54,7 @@ extern void listInsert(List *list, void *data);
  * Returns:
  * The element that was removed from the list
  */
-extern void *listRemove(List *list, void *data);
+extern void *listRemove( List *list, void *data );
 
 /*
  * Searchs for and returns the element in the list
@@ -66,7 +66,7 @@ extern void *listRemove(List *list, void *data);
  * Returns:
  * The ListNode containing the desired data, or NULL if it can't be found
  */
-extern ListNode *listFind(List *list, void *data);
+extern ListNode *listFind( List *list, void *data );
 
 /*
  * Frees the list and the nodes in the list
@@ -74,6 +74,6 @@ extern ListNode *listFind(List *list, void *data);
  * Arguments:
  * list -- The list that is being freed
  */
-extern void listFree(List *list);
+extern void listFree( List *list );
 
 #endif
