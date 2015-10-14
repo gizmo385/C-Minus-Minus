@@ -1,7 +1,6 @@
 #ifndef AST_H
 #define AST_H
 #include <stdbool.h>
-#include "list.h"
 
 /* Defining types */
 typedef enum {
@@ -49,14 +48,14 @@ typedef struct {
     BinaryOperation operation;
 } BinaryExpression;
 
-typedef struct Expression {
+struct Expression {
     ExpressionType type;
     union {
         ConstExpression *constantExpression;
         BinaryExpression *binaryExpression;
         UnaryExpression *unaryExpression;
     };
-} Expression;
+};
 
 /* Different kinds of statements */
 typedef union {} Statement;
