@@ -33,44 +33,61 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     return expr;
 }
 
-Expression *newIntConstExpression(int val) {
-    Value value;
-    value.integer_value = val;
+Expression *newVariableExpression(char *identifier) {
+    VariableExpression *variableExpression = malloc(sizeof(VariableExpression));
+    variableExpression->identifier = identifier;
 
+    Expression *expr = malloc(sizeof(Expression));
+    expr->variableExpression = variableExpression;
+    expr->type = VARIABLE;
+
+    debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
+
+    return expr;
+}
+
+Expression *newConstExpression(Type type, Value value) {
     ConstExpression *constExpr = malloc(sizeof(ConstExpression));
+    constExpr->type = type;
     constExpr->value = value;
-    constExpr->type = INT_TYPE;
 
     Expression *expr = malloc(sizeof(Expression));
     expr->constantExpression = constExpr;
     expr->type = CONST;
 
-    debug(E_DEBUG, "Creating int const with value %d\n", val);
     return expr;
 }
 
+Expression *newIntConstExpression(int val) {
+    Value value;
+    value.integer_value = val;
+
+    debug(E_DEBUG, "Creating int const with value %d\n", val);
+    return newConstExpression(INT_TYPE, value);
+}
+
 Expression *newCharConstExpression(char val) {
-    return NULL;
+    Value value;
+    value.char_value = val;
+
+    debug(E_DEBUG, "Creating int const with value %d\n", val);
+    return newConstExpression(CHAR_TYPE, value);
 }
 
 Expression *newCharArrayConstExpression(char val[]) {
     Value value;
     value.char_array_value = val;
 
-    ConstExpression *constExpr = malloc(sizeof(ConstExpression));
-    constExpr->value = value;
-    constExpr->type = CHAR_ARRAY_TYPE;
-
-    Expression *expr = malloc(sizeof(Expression));
-    expr->constantExpression = constExpr;
-    expr->type = CONST;
-
-    debug(E_DEBUG, "Creating string const with value %s\n", val);
-    return expr;
+    debug(E_DEBUG, "Creating int const with value %d\n", val);
+    return newConstExpression(CHAR_ARRAY_TYPE, value);
 }
 
 Expression *newIntArrayConstExpression(int val[]) {
-    return NULL;
+    Value value;
+    value.int_array_value = val;
+
+    debug(E_DEBUG, "Creating int const with value %d\n", val);
+    return newConstExpression(INT_ARRAY_TYPE, value);
 }
 
 
@@ -183,6 +200,8 @@ FunctionDeclaration *newFunction(Type type, char *identifier, FunctionParameter 
 char *expressionTypeName(ExpressionType type) {
     if(type == CONST) {
         return "Constant";
+    } else if (type == VARIABLE) {
+        return "VARIABLE";
     } else if(type == UNARY) {
         return "Unary";
     } else if(type == BINARY) {
