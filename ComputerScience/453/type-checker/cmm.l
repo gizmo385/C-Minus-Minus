@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
+#include "utils.h"
 #include "cmm.tab.h"
 
 int mylineno = 1;
@@ -63,6 +64,13 @@ int mycolno = 1;
     /* Delimiters */
 ";"                                 { mycolno += strlen(yytext); return SEMICOLON; }
 ","                                 { mycolno += strlen(yytext); return COMMA; }
+
+    /* IDENTIFIERS */
+[a-zA-Z][a-zA-Z0-9\_]*               { mycolno += strlen(yytext); debug(E_DEBUG, "ID: %s\n", yytext); yylval.string = yytext; return ID; }
+
+    /* WHITESPACE */
+[[:space:]]{-}[\n]+                 { mycolno += strlen(yytext); }
+
     /* DISCARD COMMENTS */
 "/*"                                { mycolno += strlen(yytext); BEGIN(comment); }
 <comment>[^*\n]*                    { mycolno += strlen(yytext); }
@@ -70,11 +78,6 @@ int mycolno = 1;
 <comment>\n                         { mylineno += 1; mycolno = 1;}
 <comment>"*"+"/"                    { mycolno += strlen(yytext); BEGIN(INITIAL); }
 
-    /* IDENTIFIERS */
-[a-zA-Z][a-zA-Z0-9_]*               { mycolno += strlen(yytext); return ID; }
-
-    /* WHITESPACE */
-[[:space:]]{-}[\n]+                 { mycolno += strlen(yytext); }
 \n                                  { mylineno += 1; mycolno = 1; }
 
 %%
