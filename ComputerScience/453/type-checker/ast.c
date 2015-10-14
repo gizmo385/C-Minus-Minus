@@ -77,70 +77,86 @@ Expression *newIntArrayConstExpression(int val[]) {
 /* Constructor functions for Statements */
 Statement *newForStatement(AssignmentStatement *initial, Expression *condition,
         AssignmentStatement *change, Statement *body) {
-    ForStatement *stmt = malloc(sizeof(ForStatement));
-    stmt->type = ST_FOR;
-    stmt->initial = initial;
-    stmt->condition = condition;
-    stmt->change = change;
-    stmt->body = body;
+    ForStatement *forStatement = malloc(sizeof(ForStatement));
+    forStatement->initial = initial;
+    forStatement->condition = condition;
+    forStatement->change = change;
+    forStatement->body = body;
 
-    return (Statement *) stmt;
+    Statement *stmt = malloc(sizeof(Statement));
+    stmt->stmt_for = forStatement;
+    stmt->type = ST_FOR;
+
+    return stmt;
 }
 
 Statement *newWhileStatement(Expression *condition, Statement *body) {
-    WhileStatement *stmt = malloc(sizeof(WhileStatement));
-    stmt->type = ST_WHILE;
-    stmt->condition = condition;
-    stmt->body = body;
+    WhileStatement *whileStatement = malloc(sizeof(WhileStatement));
+    whileStatement->condition = condition;
+    whileStatement->body = body;
 
-    return (Statement *) stmt;
+    Statement *stmt = malloc(sizeof(Statement));
+    stmt->stmt_while = whileStatement;
+    stmt->type = ST_WHILE;
+
+    return stmt;
 }
 
 Statement *newIfStatement(Expression *condition, Statement *body) {
-    IfStatement *stmt = malloc(sizeof(IfStatement));
-    stmt->type = ST_IF;
-    stmt->condition = condition;
-    stmt->satisfied = body;
+    IfStatement *ifStatement = malloc(sizeof(IfStatement));
+    ifStatement->condition = condition;
+    ifStatement->satisfied = body;
 
-    return (Statement *) stmt;
+    Statement *stmt = malloc(sizeof(Statement));
+    stmt->stmt_if = ifStatement;
+    stmt->type = ST_IF;
+
+    return stmt;
 }
 
 Statement *newIfElseStatement(Expression *condition, Statement *satisfied, Statement *unsatisfied) {
-    IfElseStatement *stmt = malloc(sizeof(IfElseStatement));
-    stmt->type = ST_IF_ELSE;
-    stmt->condition = condition;
-    stmt->satisfied = satisfied;
-    stmt->unsatisfied = unsatisfied;
+    IfElseStatement *ifElseStatement = malloc(sizeof(IfElseStatement));
+    ifElseStatement->condition = condition;
+    ifElseStatement->satisfied = satisfied;
+    ifElseStatement->unsatisfied = unsatisfied;
 
-    return (Statement *) stmt;
+    Statement *stmt = malloc(sizeof(Statement));
+    stmt->stmt_if_else = ifElseStatement;
+    stmt->type = ST_IF_ELSE;
+
+    return stmt;
 }
 
-Statement *newReturnStatment(Expression *returnValue) {
-    ReturnStatement *stmt = malloc(sizeof(ReturnStatement));
-    stmt->type = ST_RETURN;
-    stmt->returnValue = returnValue;
+Statement *newReturnStatement(Expression *returnValue) {
+    ReturnStatement *returnStatement = malloc(sizeof(ReturnStatement));
+    returnStatement->returnValue = returnValue;
 
-    return (Statement *) stmt;
+    Statement *stmt = malloc(sizeof(Statement));
+    stmt->stmt_return = returnStatement;
+    stmt->type = ST_RETURN;
+
+    return stmt;
 }
 
 Statement *newAssignmentStatement(char *identifier, Expression *expression) {
-    AssignmentStatement *stmt = malloc(sizeof(AssignmentStatement));
-    stmt->type = ST_ASSIGN;
-    stmt->identifier = identifier;
-    stmt->expression = expression;
+    AssignmentStatement *assign = malloc(sizeof(AssignmentStatement));
+    assign->identifier = identifier;
+    assign->expression = expression;
 
-    return (Statement *) stmt;
+    Statement *stmt = malloc(sizeof(Statement));
+    stmt->stmt_assign = assign;
+    stmt->type = ST_ASSIGN;
+
+    return stmt;
 }
 
-Statement *newStatementList(Statement *statement) {
+StatementList *newStatementList(Statement *statement, StatementList *rest) {
     StatementList *stmt_list = malloc(sizeof(StatementList));
     stmt_list->statement = statement;
-    stmt_list->type = ST_LIST;
-    stmt_list->next = NULL;
+    stmt_list->next = rest;
 
-    return (Statement *) stmt_list;
+    return stmt_list;
 }
-
 
 /* Constructor functions for Declarations */
 VariableDeclaration *newVariable(Type type, char *identifier, Expression *expression) {
