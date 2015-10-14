@@ -145,7 +145,7 @@ extern Statement *newWhileStatement(Expression *condition, Statement *body);
 extern Statement *newIfStatement(Expression *condition, Statement *body);
 extern Statement *newIfElseStatement(Expression *condition, Statement *satisfied,
         Statement *unsatisfied);
-extern Statement *newReturnStatment(Expression *returnValue);
+extern Statement *newReturnStatement(Expression *returnValue);
 extern Statement *newAssignmentStatement(char *identifier, Expression *expression);
 extern Statement *newStatementList(Statement *statement);
 
