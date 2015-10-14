@@ -198,5 +198,5 @@ int yyerror() {
                 yytext);
     }
 
-return 1;
+    return 1;
 }
