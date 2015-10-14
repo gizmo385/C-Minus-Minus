@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ast.h"
-#include "list.h"
 #include "utils.h"
 
 Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right) {
