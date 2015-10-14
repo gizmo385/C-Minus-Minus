@@ -181,7 +181,7 @@ int main(int argc, char **argv){
 #endif
     yyparse();
 
-if(foundError) {
+    if(foundError) {
         return 1;
     } else {
         return 0;
@@ -191,7 +191,7 @@ if(foundError) {
 int yyerror() {
     foundError = true;
 
-if(yytext[0] == 0) {
+    if(yytext[0] == 0) {
         fprintf(stderr, "Encountered unexpected EOF while parsing \"%s\" starting on line %d.\n",
                 yytext, mylineno);
     } else {
