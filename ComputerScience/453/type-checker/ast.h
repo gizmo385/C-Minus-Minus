@@ -58,17 +58,14 @@ struct Expression {
 };
 
 /* Different kinds of statements */
-typedef union {} Statement;
-typedef enum { ST_FOR, ST_WHILE, ST_IF, ST_IF_ELSE, ST_RETURN, ST_LIST, ST_ASSIGN } StatementType;
+typedef struct Statement Statement;
 
 typedef struct {
-    StatementType type;
     char *identifier;
     Expression *expression;
 } AssignmentStatement;
 
 typedef struct {
-    StatementType type;
     AssignmentStatement *initial;
     Expression *condition;
     AssignmentStatement *change;
@@ -76,44 +73,43 @@ typedef struct {
 } ForStatement;
 
 typedef struct {
-    StatementType type;
     Expression *condition;
     Statement *body;
 } WhileStatement;
 
 typedef struct {
-    StatementType type;
     Expression *condition;
     Statement *satisfied;
 } IfStatement;
 
 typedef struct {
-    StatementType type;
     Expression *condition;
     Statement *satisfied;
     Statement *unsatisfied;
 } IfElseStatement;
 
 typedef struct {
-    StatementType type;
     Expression *returnValue;
 } ReturnStatement;
 
 /* Statement list and statements */
 typedef struct StatementList {
     Statement *statement;
-    StatementType type;
     struct StatementList *next;
 } StatementList;
 
-union Statement {
-    ForStatement *stmt_for;
-    WhileStatement *stmt_while;
-    IfStatement *stmt_if;
-    IfElseStatement *stmt_if_else;
-    ReturnStatement *stmt_return;
-    AssignmentStatement stmt_assign;
-    StatementList *stmt_list;
+typedef enum { ST_FOR, ST_WHILE, ST_IF, ST_IF_ELSE, ST_RETURN, ST_LIST, ST_ASSIGN } StatementType;
+struct Statement {
+    StatementType type;
+    union {
+        ForStatement *stmt_for;
+        WhileStatement *stmt_while;
+        IfStatement *stmt_if;
+        IfElseStatement *stmt_if_else;
+        ReturnStatement *stmt_return;
+        AssignmentStatement *stmt_assign;
+        StatementList *stmt_list;
+    };
 };
 
 typedef struct VariableDeclaration {
