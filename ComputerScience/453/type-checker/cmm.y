@@ -203,7 +203,8 @@ type : CHAR                             { baseDeclType = CHAR_TYPE; }
      ;
 
 param_types : VOID
-            | param_types_list
+            | non_void_param_type
+            | param_types_list COMMA non_void_param_type
             ;
 
 non_void_param_type : type ID
