@@ -24,8 +24,13 @@ Type baseDeclType;
 }
 
 %type<expression> expr optional_expr
+<<<<<<< HEAD
 %type<statementList> stmt_list
 %type<statement> stmt assg optional_assign
+=======
+/*%type<statementList> stmt_list*/
+/*%type<statement> stmt assg optional_assign*/
+>>>>>>> dfa249c... 453 3: Actions for non-identifier expressions
 
 /* Language Tokens */
 %token WHILE FOR
@@ -49,8 +54,12 @@ Type baseDeclType;
 %token <expression> INTCON
 %token <expression> CHARCON
 %token <expression> STRINGCON
+<<<<<<< HEAD
 %token ID
 %type<string> ID
+=======
+%token <string> ID
+>>>>>>> dfa249c... 453 3: Actions for non-identifier expressions
 %token TEXT SPACE
 
 /* If/Else Precedence fix */
@@ -121,6 +130,7 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 expr : MINUS expr %prec UMINUS          { $$ = newUnaryExpression(NEG_OP, $2); }
      | NOT expr %prec UMINUS            { $$ = newUnaryExpression(NOT_OP, $2); }
      | expr ADD expr %prec add_sub      { $$ = newBinaryExpression(ADD_OP, $1, $3); }
@@ -177,6 +187,30 @@ expr : MINUS expr %prec UMINUS
 =======
      | error
 >>>>>>> aeb3970... 453 3: foundError set in yyerror, not in action
+=======
+expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpression(NEG_OP, $2); }
+     | NOT expr %prec UMINUS                            { $$ = newUnaryExpression(NOT_OP, $2); }
+     | expr ADD expr %prec add_sub                      { $$ = newBinaryExpression(ADD_OP, $1, $3); }
+     | expr MINUS expr %prec add_sub                    { $$ = newBinaryExpression(SUB_OP, $1, $3); }
+     | expr AND expr                                    { $$ = newBinaryExpression(AND_OP, $1, $3); }
+     | expr OR expr                                     { $$ = newBinaryExpression(OR_OP, $1, $3); }
+     | expr MUL expr %prec mul_div                      { $$ = newBinaryExpression(MUL_OP, $1, $3); }
+     | expr DIV expr %prec mul_div                      { $$ = newBinaryExpression(DIV_OP, $1, $3); }
+     | expr EQ expr %prec equality_op                   { $$ = newBinaryExpression(EQ_OP, $1, $3); }
+     | expr NEQ expr %prec equality_op                  { $$ = newBinaryExpression(NEQ_OP, $1, $3); }
+     | expr GTE expr %prec relop                        { $$ = newBinaryExpression(GTE_OP, $1, $3); }
+     | expr LTE expr %prec relop                        { $$ = newBinaryExpression(LTE_OP, $1, $3); }
+     | expr GT expr %prec relop                         { $$ = newBinaryExpression(GT_OP, $1, $3); }
+     | expr LT expr %prec relop                         { $$ = newBinaryExpression(LT_OP, $1, $3); }
+     | ID LEFT_PAREN expr_list RIGHT_PAREN
+     | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET
+     | ID
+     | LEFT_PAREN expr RIGHT_PAREN                      { $$ = $2; }
+     | INTCON                                           { $$ = newIntConstExpression(atoi(yytext)); }
+     | CHARCON                                          { $$ = newCharConstExpression(yytext[0]); }
+     | STRINGCON                                        { $$ = newCharArrayConstExpression(strdup(yytext)); }
+     | error                                            { $$ = NULL; }
+>>>>>>> dfa249c... 453 3: Actions for non-identifier expressions
      ;
 
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
