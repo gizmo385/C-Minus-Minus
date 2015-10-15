@@ -85,6 +85,7 @@ func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_va
      | error RIGHT_CURLY_BRACKET
      ;
 
+<<<<<<< HEAD
 stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE { $$ = newIfStatement($3, $5); }
      | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt { $$ = newIfElseStatement($3, $5, $7); }
      | WHILE LEFT_PAREN expr RIGHT_PAREN stmt { $$ = newWhileStatement($3, $5); }
@@ -104,6 +105,19 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE { $$ = newIfStatem
      | SEMICOLON                        { $$ = NULL; }
      | error SEMICOLON                  { $$ = NULL; }
      | error RIGHT_CURLY_BRACKET        { $$ = NULL; }
+=======
+stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
+     | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt
+     | WHILE LEFT_PAREN expr RIGHT_PAREN stmt
+     | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
+     | RETURN optional_expr SEMICOLON
+     | assg SEMICOLON
+     | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON/* Function call */
+     | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET
+     | SEMICOLON
+     | error SEMICOLON
+     | error RIGHT_CURLY_BRACKET
+>>>>>>> aeb3970... 453 3: foundError set in yyerror, not in action
      ;
 
 <<<<<<< HEAD
@@ -157,8 +171,12 @@ expr : MINUS expr %prec UMINUS
      | INTCON
      | CHARCON
      | STRINGCON
+<<<<<<< HEAD
      | error {foundError = true}
 >>>>>>> 6fe734b... 453 3: Fix AND and OR parsing
+=======
+     | error
+>>>>>>> aeb3970... 453 3: foundError set in yyerror, not in action
      ;
 
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
@@ -200,9 +218,15 @@ param_types_list : non_void_param_type
 optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
                        | epsilon
 
+<<<<<<< HEAD
 optional_assign: assg                   { $$ = $1; }
                | error                  { $$ = NULL; }
                | epsilon                { $$ = NULL; }
+=======
+optional_assign: assg
+               | error
+               | epsilon
+>>>>>>> aeb3970... 453 3: foundError set in yyerror, not in action
                ;
 
 optional_expr : expr                    { $$ = $1; }
@@ -240,7 +264,11 @@ int main(int argc, char **argv){
 }
 
 int yyerror() {
+<<<<<<< HEAD
     foundError = true;
+=======
+    foundError = 1;
+>>>>>>> aeb3970... 453 3: foundError set in yyerror, not in action
 
     if(yytext[0] == 0) {
         fprintf(stderr, "Encountered unexpected EOF while parsing \"%s\" starting on line %d.\n",
