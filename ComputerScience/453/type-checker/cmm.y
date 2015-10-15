@@ -106,6 +106,7 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE { $$ = newIfStatem
      | error RIGHT_CURLY_BRACKET        { $$ = NULL; }
      ;
 
+<<<<<<< HEAD
 expr : MINUS expr %prec UMINUS          { $$ = newUnaryExpression(NEG_OP, $2); }
      | NOT expr %prec UMINUS            { $$ = newUnaryExpression(NOT_OP, $2); }
      | expr ADD expr %prec add_sub      { $$ = newBinaryExpression(ADD_OP, $1, $3); }
@@ -134,6 +135,30 @@ expr : MINUS expr %prec UMINUS          { $$ = newUnaryExpression(NEG_OP, $2); }
      | CHARCON                          { $$ = newCharConstExpression(yytext[0]); }
      | STRINGCON                        { $$ = newCharArrayConstExpression(strdup(yytext)); }
      | error                            { $$ = NULL; }
+=======
+expr : MINUS expr %prec UMINUS
+     | NOT expr %prec UMINUS
+     | expr ADD expr %prec add_sub
+     | expr MINUS expr %prec add_sub
+     | expr AND expr
+     | expr OR expr
+     | expr MUL expr %prec mul_div
+     | expr DIV expr %prec mul_div
+     | expr EQ expr %prec equality_op
+     | expr NEQ expr %prec equality_op
+     | expr GTE expr %prec relop
+     | expr LTE expr %prec relop
+     | expr GT expr %prec relop
+     | expr LT expr %prec relop
+     | ID
+     | ID LEFT_PAREN expr_list RIGHT_PAREN /* Function call with arguments */
+     | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET /* Array access */
+     | LEFT_PAREN expr RIGHT_PAREN
+     | INTCON
+     | CHARCON
+     | STRINGCON
+     | error {foundError = true}
+>>>>>>> 6fe734b... 453 3: Fix AND and OR parsing
      ;
 
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN

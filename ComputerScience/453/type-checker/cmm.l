@@ -39,6 +39,10 @@ int mycolno = 1;
 "!="                                { mycolno += strlen(yytext); return NEQ; }
 "!"                                 { mycolno += strlen(yytext); return NOT; }
 
+    /* LOGICAL OPERATORS */
+"\&\&"                              { mycolno += strlen(yytext); return AND; }
+"||"                                { mycolno += strlen(yytext); return OR; }
+
     /* RELATIONAL OPERATORS */
 ">="                                { mycolno += strlen(yytext); return GTE; }
 "<="                                { mycolno += strlen(yytext); return LTE; }
