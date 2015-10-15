@@ -69,14 +69,21 @@ int mycolno = 1;
 ";"                                 { mycolno += strlen(yytext); return SEMICOLON; }
 ","                                 { mycolno += strlen(yytext); return COMMA; }
 
+<<<<<<< HEAD
     /* IDENTIFIERS */
 [a-zA-Z][a-zA-Z0-9\_]*               { mycolno += strlen(yytext); debug(E_DEBUG, "ID: %s\n", yytext); yylval.string = yytext; return ID; }
 
     /* WHITESPACE */
 [[:space:]]{-}[\n]+                 { mycolno += strlen(yytext); }
 
+=======
+>>>>>>> 3bc6aed... 453 3: Catch EOF in a comment
     /* DISCARD COMMENTS */
 "/*"                                { mycolno += strlen(yytext); BEGIN(comment); }
+<comment><<EOF>>                    {
+    fprintf(stderr, "Unexpected end of file while parsing comment on line %d.\n", mylineno);
+    exit(1);
+}
 <comment>[^*\n]*                    { mycolno += strlen(yytext); }
 <comment>"*"+[^*/\n]*               { mycolno += strlen(yytext); }
 <comment>\n                         { mylineno += 1; mycolno = 1;}
