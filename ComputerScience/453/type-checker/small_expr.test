@@ -1,5 +1,7 @@
 int main(void) {
-    y = "Testing";
-    g = !1;
+    int x;
+    x = 5;
+
+    printf(x);
     return 4 + 1 + 2;
 }
