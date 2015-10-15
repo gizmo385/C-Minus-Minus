@@ -14,7 +14,7 @@ Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression
     expr->type = BINARY;
 
     debug(E_DEBUG, "Creating binary expression with left operand types %s and %s\n",
-            expressionTypeName(left->type), expressionTypeName(right->type));
+            expressionTypeName(left), expressionTypeName(right));
 
     return expr;
 }
@@ -28,7 +28,8 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     expr->unaryExpression = unaryExpr;
     expr->type = UNARY;
 
-    debug(E_DEBUG, "Creating unary expression with operand of type %d\n", operand->type);
+    debug(E_DEBUG, "Creating unary expression with operand of type %s\n",
+            expressionTypeName(operand));
 
     return expr;
 }
@@ -196,16 +197,22 @@ FunctionDeclaration *newFunction(Type type, char *identifier, FunctionParameter 
 }
 
 /* Utility Functions */
-char *expressionTypeName(ExpressionType type) {
-    if(type == CONST) {
-        return "Constant";
-    } else if (type == VARIABLE) {
-        return "VARIABLE";
-    } else if(type == UNARY) {
-        return "Unary";
-    } else if(type == BINARY) {
-        return "Binary";
+char *expressionTypeName(Expression *expression) {
+    if(expression) {
+        ExpressionType type = expression->type;
+
+        if(type == CONST) {
+            return "Constant";
+        } else if (type == VARIABLE) {
+            return "VARIABLE";
+        } else if(type == UNARY) {
+            return "Unary";
+        } else if(type == BINARY) {
+            return "Binary";
+        } else {
+            return "Wat";
+        }
     } else {
-        return "Wat";
+        return "NULL";
     }
 }
