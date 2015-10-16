@@ -79,7 +79,11 @@ int mycolno = 1;
 
 <<<<<<< HEAD
     /* IDENTIFIERS */
+<<<<<<< HEAD
 [a-zA-Z][a-zA-Z0-9\_]*               { mycolno += strlen(yytext); debug(E_DEBUG, "ID: %s\n", yytext); yylval.string = yytext; return ID; }
+=======
+[a-zA-Z][a-zA-Z0-9\_]*               { mycolno += strlen(yytext); yylval.string = strdup(yytext); return ID; }
+>>>>>>> 24da8ed... 453 3: Fixed bug with identifier value
 
     /* WHITESPACE */
 [[:space:]]{-}[\n]+                 { mycolno += strlen(yytext); }
