@@ -50,6 +50,7 @@ typedef struct {
 
 typedef struct {
     char *identifier;
+    Expression *arrayIndex;
 } VariableExpression;
 
 struct Expression {
@@ -137,7 +138,7 @@ typedef struct FunctionDeclaration {
 /* Constructor functions for Expressions */
 extern Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right);
 extern Expression *newUnaryExpression(UnaryOperation op, Expression *operand);
-extern Expression *newVariableExpression(char *identifier);
+extern Expression *newVariableExpression(char *identifier, Expression *arrayIndex);
 extern Expression *newConstExpression(Type type, Value value);
 extern Expression *newIntConstExpression(int val);
 extern Expression *newCharConstExpression(char val);
