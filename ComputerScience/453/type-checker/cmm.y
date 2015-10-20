@@ -221,6 +221,7 @@ name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 var_decl : ID { declareUndeclaredVar(scope, baseDeclType, yylval.string); }
          | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET {
             if(baseDeclType == CHAR_TYPE) {
@@ -241,6 +242,9 @@ var_decl : ID {
             }
         }
 >>>>>>> d8c9c6b... 453 3: Declaring variables in scope
+=======
+var_decl : ID { declareVar(scope, baseDeclType, $1); }
+>>>>>>> 623c239... 453 3: Call new declareVar constructor in parser
          | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET {
             char *id = $1;
             if(baseDeclType == INT_TYPE) {
