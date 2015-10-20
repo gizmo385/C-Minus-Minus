@@ -205,38 +205,8 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
      | expr GT expr %prec relop                         { $$ = newBinaryExpression(GT_OP, $1, $3); }
      | expr LT expr %prec relop                         { $$ = newBinaryExpression(LT_OP, $1, $3); }
      | ID LEFT_PAREN expr_list RIGHT_PAREN
-     | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET {
-        char *id = $1;
-        Expression *arrayIndex = $3;
-
-        ScopeVariable *var = findScopeVariable(scope, id);
-        if(var) {
-            Type varType = var->type;
-            if(varType == INT_ARRAY_TYPE) {
-                $$ = newVariableExpression(INT_ARRAY_TYPE, id, arrayIndex);
-            } else if(varType == CHAR_ARRAY_TYPE) {
-                $$ = newVariableExpression(CHAR_ARRAY_TYPE,id, arrayIndex);
-            } else {
-                fprintf(stderr, "ERROR: On line %d, the variable %s is not an array!\n", mylineno, id);
-            }
-        } else {
-            fprintf(stderr, "ERROR: Undeclared identifier \"%s\" on line %d.\n", id, mylineno);
-            foundError = true;
-        }
-    }
-     | ID {
-        char *id = $1;
-        ScopeVariable *var = findScopeVariable(scope, id);
-
-        // TODO: Can a bare array ID be in an expression?
-
-        if(var) {
-            $$ = newVariableExpression(var->type, id, NULL);
-        } else {
-            fprintf(stderr, "ERROR: Undeclared identifier \"%s\" on line %d.\n", id, mylineno);
-            foundError = true;
-        }
-    }
+     | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET { $$ = newVariableExpression(scope, $1, $3); }
+     | ID                                               { $$ = newVariableExpression(scope, $1, NULL); }
      | LEFT_PAREN expr RIGHT_PAREN                      { $$ = $2; }
      | INTCON                                           { $$ = newIntConstExpression(atoi(yytext)); }
      | CHARCON                                          { $$ = newCharConstExpression(yytext[0]); }
