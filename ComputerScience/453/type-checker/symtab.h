@@ -1,16 +1,19 @@
 #ifndef SYMTAB_H
 #define SYMTAB_H
-
-#include "ast.h"
+#include <stdbool.h>
 #include "list.h"
 
-typedef struct {
+typedef struct ScopeVariable ScopeVariable;
+typedef struct Scope Scope;
+
+#include "ast.h"
+
+struct ScopeVariable {
     char *identifier;
     Type type;
     Value value;
-} ScopeVariable;
+};
 
-typedef struct Scope Scope;
 struct Scope {
     List *variables;
     Scope *enclosingScope;
