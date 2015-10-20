@@ -166,5 +166,6 @@ extern FunctionDeclaration *newFunction(Type type, char *identifier, FunctionPar
 
 /* Utility functions */
 extern char *expressionTypeName(Expression *expression);
+extern char *typeName(Type type);
 
 #endif

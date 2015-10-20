@@ -207,24 +207,31 @@ FunctionDeclaration *newFunction(Type type, char *identifier, FunctionParameter 
 
     return funcDecl;
 }
-
 /* Utility Functions */
 char *expressionTypeName(Expression *expression) {
+    char *name = "ERROR";
     if(expression) {
         ExpressionType type = expression->type;
-
-        if(type == CONST) {
-            return "Constant";
-        } else if (type == VARIABLE) {
-            return "VARIABLE";
-        } else if(type == UNARY) {
-            return "Unary";
-        } else if(type == BINARY) {
-            return "Binary";
-        } else {
-            return "Wat";
+        switch(type) {
+            case CONST: name = "Constant"; break;
+            case VARIABLE: name = "Variable"; break;
+            case UNARY: name = "Unary"; break;
+            case BINARY: name = "Binary"; break;
         }
-    } else {
-        return "NULL";
     }
+    return name;
+}
+
+char *typeName(Type type) {
+    char *name = "ERROR";
+    switch(type) {
+        case INT_TYPE: name = "INT"; break;
+        case CHAR_TYPE: name = "CHAR"; break;
+        case CHAR_ARRAY_TYPE: name = "CHAR_ARRAY"; break;
+        case INT_ARRAY_TYPE: name = "INT_ARRAY"; break;
+        case VOID_TYPE: name = "VOID"; break;
+        case BOOL_TYPE: name = "BOOL"; break;
+        default: break;
+    }
+    return name;
 }
