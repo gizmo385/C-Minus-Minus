@@ -27,6 +27,9 @@ debug: clean compile
 %.o: %.c %.h
 	${CC} ${CFLAGS} -c $^
 
+todo:
+	@grep -ni "TODO" *.c *.h
+
 .PHONY : clean
 clean:
 	/bin/rm -f compile cmm.lex.c cmm.tab.c cmm.tab.h a.out *.o *.gch
