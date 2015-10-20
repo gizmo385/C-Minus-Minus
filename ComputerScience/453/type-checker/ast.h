@@ -8,7 +8,9 @@ typedef enum {
     CHAR_TYPE,
     CHAR_ARRAY_TYPE,
     INT_ARRAY_TYPE,
-    VOID_TYPE
+    VOID_TYPE,
+    BOOL_TYPE,
+    ERROR_TYPE
 } Type;
 
 /* Various types of values */
