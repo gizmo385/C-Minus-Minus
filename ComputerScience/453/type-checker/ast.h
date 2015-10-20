@@ -151,15 +151,15 @@ extern Expression *newCharArrayConstExpression(char val[]);
 extern Expression *newIntArrayConstExpression(int val[]);
 
 /* Constructor functions for Statements */
-extern Statement *newForStatement(AssignmentStatement *initial, Expression *condition,
+extern Statement *newForStatement(Scope *scope, AssignmentStatement *initial, Expression *condition,
         AssignmentStatement *change, Statement *body);
-extern Statement *newWhileStatement(Expression *condition, Statement *body);
-extern Statement *newIfStatement(Expression *condition, Statement *body);
-extern Statement *newIfElseStatement(Expression *condition, Statement *satisfied,
+extern Statement *newWhileStatement(Scope *scope, Expression *condition, Statement *body);
+extern Statement *newIfStatement(Scope *scope, Expression *condition, Statement *body);
+extern Statement *newIfElseStatement(Scope *scope, Expression *condition, Statement *satisfied,
         Statement *unsatisfied);
-extern Statement *newReturnStatement(Expression *returnValue);
-extern Statement *newAssignmentStatement(char *identifier, Expression *expression);
-extern StatementList *newStatementList(Statement *statement, StatementList *rest);
+extern Statement *newReturnStatement(Scope *scope, Expression *returnValue);
+extern Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *arrayIndex, Expression *expression);
+extern StatementList *newStatementList(Scope *scope, Statement *statement, StatementList *rest);
 
 /* Constructor functions for Declarations */
 extern VariableDeclaration *newVariable(Type type, char *identifier);

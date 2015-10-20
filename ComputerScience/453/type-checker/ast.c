@@ -123,7 +123,7 @@ Expression *newIntArrayConstExpression(int val[]) {
 
 
 /* Constructor functions for Statements */
-Statement *newForStatement(AssignmentStatement *initial, Expression *condition,
+Statement *newForStatement(Scope *scope, AssignmentStatement *initial, Expression *condition,
         AssignmentStatement *change, Statement *body) {
     ForStatement *forStatement = malloc(sizeof(ForStatement));
     forStatement->initial = initial;
@@ -135,10 +135,11 @@ Statement *newForStatement(AssignmentStatement *initial, Expression *condition,
     stmt->stmt_for = forStatement;
     stmt->type = ST_FOR;
 
+    typeCheckStatement(scope, stmt);
     return stmt;
 }
 
-Statement *newWhileStatement(Expression *condition, Statement *body) {
+Statement *newWhileStatement(Scope *scope, Expression *condition, Statement *body) {
     WhileStatement *whileStatement = malloc(sizeof(WhileStatement));
     whileStatement->condition = condition;
     whileStatement->body = body;
@@ -147,10 +148,11 @@ Statement *newWhileStatement(Expression *condition, Statement *body) {
     stmt->stmt_while = whileStatement;
     stmt->type = ST_WHILE;
 
+    typeCheckStatement(scope, stmt);
     return stmt;
 }
 
-Statement *newIfStatement(Expression *condition, Statement *body) {
+Statement *newIfStatement(Scope *scope, Expression *condition, Statement *body) {
     IfStatement *ifStatement = malloc(sizeof(IfStatement));
     ifStatement->condition = condition;
     ifStatement->satisfied = body;
@@ -159,10 +161,11 @@ Statement *newIfStatement(Expression *condition, Statement *body) {
     stmt->stmt_if = ifStatement;
     stmt->type = ST_IF;
 
+    typeCheckStatement(scope, stmt);
     return stmt;
 }
 
-Statement *newIfElseStatement(Expression *condition, Statement *satisfied, Statement *unsatisfied) {
+Statement *newIfElseStatement(Scope *scope, Expression *condition, Statement *satisfied, Statement *unsatisfied) {
     IfElseStatement *ifElseStatement = malloc(sizeof(IfElseStatement));
     ifElseStatement->condition = condition;
     ifElseStatement->satisfied = satisfied;
@@ -172,10 +175,11 @@ Statement *newIfElseStatement(Expression *condition, Statement *satisfied, State
     stmt->stmt_if_else = ifElseStatement;
     stmt->type = ST_IF_ELSE;
 
+    typeCheckStatement(scope, stmt);
     return stmt;
 }
 
-Statement *newReturnStatement(Expression *returnValue) {
+Statement *newReturnStatement(Scope *scope, Expression *returnValue) {
     ReturnStatement *returnStatement = malloc(sizeof(ReturnStatement));
     returnStatement->returnValue = returnValue;
 
@@ -183,22 +187,25 @@ Statement *newReturnStatement(Expression *returnValue) {
     stmt->stmt_return = returnStatement;
     stmt->type = ST_RETURN;
 
+    typeCheckStatement(scope, stmt);
     return stmt;
 }
 
-Statement *newAssignmentStatement(char *identifier, Expression *expression) {
+Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *arrayIndex, Expression *expression) {
     AssignmentStatement *assign = malloc(sizeof(AssignmentStatement));
     assign->identifier = identifier;
+    assign->arrayIndex = arrayIndex;
     assign->expression = expression;
 
     Statement *stmt = malloc(sizeof(Statement));
     stmt->stmt_assign = assign;
     stmt->type = ST_ASSIGN;
 
+    typeCheckStatement(scope, stmt);
     return stmt;
 }
 
-StatementList *newStatementList(Statement *statement, StatementList *rest) {
+StatementList *newStatementList(Scope *scope, Statement *statement, StatementList *rest) {
     StatementList *stmt_list = malloc(sizeof(StatementList));
     stmt_list->statement = statement;
     stmt_list->next = rest;
@@ -225,6 +232,7 @@ FunctionDeclaration *newFunction(Type type, char *identifier, FunctionParameter 
 
     return funcDecl;
 }
+
 /* Utility Functions */
 char *expressionTypeName(Expression *expression) {
     char *name = "ERROR";
