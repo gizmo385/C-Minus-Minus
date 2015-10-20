@@ -3,15 +3,31 @@
 #include <stdbool.h>
 #include "list.h"
 
-typedef struct ScopeVariable ScopeVariable;
+typedef struct ScopeElement ScopeElement;
 typedef struct Scope Scope;
+typedef enum { SCOPE_VAR, SCOPE_FUNC } ScopeElementType;
 
 #include "ast.h"
 
-struct ScopeVariable {
-    char *identifier;
+typedef struct {
     Type type;
     Value value;
+} ScopeVariable;
+
+typedef struct {
+    Type returnType;
+    char **argumentNames;
+    Type *argumentTypes;
+} ScopeFunction;
+
+
+struct ScopeElement {
+    char *identifier;
+    ScopeElementType elementType;
+    union {
+        ScopeVariable *variable;
+        ScopeFunction *function;
+    };
 };
 
 struct Scope {
@@ -22,13 +38,11 @@ struct Scope {
 /* Creating and moving between scopes */
 extern Scope *newScope(Scope *enclosingScope);
 extern Scope *stripScope(Scope *scope);
-extern ScopeVariable *findScopeVariable(Scope *scope, char *identifier);
+extern ScopeElement *findScopeElement(Scope *scope, char *identifier);
 
-/* Declaring new variables inside of a scope */
-extern bool declareVar(Scope *scope, Type type, char *identifier);
-extern void declareIntVariable(Scope *scope, char* identifier, int val);
-extern void declareCharVariable(Scope *scope, char* identifier, char val);
-extern void declareCharArrayVariable(Scope *scope, char* identifier, char val[]);
-extern void declareIntArrayVariable(Scope *scope, char* identifier, int val[]);
+/* Declaring new variables and functions inside of a scope */
+extern void declareVar(Scope *scope, Type type, char *identifier);
+extern bool declareFunction(Scope *scope, Type returnType, char *identifier, char **argumentNames,
+        Type *argumentTypes);
 
 #endif

@@ -42,25 +42,31 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
 }
 
 Expression *newVariableExpression(Scope *scope, char *identifier, Expression *arrayIndex) {
-    ScopeVariable *var = findScopeVariable(scope, identifier);
+    ScopeElement *elem = findScopeElement(scope, identifier);
     VariableExpression *variableExpression = malloc(sizeof(VariableExpression));
     Expression *expr = malloc(sizeof(Expression));
 
-    if(var) {
-        // Create the variable expression
-        Type varType = var->type;
-        variableExpression->type = varType;
-        variableExpression->identifier = identifier;
-        variableExpression->arrayIndex = arrayIndex;
+    if(elem) {
+        if(elem->elementType == SCOPE_VAR) {
+            // Create the variable expression
+            ScopeVariable *var = elem->variable;
+            Type varType = var->type;
+            variableExpression->type = varType;
+            variableExpression->identifier = identifier;
+            variableExpression->arrayIndex = arrayIndex;
 
-        // Wrap it
-        expr->variableExpression = variableExpression;
-        expr->type = VARIABLE;
+            // Wrap it
+            expr->variableExpression = variableExpression;
+            expr->type = VARIABLE;
 
-        debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
+            debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
 
-        // Type check it
-        typeCheckExpression(expr);
+            // Type check it
+            typeCheckExpression(expr);
+        } else {
+            fprintf(stderr, "ERROR: On line %d, %s is a function!\n", mylineno, identifier);
+            foundError = true;
+        }
     } else {
         fprintf(stderr, "ERROR: Undeclared identifier \"%s\" on line %d.\n", identifier, mylineno);
         foundError = true;
