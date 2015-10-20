@@ -80,8 +80,8 @@ void declareVar(Scope *scope, Type type, char *identifier) {
     }
 }
 
-bool declareFunction(Scope *scope, Type returnType, char *identifier, char **argumentNames,
-        Type *argumentTypes) {
+bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argumentNames,
+        List *argumentTypes) {
     Value empty;
     empty.integer_value = 0;
     ScopeElement *foundVar = findScopeElement(scope, identifier);
@@ -89,7 +89,7 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, char **arg
     if(foundVar) {
         return false;
     } else {
-        debug(E_DEBUG, "Declaring undeclared variable \"%s\"\n", identifier);
+        debug(E_DEBUG, "Declaring undeclared function \"%s\"\n", identifier);
         ScopeFunction *scopeFunction = malloc(sizeof(ScopeFunction));
         scopeFunction->returnType = returnType;
         scopeFunction->argumentNames = argumentNames;
