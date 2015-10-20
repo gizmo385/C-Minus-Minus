@@ -214,7 +214,7 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
      | expr LTE expr %prec relop                        { $$ = newBinaryExpression(LTE_OP, $1, $3); }
      | expr GT expr %prec relop                         { $$ = newBinaryExpression(GT_OP, $1, $3); }
      | expr LT expr %prec relop                         { $$ = newBinaryExpression(LT_OP, $1, $3); }
-     | ID LEFT_PAREN expr_list RIGHT_PAREN
+     | ID LEFT_PAREN expr_list RIGHT_PAREN              { $$ = newFunctionExpression(scope, $1, $3); }
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET { $$ = newVariableExpression(scope, $1, $3); }
      | ID                                               { $$ = newVariableExpression(scope, $1, NULL); }
      | LEFT_PAREN expr RIGHT_PAREN                      { $$ = $2; }
