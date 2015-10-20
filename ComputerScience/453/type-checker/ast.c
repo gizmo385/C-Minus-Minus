@@ -19,7 +19,6 @@ Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression
     debug(E_DEBUG, "Creating binary expression with left operand types %s and %s\n",
             expressionTypeName(left), expressionTypeName(right));
 
-    typeCheckExpression(expr);
 
     return expr;
 }
@@ -36,7 +35,6 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     debug(E_DEBUG, "Creating unary expression with operand of type %s\n",
             expressionTypeName(operand));
 
-    typeCheckExpression(expr);
 
     return expr;
 }
@@ -61,8 +59,6 @@ Expression *newVariableExpression(Scope *scope, char *identifier, Expression *ar
 
             debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
 
-            // Type check it
-            typeCheckExpression(expr);
         } else {
             fprintf(stderr, "ERROR: On line %d, %s is a function!\n", mylineno, identifier);
             foundError = true;
@@ -113,8 +109,6 @@ Expression *newConstExpression(Type type, Value value) {
     Expression *expr = malloc(sizeof(Expression));
     expr->constantExpression = constExpr;
     expr->type = CONST;
-
-    typeCheckExpression(expr);
 
     return expr;
 }
