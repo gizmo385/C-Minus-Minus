@@ -62,7 +62,6 @@ static inline ScopeVariable *newScopeVariable(Type type, char *identifier, Value
     scopeVariable->type = type;
     scopeVariable->identifier = identifier;
     scopeVariable->value = value;
-    scopeVariable->initialized = false;
 
     return scopeVariable;
 }
@@ -77,14 +76,19 @@ static inline void addVarToScope(Scope *scope, ScopeVariable *var) {
     }
 }
 
-void declareUndeclaredVar(Scope *scope, Type type, char *identifier) {
+bool declareVar(Scope *scope, Type type, char *identifier) {
     Value empty;
     empty.integer_value = 0;
-    ScopeVariable *var = newScopeVariable(type, identifier, empty);
+    ScopeVariable *foundVar = findScopeVariable(scope, identifier);
 
-    debug(E_DEBUG, "Declaring undeclared variable \"%s\"\n", identifier);
-
-    listInsert(scope->variables, var);
+    if(foundVar) {
+        return false;
+    } else {
+        debug(E_DEBUG, "Declaring undeclared variable \"%s\"\n", identifier);
+        ScopeVariable *var = newScopeVariable(type, identifier, empty);
+        listInsert(scope->variables, var);
+        return true;
+    }
 }
 
 void declareIntVariable(Scope *scope, char *identifier, int val) {
@@ -107,7 +111,6 @@ void declareCharArrayVariable(Scope *scope, char *identifier, char val[]) {
     Value value;
     value.char_array_value = val;
     ScopeVariable *var = newScopeVariable(CHAR_ARRAY_TYPE, identifier, value);
-    var->initialized = true;
 
     addVarToScope(scope, var);
 }
