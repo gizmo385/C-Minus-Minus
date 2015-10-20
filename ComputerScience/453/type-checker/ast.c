@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ast.h"
+#include "typecheck.h"
 #include "utils.h"
 #include "globals.h"
 
@@ -17,6 +18,8 @@ Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression
     debug(E_DEBUG, "Creating binary expression with left operand types %s and %s\n",
             expressionTypeName(left), expressionTypeName(right));
 
+    typeCheckExpression(expr);
+
     return expr;
 }
 
@@ -31,6 +34,8 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
 
     debug(E_DEBUG, "Creating unary expression with operand of type %s\n",
             expressionTypeName(operand));
+
+    typeCheckExpression(expr);
 
     return expr;
 }
@@ -47,6 +52,8 @@ Expression *newVariableExpression(Type type, char *identifier, Expression *array
 
     debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
 
+    typeCheckExpression(expr);
+
     return expr;
 }
 
@@ -58,6 +65,8 @@ Expression *newConstExpression(Type type, Value value) {
     Expression *expr = malloc(sizeof(Expression));
     expr->constantExpression = constExpr;
     expr->type = CONST;
+
+    typeCheckExpression(expr);
 
     return expr;
 }
