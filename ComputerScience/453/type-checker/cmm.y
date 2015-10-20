@@ -212,8 +212,10 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
         ScopeVariable *var = findScopeVariable(scope, id);
         if(var) {
             Type varType = var->type;
-            if(varType == INT_ARRAY_TYPE || varType == CHAR_ARRAY_TYPE) {
-                $$ = newVariableExpression(id, arrayIndex);
+            if(varType == INT_ARRAY_TYPE) {
+                $$ = newVariableExpression(INT_ARRAY_TYPE, id, arrayIndex);
+            } else if(varType == CHAR_ARRAY_TYPE) {
+                $$ = newVariableExpression(CHAR_ARRAY_TYPE,id, arrayIndex);
             } else {
                 fprintf(stderr, "ERROR: On line %d, the variable %s is not an array!\n", mylineno, id);
             }
@@ -226,8 +228,10 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
         char *id = $1;
         ScopeVariable *var = findScopeVariable(scope, id);
 
+        // TODO: Can a bare array ID be in an expression?
+
         if(var) {
-            $$ = newVariableExpression(id, NULL);
+            $$ = newVariableExpression(var->type, id, NULL);
         } else {
             fprintf(stderr, "ERROR: Undeclared identifier \"%s\" on line %d.\n", id, mylineno);
             foundError = true;
