@@ -115,6 +115,7 @@ func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_va
      ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE { $$ = newIfStatement($3, $5); }
      | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt { $$ = newIfElseStatement($3, $5, $7); }
      | WHILE LEFT_PAREN expr RIGHT_PAREN stmt { $$ = newWhileStatement($3, $5); }
@@ -142,6 +143,15 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE
      | RETURN optional_expr SEMICOLON
      | assg SEMICOLON
      | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON/* Function call */
+=======
+stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE   { $$ = newIfStatement(scope, $3, $5); }
+     | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt            { $$ = newIfElseStatement(scope, $3, $5, $7); }
+     | WHILE LEFT_PAREN expr RIGHT_PAREN stmt                   { $$ = newWhileStatement(scope, $3, $5); }
+     | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
+     | RETURN optional_expr SEMICOLON                           { $$ = newReturnStatement(scope, $2); }
+     | assg SEMICOLON                                           { $$ = $1; }
+     | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON
+>>>>>>> 33626bd... 453 3: Creating statement nodes in parser
      | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET
      | SEMICOLON
      | error SEMICOLON
@@ -313,6 +323,7 @@ optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
                        | epsilon
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 optional_assign: assg                   { $$ = $1; }
                | error                  { $$ = NULL; }
                | epsilon                { $$ = NULL; }
@@ -321,6 +332,11 @@ optional_assign: assg
                | error
                | epsilon
 >>>>>>> aeb3970... 453 3: foundError set in yyerror, not in action
+=======
+optional_assign: assg                                               { $$ = $1; }
+               | error                                              { $$ = NULL; }
+               | epsilon                                            { $$ = NULL; }
+>>>>>>> 33626bd... 453 3: Creating statement nodes in parser
                ;
 
 <<<<<<< HEAD
@@ -336,8 +352,13 @@ stmt_list : stmt stmt_list              { $$ = newStatementList($1, $2); }
           | epsilon                     { $$ = NULL; }
           ;
 
+<<<<<<< HEAD
 assg : ID ASSIGN expr
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr { $$ = NULL; /* TODO*/ }
+=======
+assg : ID ASSIGN expr                                               { $$ = newAssignmentStatement(scope, $1, NULL, $3); }
+     | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr { $$ = newAssignmentStatement(scope, $1, $3, $6); }
+>>>>>>> 33626bd... 453 3: Creating statement nodes in parser
      ;
 
 expr_list : optional_expr {
