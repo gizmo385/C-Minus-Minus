@@ -2,6 +2,7 @@
 #include <string.h>
 #include "ast.h"
 #include "utils.h"
+#include "globals.h"
 
 Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right) {
     BinaryExpression *binaryExpr = malloc(sizeof(BinaryExpression));

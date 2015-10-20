@@ -5,13 +5,15 @@
 #include <string.h>
 #include "symtab.h"
 #include "utils.h"
+#include "globals.h"
 #include "cmm.tab.h"
 
-extern int mylineno;
-extern int mycolno;
 extern char *yytext;
 
+int mylineno;
+int mycolno;
 bool foundError = false;
+
 Scope *scope;
 Type baseDeclType;
 %}
