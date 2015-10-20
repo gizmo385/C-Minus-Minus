@@ -35,8 +35,9 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     return expr;
 }
 
-extern Expression *newVariableExpression(char *identifier, Expression *arrayIndex) {
+Expression *newVariableExpression(Type type, char *identifier, Expression *arrayIndex) {
     VariableExpression *variableExpression = malloc(sizeof(VariableExpression));
+    variableExpression->type = type;
     variableExpression->identifier = identifier;
     variableExpression->arrayIndex = arrayIndex;
 
