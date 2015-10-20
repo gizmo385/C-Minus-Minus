@@ -80,6 +80,7 @@ typedef struct Statement Statement;
 
 typedef struct {
     char *identifier;
+    Expression *arrayIndex;
     Expression *expression;
 } AssignmentStatement;
 
