@@ -18,17 +18,22 @@ bool foundError = false;
 Type currentFunctionReturnType;
 Scope *scope;
 Type baseDeclType;
+
+int diffComp(void *a, void *b);
+
 %}
 
 %union {
     Expression *expression;
     Statement *statement;
     StatementList *statementList;
+    List *expressionList;
     Type type;
     char *string;
 }
 
 %type<expression> expr optional_expr
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 %type<statementList> stmt_list
@@ -38,6 +43,9 @@ Type baseDeclType;
 /*%type<statement> stmt assg optional_assign*/
 >>>>>>> dfa249c... 453 3: Actions for non-identifier expressions
 =======
+=======
+%type<expressionList> expr_list
+>>>>>>> 0f11d54... 453 3: Creating expression lists in parser
 %type<statement> stmt assg optional_assign func
 %type<type> type
 >>>>>>> 741c33c... 453 3: Setting current function return type
@@ -315,8 +323,13 @@ optional_assign: assg
 >>>>>>> aeb3970... 453 3: foundError set in yyerror, not in action
                ;
 
+<<<<<<< HEAD
 optional_expr : expr                    { $$ = $1; }
               | epsilon                 { $$ = NULL; }
+=======
+optional_expr : expr                                                { $$ = $1; }
+              | epsilon                                             { $$ = NULL; }
+>>>>>>> 0f11d54... 453 3: Creating expression lists in parser
               ;
 
 stmt_list : stmt stmt_list              { $$ = newStatementList($1, $2); }
@@ -327,13 +340,35 @@ assg : ID ASSIGN expr
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr { $$ = NULL; /* TODO*/ }
      ;
 
-expr_list : optional_expr
-          | expr_list COMMA expr
+expr_list : optional_expr {
+            if($1) {
+                List *list = newList(diffComp);
+                listInsert(list, $1);
+
+                $$ = list;
+            } else {
+                $$ = NULL;
+            }
+        }
+          | expr_list COMMA expr {
+            if($1) {
+                List *list = $1;
+                listInsert(list, $3);
+                $$ = list;
+            } else {
+                List *list = newList(diffComp);
+                listInsert(list, $3);
+                $$ = list;
+            }
+        }
 
 epsilon:
        ;
 
 %%
+int diffComp(void *a, void *b) {
+    return -1;
+}
 
 int main(int argc, char **argv){
 #ifdef DEBUG
