@@ -22,6 +22,8 @@ typedef union {
     int *int_array_value;
 } Value;
 
+#include "symtab.h"
+
 /* Different kinds of operations */
 typedef enum { NOT_OP, NEG_OP } UnaryOperation;
 typedef enum { ADD_OP, SUB_OP, MUL_OP, DIV_OP, AND_OP, OR_OP, EQ_OP, NEQ_OP, LTE_OP, GTE_OP,
@@ -141,7 +143,7 @@ typedef struct FunctionDeclaration {
 /* Constructor functions for Expressions */
 extern Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right);
 extern Expression *newUnaryExpression(UnaryOperation op, Expression *operand);
-extern Expression *newVariableExpression(Type type, char *identifier, Expression *arrayIndex);
+extern Expression *newVariableExpression(Scope *scope, char *identifier, Expression *arrayIndex);
 extern Expression *newConstExpression(Type type, Value value);
 extern Expression *newIntConstExpression(int val);
 extern Expression *newCharConstExpression(char val);

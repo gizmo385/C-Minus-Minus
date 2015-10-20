@@ -2,6 +2,7 @@
 #include <string.h>
 #include "ast.h"
 #include "typecheck.h"
+#include "symtab.h"
 #include "utils.h"
 #include "globals.h"
 
@@ -40,19 +41,30 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     return expr;
 }
 
-Expression *newVariableExpression(Type type, char *identifier, Expression *arrayIndex) {
+Expression *newVariableExpression(Scope *scope, char *identifier, Expression *arrayIndex) {
+    ScopeVariable *var = findScopeVariable(scope, identifier);
     VariableExpression *variableExpression = malloc(sizeof(VariableExpression));
-    variableExpression->type = type;
-    variableExpression->identifier = identifier;
-    variableExpression->arrayIndex = arrayIndex;
-
     Expression *expr = malloc(sizeof(Expression));
-    expr->variableExpression = variableExpression;
-    expr->type = VARIABLE;
 
-    debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
+    if(var) {
+        // Create the variable expression
+        Type varType = var->type;
+        variableExpression->type = varType;
+        variableExpression->identifier = identifier;
+        variableExpression->arrayIndex = arrayIndex;
 
-    typeCheckExpression(expr);
+        // Wrap it
+        expr->variableExpression = variableExpression;
+        expr->type = VARIABLE;
+
+        debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
+
+        // Type check it
+        typeCheckExpression(expr);
+    } else {
+        fprintf(stderr, "ERROR: Undeclared identifier \"%s\" on line %d.\n", identifier, mylineno);
+        foundError = true;
+    }
 
     return expr;
 }
