@@ -75,6 +75,36 @@ Expression *newVariableExpression(Scope *scope, char *identifier, Expression *ar
     return expr;
 }
 
+Expression *newFunctionExpression(Scope *scope, char *identifier, List *arguments) {
+    ScopeElement *elem = findScopeElement(scope, identifier);
+    FunctionExpression *functionExpression = malloc(sizeof(FunctionExpression));
+    Expression *expr = malloc(sizeof(Expression));
+
+    if(elem) {
+        if(elem->elementType == SCOPE_FUNC) {
+            // Create the function expression
+            ScopeFunction *func = elem->function;
+            functionExpression->identifier = identifier;
+            functionExpression->returnType = func->returnType;
+            functionExpression->arguments = arguments;
+
+            // Wrap it
+            expr->functionExpression = functionExpression;
+            expr->type = VARIABLE;
+
+            debug(E_DEBUG, "Creating function expression for ID %s\n", identifier);
+        } else {
+            fprintf(stderr, "ERROR: On line %d, %s is not a function!\n", mylineno, identifier);
+            foundError = true;
+        }
+    } else {
+        fprintf(stderr, "ERROR: Undeclared function \"%s\" on line %d.\n", identifier, mylineno);
+        foundError = true;
+    }
+
+    return expr;
+}
+
 Expression *newConstExpression(Type type, Value value) {
     ConstExpression *constExpr = malloc(sizeof(ConstExpression));
     constExpr->type = type;
@@ -241,6 +271,7 @@ char *expressionTypeName(Expression *expression) {
         switch(type) {
             case CONST: name = "Constant"; break;
             case VARIABLE: name = "Variable"; break;
+            case FUNCTION: name = "Function"; break;
             case UNARY: name = "Unary"; break;
             case BINARY: name = "Binary"; break;
         }

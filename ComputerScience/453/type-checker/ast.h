@@ -30,7 +30,7 @@ typedef enum { ADD_OP, SUB_OP, MUL_OP, DIV_OP, AND_OP, OR_OP, EQ_OP, NEQ_OP, LTE
     GT_OP, LT_OP } BinaryOperation;
 
 /* Different kinds of expressions */
-typedef enum { CONST, VARIABLE, UNARY, BINARY } ExpressionType;
+typedef enum { CONST, VARIABLE, FUNCTION, UNARY, BINARY } ExpressionType;
 typedef struct Expression Expression;
 typedef struct {
     // Constant expressions just have a value and a type
@@ -58,10 +58,17 @@ typedef struct {
     Expression *arrayIndex;
 } VariableExpression;
 
+typedef struct {
+    char *identifier;
+    Type returnType;
+    List *arguments;
+} FunctionExpression;
+
 struct Expression {
     ExpressionType type;
     union {
         VariableExpression *variableExpression;
+        FunctionExpression *functionExpression;
         ConstExpression *constantExpression;
         UnaryExpression *unaryExpression;
         BinaryExpression *binaryExpression;
@@ -144,6 +151,7 @@ typedef struct FunctionDeclaration {
 extern Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right);
 extern Expression *newUnaryExpression(UnaryOperation op, Expression *operand);
 extern Expression *newVariableExpression(Scope *scope, char *identifier, Expression *arrayIndex);
+extern Expression *newFunctionExpression(Scope *scope, char *identifier, List *arguments);
 extern Expression *newConstExpression(Type type, Value value);
 extern Expression *newIntConstExpression(int val);
 extern Expression *newCharConstExpression(char val);
