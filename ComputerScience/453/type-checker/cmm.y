@@ -250,6 +250,7 @@ name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
                 ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 var_decl : ID { declareUndeclaredVar(scope, baseDeclType, yylval.string); }
          | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET {
             if(baseDeclType == CHAR_TYPE) {
@@ -260,12 +261,22 @@ var_decl : ID { declareUndeclaredVar(scope, baseDeclType, yylval.string); }
             }
 =======
 var_decl : ID { declareUndeclaredVar(scope, baseDeclType, $1); }
+=======
+var_decl : ID {
+            bool success = declareVar(scope, baseDeclType, $1);
+
+            if(! success) {
+                fprintf(stderr, "ERROR: On line %d, %s has already been declared!\n", mylineno, $1);
+                foundError = true;
+            }
+        }
+>>>>>>> d8c9c6b... 453 3: Declaring variables in scope
          | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET {
             char *id = $1;
             if(baseDeclType == INT_TYPE) {
-                declareUndeclaredVar(scope, INT_ARRAY_TYPE, id);
+                declareVar(scope, INT_ARRAY_TYPE, id);
             } else if(baseDeclType == CHAR_TYPE) {
-                declareUndeclaredVar(scope, CHAR_ARRAY_TYPE, id);
+                declareVar(scope, CHAR_ARRAY_TYPE, id);
             } else {
                 fprintf(stderr, "ERROR: Cannot determine type when declaring %s on line %d!\n", id, mylineno);
             }
