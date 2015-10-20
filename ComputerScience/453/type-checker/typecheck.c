@@ -125,7 +125,7 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
                 finalType = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
             } else {
                 // A non-int expression constitutes a type error
-                fprintf(stderr, "Type error, line %d: Array index has type %s, should be INT\n",
+                fprintf(stderr, "Type error, line %d: Attempting to index array with %s, should be INT\n",
                         mylineno, typeName(indexType));
                 foundError = true;
             }
@@ -147,6 +147,9 @@ Type typeCheckExpression(Expression *expression) {
             case VARIABLE:
                 finalType = typeCheckVariableExpression(expression->variableExpression);
                 break;
+            case FUNCTION:
+                // TODO: Type check function calls
+                break;
             case UNARY:
                 finalType = typeCheckUnaryExpression(expression->unaryExpression);
                 break;
@@ -167,8 +170,151 @@ bool typesCompatible(Type t1, Type t2) {
             (t2 == CHAR_TYPE && t1 == INT_TYPE));
 }
 
+static inline bool typeCheckReturnStatement(Scope *scope, ReturnStatement *stmt) {
+    bool typeChecks = true;
+    if(stmt) {
+        Expression *returnValue = stmt->returnValue;
 
-Type typeCheckStatement(Statement *statement) {
-    return ERROR_TYPE;
+        if(currentFunctionReturnType == VOID_TYPE) {
+            if(returnValue) {
+                Type returnValueType = typeCheckExpression(returnValue);
+                fprintf(stderr, "Type error, line %d: Attempting to return %s from function declared to return VOID\n",
+                        mylineno, typeName(returnValueType));
+                typeChecks = false;
+            }
+        } else {
+            if(returnValue) {
+                Type returnValueType = typeCheckExpression(returnValue);
+                if(! typesCompatible(currentFunctionReturnType, returnValueType)) {
+                    fprintf(stderr, "Type error, line %d: Attempting to return %s from function declared to return %s\n",
+                            mylineno, typeName(returnValueType),
+                            typeName(currentFunctionReturnType));
+                }
+            }
+        }
+    }
+    return typeChecks;
+}
+
+static inline bool typeCheckAssignmentStatement(Scope *scope, AssignmentStatement *stmt) {
+    bool typeChecks = true;
+    if(stmt) {
+        char *identifier = stmt->identifier;
+        Expression *expression = stmt->expression;
+
+        ScopeElement *elem = findScopeElement(scope, identifier);
+        if(elem->elementType == SCOPE_VAR) {
+            ScopeVariable *var = elem->variable;
+            Type varType = var->type;
+            Type exprType = typeCheckExpression(expression);
+
+            // Type checking for array assignment
+            if(varType == CHAR_ARRAY_TYPE || varType == INT_ARRAY_TYPE) {
+                Expression *arrayIndex = stmt->arrayIndex;
+                if(arrayIndex) {
+                    Type arrayIndexType = typeCheckExpression(arrayIndex);
+
+                    // The array index must be an INT
+                    if(! typesCompatible(INT_TYPE, arrayIndexType) ) {
+                        fprintf(stderr, "Type error, line %d: Attempting to index into array with %s\n",
+                                mylineno, typeName(arrayIndexType));
+                        typeChecks = false;
+                    }
+
+                    // The type contained in the array must be compatible with the type of the
+                    // expression being assigned to the location in the array
+                    Type typeContained = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
+                    if(! typesCompatible(exprType, typeContained)) {
+                        fprintf(stderr, "Type error, line %d: Attempting to assign %s to field of type %s\n",
+                                mylineno, typeName(exprType), typeName(typeContained));
+                        typeChecks = false;
+                    }
+
+                } else {
+                    fprintf(stderr, "Type error, line %d: %s is an array, requires index\n",
+                            mylineno, identifier);
+                    typeChecks = false;
+                }
+            } else {
+                // Type checking for non-array assignment
+                if(! typesCompatible(varType, exprType)) {
+                    fprintf(stderr, "Type error, line %d: Attempting to assign %s to %s.\n", mylineno,
+                            typeName(exprType), typeName(varType));
+                    typeChecks = false;
+                }
+            }
+        } else {
+            fprintf(stderr, "Type error, line %d: Attempting to assign to function.\n", mylineno);
+            typeChecks = false;
+        }
+    }
+    return typeChecks;
+}
+
+static inline bool typeCheckForStatement(Scope *scope, ForStatement *stmt) {
+    bool typeChecks = true;
+    if(stmt) {
+        Expression *condition = stmt->condition;
+
+        typeChecks = typeChecks && (typesCompatible(BOOL_TYPE, typeCheckExpression(condition)));
+    }
+    return typeChecks;
+}
+
+static inline bool typeCheckWhileStatement(Scope *scope, WhileStatement *stmt) {
+    bool typeChecks = true;
+    if(stmt) {
+        Expression *condition = stmt->condition;
+
+        typeChecks = typesCompatible(BOOL_TYPE, typeCheckExpression(condition));
+    }
+    return typeChecks;
+}
+
+static inline bool typeCheckIfStatement(Scope *scope, IfStatement *stmt) {
+    bool typeChecks = true;
+    if(stmt) {
+        Expression *condition = stmt->condition;
+
+        typeChecks = typesCompatible(BOOL_TYPE, typeCheckExpression(condition));
+    }
+    return typeChecks;
+}
+
+static inline bool typeCheckIfElseStatement(Scope *scope, IfElseStatement *stmt) {
+    bool typeChecks = true;
+    if(stmt) {
+        Expression *condition = stmt->condition;
+
+        typeChecks = typesCompatible(BOOL_TYPE, typeCheckExpression(condition));
+    }
+    return typeChecks;
+}
+
+bool typeCheckStatement(Scope *scope, Statement *statement) {
+    bool typeChecks = true;
+    switch(statement->type) {
+        case ST_FOR:
+            typeChecks = typeCheckForStatement(scope, statement->stmt_for);
+            break;
+        case ST_WHILE:
+            typeChecks = typeCheckWhileStatement(scope, statement->stmt_while);
+            break;
+        case ST_IF:
+            typeChecks = typeCheckIfStatement(scope, statement->stmt_if);
+            break;
+        case ST_IF_ELSE:
+            typeChecks = typeCheckIfElseStatement(scope, statement->stmt_if_else);
+            break;
+        case ST_RETURN:
+            typeChecks = typeCheckReturnStatement(scope, statement->stmt_return);
+            break;
+        case ST_LIST:
+            break;
+        case ST_ASSIGN:
+            typeChecks = typeCheckAssignmentStatement(scope, statement->stmt_assign);
+            break;
+    }
+    return typeChecks;
 }
 
