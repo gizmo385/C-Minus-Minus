@@ -61,7 +61,7 @@ typedef struct {
 typedef struct {
     char *identifier;
     Type returnType;
-    List *arguments;
+    Expression *arguments;
 } FunctionExpression;
 
 struct Expression {
@@ -73,6 +73,7 @@ struct Expression {
         UnaryExpression *unaryExpression;
         BinaryExpression *binaryExpression;
     };
+    Expression *next;
 };
 
 /* Different kinds of statements */
@@ -112,11 +113,6 @@ typedef struct {
 } ReturnStatement;
 
 /* Statement list and statements */
-typedef struct StatementList {
-    Statement *statement;
-    struct StatementList *next;
-} StatementList;
-
 typedef enum { ST_FOR, ST_WHILE, ST_IF, ST_IF_ELSE, ST_RETURN, ST_LIST, ST_ASSIGN } StatementType;
 struct Statement {
     StatementType type;
@@ -127,24 +123,29 @@ struct Statement {
         IfElseStatement *stmt_if_else;
         ReturnStatement *stmt_return;
         AssignmentStatement *stmt_assign;
-        StatementList *stmt_list;
     };
+    Statement *next;
 };
+
+typedef union {} Declaration;
 
 typedef struct VariableDeclaration {
     Type type;
     char *identifier;
+    struct VariableDeclaration *next;
 } VariableDeclaration;
 
 typedef struct FunctionParameter {
     Type type;
     char *identifier;
+    struct FunctionParameter *next;
 } FunctionParameter;
 
 typedef struct FunctionDeclaration {
     Type returnType;
     char *functionName;
     FunctionParameter *parameters;
+    VariableDeclaration *declarations;
     Statement *body;
 } FunctionDeclaration;
 
@@ -152,7 +153,7 @@ typedef struct FunctionDeclaration {
 extern Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right);
 extern Expression *newUnaryExpression(UnaryOperation op, Expression *operand);
 extern Expression *newVariableExpression(Scope *scope, char *identifier, Expression *arrayIndex);
-extern Expression *newFunctionExpression(Scope *scope, char *identifier, List *arguments);
+extern Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *arguments);
 extern Expression *newConstExpression(Type type, Value value);
 extern Expression *newIntConstExpression(int val);
 extern Expression *newCharConstExpression(char val);
@@ -168,12 +169,12 @@ extern Statement *newIfElseStatement(Scope *scope, Expression *condition, Statem
         Statement *unsatisfied);
 extern Statement *newReturnStatement(Scope *scope, Expression *returnValue);
 extern Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *arrayIndex, Expression *expression);
-extern StatementList *newStatementList(Scope *scope, Statement *statement, StatementList *rest);
 
 /* Constructor functions for Declarations */
+extern FunctionParameter *newFunctionParameter(Type type, char *identifier);
 extern VariableDeclaration *newVariable(Type type, char *identifier);
-extern FunctionDeclaration *newFunction(Type type, char *identifier, FunctionParameter *parameters,
-        Statement *body);
+extern FunctionDeclaration *newFunction(Type returnType, char *functionName,
+        FunctionParameter *parameters, VariableDeclaration *declarations, Statement *body);
 
 /* Utility functions */
 extern char *expressionTypeName(Expression *expression);

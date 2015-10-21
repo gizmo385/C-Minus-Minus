@@ -71,7 +71,7 @@ Expression *newVariableExpression(Scope *scope, char *identifier, Expression *ar
     return expr;
 }
 
-Expression *newFunctionExpression(Scope *scope, char *identifier, List *arguments) {
+Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *arguments) {
     ScopeElement *elem = findScopeElement(scope, identifier);
     FunctionExpression *functionExpression = malloc(sizeof(FunctionExpression));
     Expression *expr = malloc(sizeof(Expression));
@@ -229,14 +229,6 @@ Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *ar
     return stmt;
 }
 
-StatementList *newStatementList(Scope *scope, Statement *statement, StatementList *rest) {
-    StatementList *stmt_list = malloc(sizeof(StatementList));
-    stmt_list->statement = statement;
-    stmt_list->next = rest;
-
-    return stmt_list;
-}
-
 /* Constructor functions for Declarations */
 VariableDeclaration *newVariable(Type type, char *identifier) {
     VariableDeclaration *varDecl = malloc(sizeof(VariableDeclaration));
@@ -246,12 +238,21 @@ VariableDeclaration *newVariable(Type type, char *identifier) {
     return varDecl;
 }
 
-FunctionDeclaration *newFunction(Type type, char *identifier, FunctionParameter *parameters,
-        Statement *body) {
+FunctionParameter *newFunctionParameter(Type type, char *identifier) {
+    FunctionParameter *param = malloc(sizeof(FunctionParameter));
+    param->type = type;
+    param->identifier = identifier;
+
+    return param;
+}
+
+FunctionDeclaration *newFunction(Type returnType, char *functionName,
+        FunctionParameter *parameters, VariableDeclaration *declarations, Statement *body) {
     FunctionDeclaration *funcDecl = malloc(sizeof(FunctionDeclaration));
-    funcDecl->returnType = type;
-    funcDecl->functionName = identifier;
+    funcDecl->returnType = returnType;
+    funcDecl->functionName = functionName;
     funcDecl->parameters = parameters;
+    funcDecl->declarations = declarations;
     funcDecl->body = body;
 
     return funcDecl;
