@@ -20,7 +20,6 @@ typedef struct {
     List *argumentTypes;
 } ScopeFunction;
 
-
 struct ScopeElement {
     char *identifier;
     ScopeElementType elementType;

@@ -142,7 +142,9 @@ Type typeCheckExpression(Expression *expression) {
         ExpressionType type = expression->type;
         switch(type) {
             case CONST:
-                finalType =  expression->constantExpression->type;
+                finalType = expression->constantExpression ?
+                    expression->constantExpression->type :
+                    ERROR_TYPE;
                 break;
             case VARIABLE:
                 finalType = typeCheckVariableExpression(expression->variableExpression);
