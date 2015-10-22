@@ -1,7 +1,0 @@
-int main(void) {
-    int x;
-    x = 5;
-
-    printf(x);
-    return 4 + 1 + 2;
-}
