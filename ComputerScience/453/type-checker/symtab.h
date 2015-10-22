@@ -36,6 +36,7 @@ struct Scope {
 
 /* Creating and moving between scopes */
 extern Scope *newScope(Scope *enclosingScope);
+extern Scope *flattenScope(Scope *scope);
 extern Scope *stripScope(Scope *scope);
 extern ScopeElement *findScopeElement(Scope *scope, char *identifier);
 

@@ -13,23 +13,7 @@ static inline int compareScopeElements(ScopeElement *a, ScopeElement *b) {
     }
 }
 
-Scope *newScope(Scope *enclosingScope) {
-    Scope *scope = malloc(sizeof(Scope));
-    scope->enclosingScope = enclosingScope;
-    scope->variables = newList( (ComparisonFunction) compareScopeElements );
-
-    return scope;
-}
-
-Scope *stripScope(Scope *scope) {
-    if(scope) {
-        return scope->enclosingScope;
-    } else {
-        return NULL;
-    }
-}
-
-ScopeElement *findScopeElement(Scope *scope, char *identifier) {
+static inline ScopeElement *inLocalScope(Scope *scope, char *identifier) {
     if(scope) {
         List *variables = scope->variables;
         ListNode *current = variables->head;
@@ -49,13 +33,26 @@ ScopeElement *findScopeElement(Scope *scope, char *identifier) {
         ScopeElement *element = current->data;
         if(element && strcmp(element->identifier, identifier) == 0) {
             return element;
-        } else {
-            // If it wasn't found, check the next highest scope
-            return findScopeElement(scope->enclosingScope, identifier);
         }
     } else {
         return NULL;
     }
+}
+
+ScopeElement *findScopeElement(Scope *scope, char *identifier) {
+    ScopeElement *elem = NULL;
+
+    while(scope) {
+        elem = inLocalScope(scope, identifier);
+
+        if(elem) {
+            return elem;
+        } else {
+            scope = scope->enclosingScope;
+        }
+    }
+
+    return elem;
 }
 
 void declareVar(Scope *scope, Type type, char *identifier) {
