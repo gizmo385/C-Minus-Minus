@@ -205,49 +205,51 @@ static inline bool typeCheckAssignmentStatement(Scope *scope, AssignmentStatemen
         Expression *expression = stmt->expression;
 
         ScopeElement *elem = findScopeElement(scope, identifier);
-        if(elem->elementType == SCOPE_VAR) {
-            ScopeVariable *var = elem->variable;
-            Type varType = var->type;
-            Type exprType = typeCheckExpression(expression);
+        if(elem) {
+            if(elem->elementType == SCOPE_VAR) {
+                ScopeVariable *var = elem->variable;
+                Type varType = var->type;
+                Type exprType = typeCheckExpression(expression);
 
-            // Type checking for array assignment
-            if(varType == CHAR_ARRAY_TYPE || varType == INT_ARRAY_TYPE) {
-                Expression *arrayIndex = stmt->arrayIndex;
-                if(arrayIndex) {
-                    Type arrayIndexType = typeCheckExpression(arrayIndex);
+                // Type checking for array assignment
+                if(varType == CHAR_ARRAY_TYPE || varType == INT_ARRAY_TYPE) {
+                    Expression *arrayIndex = stmt->arrayIndex;
+                    if(arrayIndex) {
+                        Type arrayIndexType = typeCheckExpression(arrayIndex);
 
-                    // The array index must be an INT
-                    if(! typesCompatible(INT_TYPE, arrayIndexType) ) {
-                        fprintf(stderr, "Type error, line %d: Attempting to index into array with %s\n",
-                                mylineno, typeName(arrayIndexType));
+                        // The array index must be an INT
+                        if(! typesCompatible(INT_TYPE, arrayIndexType) ) {
+                            fprintf(stderr, "Type error, line %d: Attempting to index into array with %s\n",
+                                    mylineno, typeName(arrayIndexType));
+                            typeChecks = false;
+                        }
+
+                        // The type contained in the array must be compatible with the type of the
+                        // expression being assigned to the location in the array
+                        Type typeContained = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
+                        if(! typesCompatible(exprType, typeContained)) {
+                            fprintf(stderr, "Type error, line %d: Attempting to assign %s to field of type %s\n",
+                                    mylineno, typeName(exprType), typeName(typeContained));
+                            typeChecks = false;
+                        }
+
+                    } else {
+                        fprintf(stderr, "Type error, line %d: %s is an array, requires index\n",
+                                mylineno, identifier);
                         typeChecks = false;
                     }
-
-                    // The type contained in the array must be compatible with the type of the
-                    // expression being assigned to the location in the array
-                    Type typeContained = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
-                    if(! typesCompatible(exprType, typeContained)) {
-                        fprintf(stderr, "Type error, line %d: Attempting to assign %s to field of type %s\n",
-                                mylineno, typeName(exprType), typeName(typeContained));
-                        typeChecks = false;
-                    }
-
                 } else {
-                    fprintf(stderr, "Type error, line %d: %s is an array, requires index\n",
-                            mylineno, identifier);
-                    typeChecks = false;
+                    // Type checking for non-array assignment
+                    if(! typesCompatible(varType, exprType)) {
+                        fprintf(stderr, "Type error, line %d: Attempting to assign %s to %s.\n", mylineno,
+                                typeName(exprType), typeName(varType));
+                        typeChecks = false;
+                    }
                 }
             } else {
-                // Type checking for non-array assignment
-                if(! typesCompatible(varType, exprType)) {
-                    fprintf(stderr, "Type error, line %d: Attempting to assign %s to %s.\n", mylineno,
-                            typeName(exprType), typeName(varType));
-                    typeChecks = false;
-                }
+                fprintf(stderr, "Type error, line %d: Attempting to assign to function.\n", mylineno);
+                typeChecks = false;
             }
-        } else {
-            fprintf(stderr, "Type error, line %d: Attempting to assign to function.\n", mylineno);
-            typeChecks = false;
         }
     }
     return typeChecks;
@@ -317,6 +319,11 @@ bool typeCheckStatement(Scope *scope, Statement *statement) {
             typeChecks = typeCheckAssignmentStatement(scope, statement->stmt_assign);
             break;
     }
+
+    if(!typeChecks) {
+        foundError = true;
+    }
+
     return typeChecks;
 }
 
