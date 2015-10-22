@@ -52,14 +52,17 @@ Scope *newScope(Scope *enclosingScope) {
 Scope *flattenScope(Scope *scope) {
     Scope *destinationScope = newScope(NULL);
 
+    // Traverse every level of scope
     while(scope) {
         List *vars = scope->variables;
         ListNode *current = vars->head;
 
+        // Visit every element in scope
         while(current->data) {
             ScopeElement *elem = current->data;
             char *identifier = elem->identifier;
 
+            // If it hasn't already been declared in the flattened scope, "declare it"
             if(inLocalScope(destinationScope, identifier)) {
                 fprintf(stderr, "ERROR: Redeclaration of global variable %s on line %d\n",
                         identifier, mylineno);

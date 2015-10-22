@@ -114,7 +114,12 @@ prog : decl prog
      | func prog
      | epsilon
 
-decl : type var_decl_list SEMICOLON { globalScope = flattenScope(scope); scope = newScope(globalScope);}
+decl : type var_decl_list SEMICOLON {
+        // TODO: Make this better
+        // To handle global scopes, scope is flattened on a global declaration (ew)
+        globalScope = flattenScope(scope);
+        scope = newScope(globalScope); // Clear out the scope the declaration was made in (ew)
+    }
      | type name_args_lists SEMICOLON
      | VOID name_args_lists SEMICOLON
      | EXTERN type name_args_lists SEMICOLON
