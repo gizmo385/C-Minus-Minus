@@ -34,6 +34,51 @@ static inline ScopeElement *inLocalScope(Scope *scope, char *identifier) {
         if(element && strcmp(element->identifier, identifier) == 0) {
             return element;
         }
+    }
+
+    return NULL;
+}
+
+
+Scope *newScope(Scope *enclosingScope) {
+    debug(E_DEBUG, "Creating new scope\n");
+    Scope *scope = malloc(sizeof(Scope));
+    scope->enclosingScope = enclosingScope;
+    scope->variables = newList( (ComparisonFunction) compareScopeElements );
+
+    return scope;
+}
+
+Scope *flattenScope(Scope *scope) {
+    Scope *destinationScope = newScope(NULL);
+
+    while(scope) {
+        List *vars = scope->variables;
+        ListNode *current = vars->head;
+
+        while(current->data) {
+            ScopeElement *elem = current->data;
+            char *identifier = elem->identifier;
+
+            if(inLocalScope(destinationScope, identifier)) {
+                fprintf(stderr, "ERROR: Redeclaration of global variable %s on line %d\n",
+                        identifier, mylineno);
+                foundError = true;
+            } else {
+                listInsert(destinationScope->variables, elem);
+            }
+            current = current->next;
+        }
+
+        scope = scope->enclosingScope;
+    }
+
+    return destinationScope;
+}
+
+Scope *stripScope(Scope *scope) {
+    if(scope) {
+        return scope->enclosingScope;
     } else {
         return NULL;
     }
@@ -58,13 +103,13 @@ ScopeElement *findScopeElement(Scope *scope, char *identifier) {
 void declareVar(Scope *scope, Type type, char *identifier) {
     Value empty;
     empty.integer_value = 0;
-    ScopeElement *foundVar = findScopeElement(scope, identifier);
+    ScopeElement *foundVar = inLocalScope(scope, identifier);
 
     if(foundVar) {
         fprintf(stderr, "ERROR: On line %d, %s has already been declared!\n", mylineno, identifier);
         foundError = true;
     } else {
-        debug(E_DEBUG, "Declaring undeclared variable \"%s\"\n", identifier);
+        debug(E_DEBUG, "Declaring undeclared variable \"%s\" with type %s\n", identifier, typeName(type));
         ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
         scopeVariable->type = type;
         scopeVariable->value = empty;

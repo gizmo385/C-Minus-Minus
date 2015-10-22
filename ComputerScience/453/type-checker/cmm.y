@@ -11,15 +11,19 @@
 
 extern char *yytext;
 
+// Parse state information
 int mylineno;
 int mycolno;
 bool foundError = false;
-bool funcTypeSet = false;
 
+// Typing and scoping
+bool funcTypeSet = false;
 Type currentFunctionReturnType = VOID_TYPE;
+Scope *globalScope;
 Scope *scope;
 Type baseDeclType;
 
+// Helper functions
 int diffComp(void *a, void *b);
 
 %}
@@ -110,7 +114,7 @@ prog : decl prog
      | func prog
      | epsilon
 
-decl : type var_decl_list SEMICOLON
+decl : type var_decl_list SEMICOLON { globalScope = flattenScope(scope); scope = newScope(globalScope);}
      | type name_args_lists SEMICOLON
      | VOID name_args_lists SEMICOLON
      | EXTERN type name_args_lists SEMICOLON
@@ -119,9 +123,9 @@ decl : type var_decl_list SEMICOLON
      ;
 
 func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET
-     { $$ = newFunction($1, $2, $4, $7, $8); funcTypeSet = false; }
+     { $$ = newFunction($1, $2, $4, $7, $8); scope = newScope(globalScope); funcTypeSet = false; }
      | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET
-     { $$ = newFunction(VOID_TYPE, $2, $4, $7, $8); funcTypeSet = false; }
+     { $$ = newFunction(VOID_TYPE, $2, $4, $7, $8); scope = newScope(globalScope); funcTypeSet = false; }
      | error RIGHT_CURLY_BRACKET { $$ = NULL; }
      ;
 
@@ -429,7 +433,8 @@ int main(int argc, char **argv){
 #ifdef DEBUG
     setDebuggingLevel(E_ALL);
 #endif
-    scope = newScope(NULL);
+    globalScope = newScope(NULL);
+    scope = newScope(globalScope);
     yyparse();
 
     if(foundError) {
