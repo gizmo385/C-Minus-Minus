@@ -1,16 +1,24 @@
-int main(void) {
+int g;
+
+int main(int a, int b, char c) {
     int x;
     int y;
     int z[5];
     int aCharacter;
+    int true, false;
 
     /* Should work */
+    int g;
+    true = 0;
+    false = 1;
     aCharacter = 'x';
     aCharacter = 'x' + 'y';
     y = z[1];
+    if(true) return aCharacter;
     z[3] = 3;
     return -(1 + 4 * 3 / 5);
     return 'x';
+    return g;
 
     /* Shouldn't work */
     x = 5 + 1 - "fjdafkdajlfkad";
@@ -20,5 +28,13 @@ int main(void) {
     y = 3 < 4 < 5;
     y = z["type error"];
     return !(1 + 3);
+    return "testing";
+}
+
+int g;
+
+char testing(void) {
+    return g;
+    return aCharacter;
     return "testing";
 }
