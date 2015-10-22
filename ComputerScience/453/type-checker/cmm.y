@@ -406,10 +406,21 @@ optional_expr : expr                                                { $$ = $1; }
               ;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 stmt_list : stmt stmt_list              { $$ = newStatementList($1, $2); }
           | epsilon                     { $$ = NULL; }
 =======
 stmt_list : stmt stmt_list                                          { $1->next = $2; $$ = $1; }
+=======
+stmt_list : stmt stmt_list {
+            if($1) {
+                $1->next = $2;
+                $$ = $1;
+            } else {
+                $$ = NULL;
+            }
+        }
+>>>>>>> 087b82a... 453: Fix bug with stmt_list action
           | epsilon                                                 { $$ = NULL; }
 >>>>>>> 6b7867b... 453 3: Add more type checking
           ;
