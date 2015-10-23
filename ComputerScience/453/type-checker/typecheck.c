@@ -230,6 +230,10 @@ Type typeCheckExpression(Expression *expression) {
         }
     }
 
+    if(finalType == ERROR_TYPE) {
+        foundError = true;
+    }
+
     return finalType;
 }
 
