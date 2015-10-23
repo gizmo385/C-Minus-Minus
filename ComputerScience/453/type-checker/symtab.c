@@ -126,19 +126,49 @@ void declareVar(Scope *scope, Type type, char *identifier) {
 }
 
 bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argumentNames,
-        List *argumentTypes) {
+        List *argumentTypes, bool declaredExtern) {
     Value empty;
     empty.integer_value = 0;
     ScopeElement *foundVar = findScopeElement(scope, identifier);
 
+    // Determine if something with that name already exists
     if(foundVar) {
-        return false;
+        // If that thing is a function, check some properties
+        if(foundVar->elementType == SCOPE_FUNC) {
+            ScopeFunction *func = foundVar->function;
+
+            // Determine if the function has been implemented or declared as extern
+            if(func->implemented) {
+                // An already implemented function cannot be reimplemented
+                fprintf(stderr, "ERROR: Attempting to redefine function %s on line %d.\n",
+                        identifier, mylineno);
+                foundError = true;
+                return false;
+            } else if(func->declaredExtern) {
+                // An extern function cannot be declared in the same file
+                fprintf(stderr, "ERROR: Attempting to define function %s declared as extern on line %d.\n",
+                        identifier, mylineno);
+                foundError = true;
+                return false;
+            } else {
+                func->implemented = true;
+                return true;
+            }
+        } else {
+            // If it's a variable, then a variable can't be defined as a scope
+            fprintf(stderr, "ERROR: Attempting to redefine variable %s as function on line %d.\n",
+                    identifier, mylineno);
+            foundError = true;
+            return false;
+        }
     } else {
         debug(E_DEBUG, "Declaring undeclared function \"%s\"\n", identifier);
         ScopeFunction *scopeFunction = malloc(sizeof(ScopeFunction));
         scopeFunction->returnType = returnType;
         scopeFunction->argumentNames = argumentNames;
         scopeFunction->argumentTypes = argumentTypes;
+        scopeFunction->implemented = false;
+        scopeFunction->declaredExtern = declaredExtern;
 
         ScopeElement *elem = malloc(sizeof(ScopeElement));
         elem->identifier = identifier;

@@ -18,6 +18,8 @@ typedef struct {
     Type returnType;
     List *argumentNames;
     List *argumentTypes;
+    bool implemented;
+    bool declaredExtern;
 } ScopeFunction;
 
 struct ScopeElement {
@@ -43,6 +45,6 @@ extern ScopeElement *findScopeElement(Scope *scope, char *identifier);
 /* Declaring new variables and functions inside of a scope */
 extern void declareVar(Scope *scope, Type type, char *identifier);
 extern bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argumentNames,
-        List *argumentTypes);
+        List *argumentTypes, bool declaredExtern);
 
 #endif
