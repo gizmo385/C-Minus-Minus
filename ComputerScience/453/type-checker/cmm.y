@@ -188,6 +188,7 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE   { $$ = newIfStat
      | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
      | RETURN optional_expr SEMICOLON                           { $$ = newReturnStatement(scope, $2); }
      | assg SEMICOLON                                           { $$ = $1; }
+<<<<<<< HEAD
      | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON
 >>>>>>> 33626bd... 453 3: Creating statement nodes in parser
      | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET
@@ -195,6 +196,16 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE   { $$ = newIfStat
      | error SEMICOLON
      | error RIGHT_CURLY_BRACKET
 >>>>>>> aeb3970... 453 3: foundError set in yyerror, not in action
+=======
+     | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON            {
+        Expression *func = newFunctionExpression(scope, $1, $3);
+        $$ = newFunctionCallStatement(scope, func);
+    }
+     | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET         { $$ = $2; }
+     | SEMICOLON                                                { $$ = NULL; }
+     | error SEMICOLON                                          { $$ = NULL; }
+     | error RIGHT_CURLY_BRACKET                                { $$ = NULL; }
+>>>>>>> a5a621c... 453 3: Creating function call in parser
      ;
 
 <<<<<<< HEAD
@@ -285,11 +296,15 @@ name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN {
                     List *names = newList(diffComp);
                     List *types = newList(diffComp);
                     FunctionParameter *param = $3;
+
                     while(param) {
                         listInsert(names, param->identifier);
-                        listInsert(types, &param->type);
+                        Type *typeP = malloc(sizeof(Type));
+                        *typeP = param->type;
+                        listInsert(types, typeP);
                         param = param->next;
                     }
+
                     bool success = declareFunction(globalScope, currentFunctionReturnType, $1,
                                                     names, types, declaredExtern);
 
@@ -414,7 +429,7 @@ non_void_param_type : type ID {
                     }
                     ;
 
-param_types_list : non_void_param_type                          { $$ = $1; }
+param_types_list : non_void_param_type  { $$ = $1; }
                  | param_types_list COMMA non_void_param_type   { $1->next = $3; $$ = $1; }
                  | epsilon                                      { $$ = NULL; }
                  ;
@@ -495,10 +510,14 @@ bool addFunctionDeclarationToScope(FunctionDeclaration *declaration) {
     List *types = newList(diffComp);
 
     while(param) {
+        debug(E_DEBUG, "%s ", typeName(param->type));
         listInsert(names, param->identifier);
-        listInsert(types, &param->type);
+        Type *typeP = malloc(sizeof(Type));
+        *typeP = param->type;
+        listInsert(types, typeP);
         param = param->next;
     }
+    debug(E_DEBUG, "\n");
 
     bool success = declareFunction(globalScope, declaration->returnType, declaration->functionName,
                                 names, types, declaredExtern);
