@@ -18,6 +18,7 @@ bool foundError = false;
 
 // Typing and scoping
 bool funcTypeSet = false;
+bool declaredExtern = false;
 Type currentFunctionReturnType = VOID_TYPE;
 Scope *globalScope;
 Scope *scope;
@@ -25,6 +26,7 @@ Type baseDeclType;
 
 // Helper functions
 int diffComp(void *a, void *b);
+bool addFunctionDeclarationToScope(FunctionDeclaration *declaration);
 
 %}
 
@@ -122,15 +124,31 @@ decl : type var_decl_list SEMICOLON {
     }
      | type name_args_lists SEMICOLON
      | VOID name_args_lists SEMICOLON
-     | EXTERN type name_args_lists SEMICOLON
-     | EXTERN VOID name_args_lists SEMICOLON
+     | extern type name_args_lists SEMICOLON { declaredExtern = false; }
+     | extern VOID name_args_lists SEMICOLON { declaredExtern = false; }
      | error SEMICOLON
      ;
 
-func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET
-     { $$ = newFunction($1, $2, $4, $7, $8); scope = newScope(globalScope); funcTypeSet = false; }
-     | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET
-     { $$ = newFunction(VOID_TYPE, $2, $4, $7, $8); scope = newScope(globalScope); funcTypeSet = false; }
+extern : EXTERN {
+    declaredExtern = true;
+}
+
+func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET {
+        FunctionDeclaration *decl = newFunction($1, $2, $4, $7, $8);
+        scope = newScope(globalScope);
+        addFunctionDeclarationToScope(decl);
+        funcTypeSet = false;
+
+        $$ = decl;
+    }
+     | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET {
+        FunctionDeclaration *decl = newFunction(VOID_TYPE, $2, $4, $7, $8);
+        scope = newScope(globalScope);
+        addFunctionDeclarationToScope(decl);
+        funcTypeSet = false;
+
+        $$ = decl;
+    }
      | error RIGHT_CURLY_BRACKET { $$ = NULL; }
      ;
 
@@ -263,7 +281,23 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
 >>>>>>> dfa249c... 453 3: Actions for non-identifier expressions
      ;
 
-name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
+name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN {
+                    List *names = newList(diffComp);
+                    List *types = newList(diffComp);
+                    FunctionParameter *param = $3;
+                    while(param) {
+                        listInsert(names, param->identifier);
+                        listInsert(types, &param->type);
+                        param = param->next;
+                    }
+                    bool success = declareFunction(globalScope, currentFunctionReturnType, $1,
+                                                    names, types, declaredExtern);
+
+                    if(!success) {
+                        fprintf(stderr, "ERROR: Attempted redeclaration of \"%s\" as function on line %d.\n",
+                            $1, mylineno);
+                    }
+                }
                 | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
                 ;
 
@@ -443,6 +477,30 @@ epsilon:
 %%
 int diffComp(void *a, void *b) {
     return -1;
+}
+
+bool addFunctionDeclarationToScope(FunctionDeclaration *declaration) {
+    FunctionParameter *param = declaration->parameters;
+    List *names = newList(diffComp);
+    List *types = newList(diffComp);
+
+    while(param) {
+        listInsert(names, param->identifier);
+        listInsert(types, &param->type);
+        param = param->next;
+    }
+
+    bool success = declareFunction(globalScope, declaration->returnType, declaration->functionName,
+                                names, types, declaredExtern);
+
+    // Mark the function as implemented
+    if(success) {
+        ScopeElement *elem = findScopeElement(globalScope, declaration->functionName);
+        ScopeFunction *func = elem->function;
+        func->implemented = true;
+    }
+
+    return success;
 }
 
 int main(int argc, char **argv){
