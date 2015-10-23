@@ -86,7 +86,7 @@ Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *ar
 
             // Wrap it
             expr->functionExpression = functionExpression;
-            expr->type = VARIABLE;
+            expr->type = FUNCTION;
 
             debug(E_DEBUG, "Creating function expression for ID %s\n", identifier);
         } else {
@@ -171,6 +171,18 @@ Statement *newWhileStatement(Scope *scope, Expression *condition, Statement *bod
     Statement *stmt = malloc(sizeof(Statement));
     stmt->stmt_while = whileStatement;
     stmt->type = ST_WHILE;
+
+    typeCheckStatement(scope, stmt);
+    return stmt;
+}
+
+Statement *newFunctionCallStatement(Scope *scope, Expression *functionCall) {
+    FunctionCallStatement *callStatement = malloc(sizeof(FunctionCallStatement));
+    callStatement->functionCall = functionCall;
+
+    Statement *stmt = malloc(sizeof(Statement));
+    stmt->stmt_func = callStatement;
+    stmt->type = ST_FUNC;
 
     typeCheckStatement(scope, stmt);
     return stmt;
