@@ -178,8 +178,16 @@ static inline Type typeCheckFunctionCall(FunctionExpression *function) {
                 current = current->next;
             }
 
+            // Handle the case where too many arguments are supplied to a function
+            while(suppliedArguments) {
+                supplied += 1;
+                suppliedArguments = suppliedArguments->next;
+            }
+
             if(supplied != expected) {
-                // TODO: ERROR
+                fprintf(stderr, "ERROR: On line %d, the function %s expected %d arguments, was given %d.\n",
+                        mylineno, identifier, expected, supplied);
+                foundError = true;
             }
         } else {
             fprintf(stderr, "Attempting to call variable %s as function on line %d.\n", identifier,
