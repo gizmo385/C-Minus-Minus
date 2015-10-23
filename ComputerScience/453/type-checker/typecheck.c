@@ -136,6 +136,70 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
     return finalType;
 }
 
+static inline Type typeCheckFunctionCall(FunctionExpression *function) {
+    Type finalType = ERROR_TYPE;
+    char *identifier = function->identifier;
+
+    ScopeElement *elem = findScopeElement(globalScope, identifier);
+    if(elem) {
+        if(elem->elementType == SCOPE_FUNC) {
+            ScopeFunction *defn = elem->function;
+            List *argumentTypes = defn->argumentTypes;
+            ListNode *current = argumentTypes->head;
+            Expression *suppliedArguments = function->arguments;
+            finalType = defn->returnType;
+
+            // Check that all arguments are present and the correct type
+            int expected = 0;
+            int supplied = 0;
+
+            while(current) {
+                expected += 1;
+                Type *typeP = current->data;
+                if(!typeP) {
+                    current = current->next;
+                    continue;
+                }
+                Type expectedType = *typeP;
+
+                if(suppliedArguments) {
+                    supplied += 1;
+                    Type suppliedType = typeCheckExpression(suppliedArguments);
+
+                    /*debug(E_DEBUG, "Expected Type: %s\tSuppliedType: %s\n", typeName(expectedType),*/
+                            /*typeName(suppliedType));*/
+
+                    if(! typesCompatible(suppliedType, expectedType)) {
+                        // HOLY PERCENT FORMATTING BATMAN
+                        fprintf(stderr, "Type error, line %d: Argument %d of call to function %s expected %s, got %s\n",
+                                mylineno, supplied, identifier, typeName(expectedType),
+                                typeName(suppliedType));
+                        foundError = true;
+                    }
+                    suppliedArguments = suppliedArguments->next;
+                }
+                current = current->next;
+            }
+
+            if(supplied != expected) {
+                // TODO: ERROR
+            }
+        } else {
+            fprintf(stderr, "Attempting to call variable %s as function on line %d.\n", identifier,
+                    mylineno);
+            foundError = true;
+            finalType = ERROR_TYPE;
+        }
+    } else {
+        fprintf(stderr, "Attempting to call undefined function %s on line %d.\n", identifier,
+                mylineno);
+        foundError = true;
+        finalType = ERROR_TYPE;
+    }
+
+    return finalType;
+}
+
 Type typeCheckExpression(Expression *expression) {
     Type finalType = ERROR_TYPE;
     if(expression) {
@@ -150,7 +214,7 @@ Type typeCheckExpression(Expression *expression) {
                 finalType = typeCheckVariableExpression(expression->variableExpression);
                 break;
             case FUNCTION:
-                // TODO: Type check function calls
+                finalType = typeCheckFunctionCall(expression->functionExpression);
                 break;
             case UNARY:
                 finalType = typeCheckUnaryExpression(expression->unaryExpression);
@@ -295,6 +359,22 @@ static inline bool typeCheckIfElseStatement(Scope *scope, IfElseStatement *stmt)
     return typeChecks;
 }
 
+static inline bool typeCheckFunctionCallStatement(Scope *scope, FunctionCallStatement *stmt) {
+    bool typeChecks = true;
+    if(stmt) {
+        Expression *functionCall = stmt->functionCall;
+
+        if(functionCall->type == FUNCTION) {
+            typeChecks = typeCheckExpression(functionCall) != ERROR_TYPE;
+        } else {
+            fprintf(stderr, "SEVERE ERROR: FunctionCallStatement doesn't contain a function, contains %s\n",
+                    expressionTypeName(functionCall));
+            typeChecks = false;
+        }
+    }
+    return typeChecks;
+}
+
 bool typeCheckStatement(Scope *scope, Statement *statement) {
     bool typeChecks = true;
     switch(statement->type) {
@@ -303,6 +383,9 @@ bool typeCheckStatement(Scope *scope, Statement *statement) {
             break;
         case ST_WHILE:
             typeChecks = typeCheckWhileStatement(scope, statement->stmt_while);
+            break;
+        case ST_FUNC:
+            typeCheckFunctionCallStatement(scope, statement->stmt_func);
             break;
         case ST_IF:
             typeChecks = typeCheckIfStatement(scope, statement->stmt_if);
