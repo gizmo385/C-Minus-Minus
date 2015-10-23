@@ -90,9 +90,6 @@ static inline Type typeCheckBinaryExpression(BinaryExpression *expression) {
                 break;
             case EQ_OP:
             case NEQ_OP:
-                // TODO: Determine valid operand types
-                return BOOL_TYPE;
-                break;
             case LTE_OP:
             case GTE_OP:
             case GT_OP:
