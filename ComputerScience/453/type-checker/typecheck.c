@@ -115,16 +115,20 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
 
         // Check that arrays have a valid INT expression for the index
         if(varType == CHAR_ARRAY_TYPE || varType == INT_ARRAY_TYPE) {
-            Type indexType = typeCheckExpression(expression->arrayIndex);
+            if(expression->arrayIndex) {
+                Type indexType = typeCheckExpression(expression->arrayIndex);
 
-            if(typesCompatible(INT_TYPE, indexType)) {
-                // If it does, the type of the expression is the type contained in the array
-                finalType = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
+                if(typesCompatible(INT_TYPE, indexType)) {
+                    // If it does, the type of the expression is the type contained in the array
+                    finalType = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
+                } else {
+                    // A non-int expression constitutes a type error
+                    fprintf(stderr, "Type error, line %d: Attempting to index array with %s, should be INT\n",
+                            mylineno, typeName(indexType));
+                    foundError = true;
+                }
             } else {
-                // A non-int expression constitutes a type error
-                fprintf(stderr, "Type error, line %d: Attempting to index array with %s, should be INT\n",
-                        mylineno, typeName(indexType));
-                foundError = true;
+                finalType = varType;
             }
         } else {
             finalType = varType;
