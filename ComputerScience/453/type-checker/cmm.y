@@ -116,40 +116,48 @@ prog : decl prog
      | func prog
      | epsilon
 
-decl : type var_decl_list SEMICOLON {
-        // TODO: Make this better
-        // To handle global scopes, scope is flattened on a global declaration (ew)
-        globalScope = flattenScope(scope);
-        scope = newScope(globalScope); // Clear out the scope the declaration was made in (ew)
-    }
-     | type name_args_lists SEMICOLON { scope = newScope(globalScope); }
-     | VOID name_args_lists SEMICOLON { scope = newScope(globalScope); }
-     | extern type name_args_lists SEMICOLON { scope = newScope(globalScope); declaredExtern = false; }
-     | extern VOID name_args_lists SEMICOLON { scope = newScope(globalScope); declaredExtern = false; }
+decl : type var_decl_list SEMICOLON
+        {
+            // TODO: Make this better
+            globalScope = flattenScope(scope);
+            scope = newScope(globalScope); // Clear out the scope the declaration was made in (ew)
+        }
+     | type name_args_lists SEMICOLON                           { scope = newScope(globalScope); }
+     | VOID name_args_lists SEMICOLON                           { scope = newScope(globalScope); }
+     | extern type name_args_lists SEMICOLON
+        {
+            scope = newScope(globalScope);
+            declaredExtern = false;
+        }
+     | extern VOID name_args_lists SEMICOLON
+        {
+            scope = newScope(globalScope);
+            declaredExtern = false;
+        }
      | error SEMICOLON
      ;
 
-extern : EXTERN {
-    declaredExtern = true;
-}
+extern : EXTERN                                                 { declaredExtern = true; }
 
-func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET {
-        FunctionDeclaration *decl = newFunction(currentFunctionReturnType, $2, $4, $7, $8);
-        scope = newScope(globalScope);
-        addFunctionDeclarationToScope(decl);
-        funcTypeSet = false;
+func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET
+        {
+            FunctionDeclaration *decl = newFunction(currentFunctionReturnType, $2, $4, $7, $8);
+            scope = newScope(globalScope);
+            addFunctionDeclarationToScope(decl);
+            funcTypeSet = false;
 
-        $$ = decl;
-    }
-     | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET {
-        FunctionDeclaration *decl = newFunction(VOID_TYPE, $2, $4, $7, $8);
-        scope = newScope(globalScope);
-        addFunctionDeclarationToScope(decl);
-        funcTypeSet = false;
+            $$ = decl;
+        }
+     | VOID ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list  stmt_list RIGHT_CURLY_BRACKET
+        {
+            FunctionDeclaration *decl = newFunction(VOID_TYPE, $2, $4, $7, $8);
+            scope = newScope(globalScope);
+            addFunctionDeclarationToScope(decl);
+            funcTypeSet = false;
 
-        $$ = decl;
-    }
-     | error RIGHT_CURLY_BRACKET { $$ = NULL; }
+            $$ = decl;
+        }
+     | error RIGHT_CURLY_BRACKET                                { $$ = NULL; }
      ;
 
 <<<<<<< HEAD
@@ -186,9 +194,12 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE   { $$ = newIfStat
      | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt            { $$ = newIfElseStatement(scope, $3, $5, $7); }
      | WHILE LEFT_PAREN expr RIGHT_PAREN stmt                   { $$ = newWhileStatement(scope, $3, $5); }
      | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
-     { $$ = newForStatement(scope, (AssignmentStatement *) $3, $5, (AssignmentStatement *) $7, $9); }
+        {
+            $$ = newForStatement(scope, (AssignmentStatement *) $3, $5, (AssignmentStatement *) $7, $9);
+        }
      | RETURN optional_expr SEMICOLON                           { $$ = newReturnStatement(scope, $2); }
      | assg SEMICOLON                                           { $$ = $1; }
+<<<<<<< HEAD
 <<<<<<< HEAD
      | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON
 >>>>>>> 33626bd... 453 3: Creating statement nodes in parser
@@ -202,6 +213,13 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE   { $$ = newIfStat
         Expression *func = newFunctionExpression(scope, $1, $3);
         $$ = newFunctionCallStatement(scope, func);
     }
+=======
+     | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON
+        {
+            Expression *func = newFunctionExpression(scope, $1, $3);
+            $$ = newFunctionCallStatement(scope, func);
+        }
+>>>>>>> 766655b... 453 3: Clean up cmm.y actions
      | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET         { $$ = $2; }
      | SEMICOLON                                                { $$ = NULL; }
      | error SEMICOLON                                          { $$ = NULL; }
