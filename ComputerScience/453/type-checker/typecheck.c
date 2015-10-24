@@ -332,7 +332,17 @@ static inline bool typeCheckForStatement(Scope *scope, ForStatement *stmt) {
     if(stmt) {
         Expression *condition = stmt->condition;
 
-        typeChecks = typeChecks && (typesCompatible(BOOL_TYPE, typeCheckExpression(condition)));
+        // Type check the statement if it's there
+        if(stmt->condition) {
+            Type conditionType = typeCheckExpression(condition);
+            bool compatible = typesCompatible(BOOL_TYPE, conditionType);
+
+            if(!compatible) {
+                fprintf(stderr, "ERROR: On line %d, the condition in the a for loop must be a boolean, not %s\n",
+                        mylineno, typeName(conditionType));
+            }
+        }
+
     }
     return typeChecks;
 }
