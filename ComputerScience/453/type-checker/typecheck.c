@@ -152,6 +152,48 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
     return finalType;
 }
 
+static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expression *suppliedArguments) {
+    bool valid = true;
+    ListNode *current = expectedTypes->head;
+    int numSupplied = 0, numExpected = 0;
+
+    while(current) {
+        if(current->data) {
+            numExpected += 1;
+            Type *typeP = current->data;
+            Type expected = *typeP;
+
+            if(suppliedArguments) {
+                numSupplied += 1;
+                Type supplied = typeCheckExpression(suppliedArguments);
+
+                debug(E_DEBUG, "Comparing types %s and %s for argument %d of call to %s on line %d.\n",
+                        typeName(expected), typeName(supplied), numSupplied, id, mylineno);
+                if(! typesCompatible(supplied, expected)) {
+                    fprintf(stderr, "Type error: On line %d, argument %d to %s expected %s, got %s.\n",
+                            mylineno, numExpected, id, typeName(expected), typeName(supplied));
+                    valid = false;
+                }
+                suppliedArguments = suppliedArguments->next;
+            }
+        }
+
+        current = current->next;
+    }
+
+    // Tally up remaining arguments
+    while(current) { numExpected += 1; current = current->next; }
+    while(suppliedArguments) { numSupplied += 1; suppliedArguments = suppliedArguments->next; }
+
+    if(numSupplied != numExpected) {
+        fprintf(stderr, "Error: On line %d, %s expected %d arguments, was given %d.\n", mylineno,
+                id, numExpected, numSupplied);
+        valid = false;
+    }
+
+    return valid;
+}
+
 static inline Type typeCheckFunctionCall(FunctionExpression *function) {
     Type finalType = ERROR_TYPE;
     char *identifier = function->identifier;
@@ -161,50 +203,10 @@ static inline Type typeCheckFunctionCall(FunctionExpression *function) {
         if(elem->elementType == SCOPE_FUNC) {
             ScopeFunction *defn = elem->function;
             List *argumentTypes = defn->argumentTypes;
-            ListNode *current = argumentTypes->head;
-            Expression *suppliedArguments = function->arguments;
             finalType = defn->returnType;
+            Expression *suppliedArguments = function->arguments;
 
-            // Check that all arguments are present and the correct type
-            int expected = 0;
-            int supplied = 0;
-
-            while(current) {
-                Type *typeP = current->data;
-                if(!typeP) {
-                    current = current->next;
-                    continue;
-                }
-                expected += 1;
-                Type expectedType = *typeP;
-
-                if(suppliedArguments) {
-                    supplied += 1;
-                    Type suppliedType = typeCheckExpression(suppliedArguments);
-
-                    if(! typesCompatible(suppliedType, expectedType)) {
-                        // HOLY PERCENT FORMATTING BATMAN
-                        if(supplied == expected) {
-                            fprintf(stderr, "Type error, line %d: Argument %d of call to function %s expected %s, got %s\n",
-                                    mylineno, supplied, identifier, typeName(expectedType),
-                                    typeName(suppliedType));
-                        }
-                        foundError = true;
-                    }
-                    suppliedArguments = suppliedArguments->next;
-                }
-                current = current->next;
-            }
-
-            // Handle the case where too many arguments are supplied to a function
-            while(suppliedArguments) {
-                supplied += 1;
-                suppliedArguments = suppliedArguments->next;
-            }
-
-            if(supplied != expected) {
-                fprintf(stderr, "ERROR: On line %d, the function %s expected %d arguments, was given %d.\n",
-                        mylineno, identifier, expected, supplied);
+            if(! compareArgumentTypes(identifier, argumentTypes, suppliedArguments)) {
                 foundError = true;
             }
         } else {
