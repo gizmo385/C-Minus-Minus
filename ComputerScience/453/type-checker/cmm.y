@@ -306,13 +306,8 @@ name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN {
                         param = param->next;
                     }
 
-                    bool success = declareFunction(globalScope, currentFunctionReturnType, $1,
-                                                    names, types, declaredExtern);
-
-                    if(!success) {
-                        fprintf(stderr, "ERROR: Attempted redeclaration of \"%s\" as function on line %d.\n",
-                            $1, mylineno);
-                    }
+                    declareFunction(globalScope, currentFunctionReturnType, $1, names, types,
+                                    declaredExtern);
                 }
                 | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
                 ;
