@@ -151,26 +151,25 @@ static inline Type typeCheckFunctionCall(FunctionExpression *function) {
             int supplied = 0;
 
             while(current) {
-                expected += 1;
                 Type *typeP = current->data;
                 if(!typeP) {
                     current = current->next;
                     continue;
                 }
+                expected += 1;
                 Type expectedType = *typeP;
 
                 if(suppliedArguments) {
                     supplied += 1;
                     Type suppliedType = typeCheckExpression(suppliedArguments);
 
-                    /*debug(E_DEBUG, "Expected Type: %s\tSuppliedType: %s\n", typeName(expectedType),*/
-                            /*typeName(suppliedType));*/
-
                     if(! typesCompatible(suppliedType, expectedType)) {
                         // HOLY PERCENT FORMATTING BATMAN
-                        fprintf(stderr, "Type error, line %d: Argument %d of call to function %s expected %s, got %s\n",
-                                mylineno, supplied, identifier, typeName(expectedType),
-                                typeName(suppliedType));
+                        if(supplied == expected) {
+                            fprintf(stderr, "Type error, line %d: Argument %d of call to function %s expected %s, got %s\n",
+                                    mylineno, supplied, identifier, typeName(expectedType),
+                                    typeName(suppliedType));
+                        }
                         foundError = true;
                     }
                     suppliedArguments = suppliedArguments->next;
