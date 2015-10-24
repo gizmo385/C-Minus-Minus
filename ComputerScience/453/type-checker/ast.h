@@ -117,7 +117,7 @@ typedef struct {
 } FunctionCallStatement;
 
 /* Statement list and statements */
-typedef enum { ST_FOR, ST_WHILE, ST_IF, ST_IF_ELSE, ST_RETURN, ST_FUNC, ST_LIST, ST_ASSIGN } StatementType;
+typedef enum { ST_FOR, ST_WHILE, ST_IF, ST_IF_ELSE, ST_RETURN, ST_FUNC, ST_ASSIGN } StatementType;
 struct Statement {
     StatementType type;
     union {

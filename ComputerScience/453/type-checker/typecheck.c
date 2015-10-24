@@ -441,8 +441,6 @@ bool typeCheckStatement(Scope *scope, Statement *statement) {
         case ST_RETURN:
             typeChecks = typeCheckReturnStatement(scope, statement->stmt_return);
             break;
-        case ST_LIST:
-            break;
         case ST_ASSIGN:
             typeChecks = typeCheckAssignmentStatement(scope, statement->stmt_assign);
             break;
