@@ -186,6 +186,7 @@ stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE   { $$ = newIfStat
      | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt            { $$ = newIfElseStatement(scope, $3, $5, $7); }
      | WHILE LEFT_PAREN expr RIGHT_PAREN stmt                   { $$ = newWhileStatement(scope, $3, $5); }
      | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
+     { $$ = newForStatement(scope, (AssignmentStatement *) $3, $5, (AssignmentStatement *) $7, $9); }
      | RETURN optional_expr SEMICOLON                           { $$ = newReturnStatement(scope, $2); }
      | assg SEMICOLON                                           { $$ = $1; }
 <<<<<<< HEAD
