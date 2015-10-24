@@ -366,6 +366,7 @@ static inline bool typeCheckForStatement(Scope *scope, ForStatement *stmt) {
             if(!compatible) {
                 fprintf(stderr, "ERROR: On line %d, the condition in the a for loop must be a boolean, not %s\n",
                         mylineno, typeName(conditionType));
+                typeChecks = false;
             }
         }
 
@@ -376,9 +377,14 @@ static inline bool typeCheckForStatement(Scope *scope, ForStatement *stmt) {
 static inline bool typeCheckWhileStatement(Scope *scope, WhileStatement *stmt) {
     bool typeChecks = true;
     if(stmt) {
-        Expression *condition = stmt->condition;
+        Type conditionType = typeCheckExpression(stmt->condition);
+        bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
-        typeChecks = typesCompatible(BOOL_TYPE, typeCheckExpression(condition));
+        if(!compatible) {
+            fprintf(stderr, "ERROR: On line %d, the condition in the a while loop must be a boolean, not %s\n",
+                    mylineno, typeName(conditionType));
+            typeChecks = false;
+        }
     }
     return typeChecks;
 }
@@ -386,9 +392,14 @@ static inline bool typeCheckWhileStatement(Scope *scope, WhileStatement *stmt) {
 static inline bool typeCheckIfStatement(Scope *scope, IfStatement *stmt) {
     bool typeChecks = true;
     if(stmt) {
-        Expression *condition = stmt->condition;
+        Type conditionType = typeCheckExpression(stmt->condition);
+        bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
-        typeChecks = typesCompatible(BOOL_TYPE, typeCheckExpression(condition));
+        if(!compatible) {
+            fprintf(stderr, "ERROR: On line %d, the condition in the an if statement must be a boolean, not %s\n",
+                    mylineno, typeName(conditionType));
+            typeChecks = false;
+        }
     }
     return typeChecks;
 }
@@ -396,9 +407,14 @@ static inline bool typeCheckIfStatement(Scope *scope, IfStatement *stmt) {
 static inline bool typeCheckIfElseStatement(Scope *scope, IfElseStatement *stmt) {
     bool typeChecks = true;
     if(stmt) {
-        Expression *condition = stmt->condition;
+        Type conditionType = typeCheckExpression(stmt->condition);
+        bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
-        typeChecks = typesCompatible(BOOL_TYPE, typeCheckExpression(condition));
+        if(!compatible) {
+            fprintf(stderr, "ERROR: On line %d, the condition in the an if/else statement must be a boolean, not %s\n",
+                    mylineno, typeName(conditionType));
+            typeChecks = false;
+        }
     }
     return typeChecks;
 }
@@ -453,4 +469,3 @@ bool typeCheckStatement(Scope *scope, Statement *statement) {
 
     return typeChecks;
 }
-
