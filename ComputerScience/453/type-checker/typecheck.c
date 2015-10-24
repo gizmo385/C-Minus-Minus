@@ -27,21 +27,12 @@ static inline char *binopString(BinaryOperation op) {
 
 static inline Type getBinaryOperandType(BinaryOperation op) {
     switch(op) {
-        case ADD_OP:
-        case SUB_OP:
-        case MUL_OP:
-        case DIV_OP:
-        case EQ_OP:
-        case NEQ_OP:
-        case LTE_OP:
-        case GTE_OP:
-        case GT_OP:
-        case LT_OP:
-            return INT_TYPE;
-            break;
         case AND_OP:
         case OR_OP:
             return BOOL_TYPE;
+            break;
+        default:
+            return INT_TYPE;
             break;
     }
 }
@@ -54,14 +45,7 @@ static inline Type getBinaryReturnType(BinaryOperation op) {
         case DIV_OP:
             return INT_TYPE;
             break;
-        case EQ_OP:
-        case NEQ_OP:
-        case AND_OP:
-        case OR_OP:
-        case LTE_OP:
-        case GTE_OP:
-        case GT_OP:
-        case LT_OP:
+        default:
             return BOOL_TYPE;
             break;
     }
