@@ -25,7 +25,8 @@ Scope *scope;
 Type baseDeclType;
 
 // Helper functions
-int diffComp(void *a, void *b);
+int insertAtFront(void *a, void *b);
+int insertAtRear(void *a, void *b);
 bool addFunctionDeclarationToScope(FunctionDeclaration *declaration);
 
 %}
@@ -311,25 +312,27 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
 >>>>>>> dfa249c... 453 3: Actions for non-identifier expressions
      ;
 
-name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN {
-                    List *names = newList(diffComp);
-                    List *types = newList(diffComp);
-                    FunctionParameter *param = $3;
+name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
+                    {
+                        List *names = newList(insertAtRear);
+                        List *types = newList(insertAtRear);
+                        FunctionParameter *param = $3;
 
-                    while(param) {
-                        listInsert(names, param->identifier);
-                        Type *typeP = malloc(sizeof(Type));
-                        *typeP = param->type;
-                        listInsert(types, typeP);
-                        param = param->next;
+                        while(param) {
+                            listInsert(names, param->identifier);
+                            Type *typeP = malloc(sizeof(Type));
+                            *typeP = param->type;
+                            listInsert(types, typeP);
+                            param = param->next;
+                        }
+
+                        declareFunction(globalScope, currentFunctionReturnType, $1, names, types,
+                                        declaredExtern);
                     }
-
-                    declareFunction(globalScope, currentFunctionReturnType, $1, names, types,
-                                    declaredExtern);
-                }
                 | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
                 ;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -377,12 +380,33 @@ var_decl : ID { declareVar(scope, baseDeclType, $1); $$ = newVariable(baseDeclTy
 =======
          }
 >>>>>>> 6b7867b... 453 3: Add more type checking
+=======
+var_decl : ID
+            {
+                declareVar(scope, baseDeclType, $1);
+                $$ = newVariable(baseDeclType, $1);
+            }
+         | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET
+            {
+                if(baseDeclType == INT_TYPE) {
+                    declareVar(scope, INT_ARRAY_TYPE, $1);
+                    $$ = newVariable(INT_ARRAY_TYPE, $1);
+                } else if(baseDeclType == CHAR_TYPE) {
+                    declareVar(scope, CHAR_ARRAY_TYPE, $1);
+                    $$ = newVariable(CHAR_ARRAY_TYPE, $1);
+                } else {
+                    fprintf(stderr, "ERROR: Cannot determine type when declaring %s on line %d!\n", $1, mylineno);
+                    foundError = true;
+                }
+            }
+>>>>>>> 9fcecd9... 453 3: Fix creation of function declarations
          ;
 
 var_decl_list : var_decl                        { $$ = $1; }
               | var_decl_list COMMA var_decl    { $3->next = $1; $$ = $3; }
               | epsilon                         { $$ = NULL; }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -402,56 +426,78 @@ type : CHAR {
         if(!funcTypeSet) {
             currentFunctionReturnType = CHAR_TYPE;
             funcTypeSet = true;
+=======
+type : CHAR
+        {
+            if(!funcTypeSet) {
+                currentFunctionReturnType = CHAR_TYPE;
+                funcTypeSet = true;
+            }
+            baseDeclType = CHAR_TYPE; $$ = CHAR_TYPE;
+>>>>>>> 9fcecd9... 453 3: Fix creation of function declarations
         }
-        baseDeclType = CHAR_TYPE; $$ = CHAR_TYPE;
-     }
-     | INT {
-        if(!funcTypeSet) {
-            currentFunctionReturnType = INT_TYPE;
-            funcTypeSet = true;
+     | INT
+        {
+            if(!funcTypeSet) {
+                currentFunctionReturnType = INT_TYPE;
+                funcTypeSet = true;
+            }
+            baseDeclType = INT_TYPE; $$ = INT_TYPE;
         }
+<<<<<<< HEAD
         baseDeclType = INT_TYPE; $$ = INT_TYPE;
 <<<<<<< HEAD
      }     ;
 >>>>>>> 6b7867b... 453 3: Add more type checking
 =======
      }
+=======
+>>>>>>> 9fcecd9... 453 3: Fix creation of function declarations
      ;
 >>>>>>> 826657f... 453 3: Function parameters entered into scope
 
 param_types : VOID                                              { $$ = NULL; }
-            | non_void_param_type                               { $$ = $1; }
-            | param_types_list COMMA non_void_param_type        { $1->next = $3; $$ = $1; }
+            | non_void_param_type { $$ = $1; }
+            | param_types_list COMMA non_void_param_type { $3->next = $1; $$ = $3; }
             ;
 
-non_void_param_type : type ID {
-                        declareVar(scope, baseDeclType, $2);
-                        $$ = newFunctionParameter(baseDeclType, $2);
-                    }
-                    | type ID LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET {
-                        if(baseDeclType == INT_TYPE) {
-                            declareVar(scope, INT_ARRAY_TYPE, $2);
-                            $$ = newFunctionParameter(INT_ARRAY_TYPE, $2);
-                        } else if(baseDeclType == CHAR_TYPE) {
-                            declareVar(scope, CHAR_ARRAY_TYPE, $2);
-                            $$ = newFunctionParameter(CHAR_ARRAY_TYPE, $2);
-                        } else {
-                            fprintf(stderr, "Type error, on line %d: Arrays of type %s are not supported.\n",
-                                    mylineno, typeName(baseDeclType));
-                            foundError = true;
+non_void_param_type : type ID
+                        {
+                            declareVar(scope, baseDeclType, $2);
+                            $$ = newFunctionParameter(baseDeclType, $2);
                         }
-                    }
+                    | type ID LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+                        {
+                            if(baseDeclType == INT_TYPE) {
+                                declareVar(scope, INT_ARRAY_TYPE, $2);
+                                $$ = newFunctionParameter(INT_ARRAY_TYPE, $2);
+                            } else if(baseDeclType == CHAR_TYPE) {
+                                declareVar(scope, CHAR_ARRAY_TYPE, $2);
+                                $$ = newFunctionParameter(CHAR_ARRAY_TYPE, $2);
+                            } else {
+                                fprintf(stderr, "Type error, on line %d: Arrays of type %s are not supported.\n",
+                                        mylineno, typeName(baseDeclType));
+                                foundError = true;
+                            }
+                        }
                     ;
 
-param_types_list : non_void_param_type  { $$ = $1; }
-                 | param_types_list COMMA non_void_param_type   { $1->next = $3; $$ = $1; }
+param_types_list : non_void_param_type                          { $$ = $1; }
+                 | param_types_list COMMA non_void_param_type
+                    {
+                        $3->next = $1;
+                        $$ = $3;
+                    }
                  | epsilon                                      { $$ = NULL; }
                  ;
 
 optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
-                       { baseDeclType = $1; $2->next = $4; $$ = $2; }
-                       | epsilon { $$ = NULL; }
+                        {
+                            baseDeclType = $1; $2->next = $4; $$ = $2;
+                        }
+                       | epsilon                                { $$ = NULL; }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 optional_assign: assg                   { $$ = $1; }
@@ -505,33 +551,72 @@ assg : ID ASSIGN expr
 assg : ID ASSIGN expr                                               { $$ = newAssignmentStatement(scope, $1, NULL, $3); }
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr { $$ = newAssignmentStatement(scope, $1, $3, $6); }
 >>>>>>> 33626bd... 453 3: Creating statement nodes in parser
+=======
+optional_assign: assg                                           { $$ = $1; }
+               | error                                          { $$ = NULL; }
+               | epsilon                                        { $$ = NULL; }
+               ;
+
+optional_expr : expr                                            { $$ = $1; }
+              | epsilon                                         { $$ = NULL; }
+              ;
+
+stmt_list : stmt stmt_list
+            {
+                if($1) {
+                    $1->next = $2;
+                    $$ = $1;
+                } else {
+                    $$ = NULL;
+                }
+            }
+          | epsilon                                             { $$ = NULL; }
+          ;
+
+assg : ID ASSIGN expr
+        {
+            $$ = newAssignmentStatement(scope, $1, NULL, $3);
+        }
+     | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr
+        {
+            $$ = newAssignmentStatement(scope, $1, $3, $6);
+        }
+>>>>>>> 9fcecd9... 453 3: Fix creation of function declarations
      ;
 
-expr_list : optional_expr { $$ = $1; }
-          | expr_list COMMA expr { $1->next = $3; $$ = $1; }
+expr_list : optional_expr                                       { $$ = $1; }
+          | expr_list COMMA expr                                { $3->next = $1; $$ = $3; }
 
 epsilon:
        ;
 
 %%
-int diffComp(void *a, void *b) {
+int insertAtFront(void *a, void *b) {
+    return 1;
+}
+
+int insertAtRear(void *a, void *b) {
     return -1;
 }
 
 bool addFunctionDeclarationToScope(FunctionDeclaration *declaration) {
     FunctionParameter *param = declaration->parameters;
-    List *names = newList(diffComp);
-    List *types = newList(diffComp);
+    List *names = NULL;
+    List *types = NULL;
 
-    while(param) {
-        debug(E_DEBUG, "%s ", typeName(param->type));
-        listInsert(names, param->identifier);
-        Type *typeP = malloc(sizeof(Type));
-        *typeP = param->type;
-        listInsert(types, typeP);
-        param = param->next;
+    if(param) {
+        names = newList(insertAtRear);
+        types = newList(insertAtRear);
+
+        while(param) {
+            listInsert(names, param->identifier);
+            Type *typeP = malloc(sizeof(Type));
+            *typeP = param->type;
+            listInsert(types, typeP);
+            param = param->next;
+        }
+
     }
-    debug(E_DEBUG, "\n");
 
     bool success = declareFunction(globalScope, declaration->returnType, declaration->functionName,
                                 names, types, declaredExtern);
