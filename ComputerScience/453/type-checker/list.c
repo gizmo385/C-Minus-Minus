@@ -57,8 +57,10 @@ void listInsert( List *list, void *data ) {
     ComparisonFunction compare = list->comparisonFunction;
 
     // Determine where the data will be inserted
-    while( current->next != NULL && compare(current->data, data) < 0 ) {
-        current = current->next;
+    if(compare) {
+        while( current->next != NULL && compare(current->data, data) < 0 ) {
+            current = current->next;
+        }
     }
 
     // Insert the element
@@ -117,6 +119,10 @@ void *listRemove( List *list, void *data ) {
 ListNode *listFind( List *list, void *data ) {
     ListNode *current = list->head;
     ComparisonFunction compare = list->comparisonFunction;
+
+    if(!compare) {
+        return NULL;
+    }
 
     while( current->next != NULL && compare( current->data, data ) != 0 ) {
         current = current->next;
