@@ -162,6 +162,18 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
             return false;
         }
     } else {
+        debug(E_DEBUG, "Declaring function %s with arguments: ", identifier);
+        if(argumentTypes) {
+            ListNode *current = argumentTypes->head;
+            while(current) {
+                if(current->data) {
+                    Type *typeP = current->data;
+                    debug(E_DEBUG, "%s ", typeName(*typeP));
+                }
+                current = current->next;
+            }
+        }
+        debug(E_DEBUG, "\n");
         ScopeFunction *scopeFunction = malloc(sizeof(ScopeFunction));
         scopeFunction->returnType = returnType;
         scopeFunction->argumentNames = argumentNames;
