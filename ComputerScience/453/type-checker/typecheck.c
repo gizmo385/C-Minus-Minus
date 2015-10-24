@@ -5,6 +5,15 @@
 #include "typecheck.h"
 #include "globals.h"
 
+/* Defining which types are compatible with each other */
+bool typesCompatible(Type t1, Type t2) {
+    return (t1 == t2 ||
+            t1 == ERROR_TYPE ||
+            t2 == ERROR_TYPE ||
+            (t1 == CHAR_TYPE && t2 == INT_TYPE) ||
+            (t2 == CHAR_TYPE && t1 == INT_TYPE));
+}
+
 /* Type checking binary expressions */
 static inline char *binopString(BinaryOperation op) {
     char *string = "error";
@@ -244,14 +253,6 @@ Type typeCheckExpression(Expression *expression) {
     }
 
     return finalType;
-}
-
-bool typesCompatible(Type t1, Type t2) {
-    return (t1 == t2 ||
-            t1 == ERROR_TYPE ||
-            t2 == ERROR_TYPE ||
-            (t1 == CHAR_TYPE && t2 == INT_TYPE) ||
-            (t2 == CHAR_TYPE && t1 == INT_TYPE));
 }
 
 static inline bool typeCheckReturnStatement(Scope *scope, ReturnStatement *stmt) {
