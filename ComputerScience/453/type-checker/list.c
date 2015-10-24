@@ -71,42 +71,6 @@ void listInsert( List *list, void *data ) {
 }
 
 /*
- * Removes the specified data element from the list
- *
- * Arguments:
- * list -- The list to remove the elements from
- * data -- The data to remove from the list
- *
- * Returns:
- * The element that was removed from the list
- */
-void *listRemove( List *list, void *data ) {
-    // You cannot remove NULL from the list
-    if( data == NULL ) {
-        return NULL;
-    }
-
-    ListNode *current = list->head;
-    ComparisonFunction compare = list->comparisonFunction;
-
-    // Determine where the data will be inserted
-    while( current->next != NULL && compare(current->data, data) != 0 ) {
-        current = current->next;
-    }
-
-    // Remove the element
-    void *elementRemoved = current->data;
-    ListNode *temp = current->next;
-    current->data = temp->data;
-    current->next = temp->next;
-
-    free( temp );
-
-    list->size -= 1;
-    return elementRemoved;
-}
-
-/*
  * Searchs for and returns the element in the list
  *
  * Arguments:
