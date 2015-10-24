@@ -16,7 +16,7 @@ int main(int a, int b, char c) {
     int g;
     return main(1, 2, 3);
     return a;
-    func(1);
+    func(1, 3);
     true = 0;
     false = 1;
     aCharacter = 'x';
