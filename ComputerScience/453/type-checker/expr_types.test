@@ -22,7 +22,7 @@ int main(int a, int b, char c) {
     aCharacter = 'x';
     aCharacter = 'x' + 'y';
     y = z[1];
-    if(true) return aCharacter;
+    if(true == true) return aCharacter;
     z[3] = 3;
     return -(1 + 4 * 3 / 5);
     return 'x';
