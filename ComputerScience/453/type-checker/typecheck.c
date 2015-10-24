@@ -5,6 +5,7 @@
 #include "typecheck.h"
 #include "globals.h"
 
+/* Type checking binary expressions */
 static inline char *binopString(BinaryOperation op) {
     char *string = "error";
     switch(op) {
@@ -24,37 +25,52 @@ static inline char *binopString(BinaryOperation op) {
     return string;
 }
 
-static inline Type typeCheckUnaryExpression(UnaryExpression *expression) {
-    UnaryOperation op = expression->operation;
-    Type operandType = typeCheckExpression(expression->operand);
-
-    if(op == NOT_OP) {
-        if(typesCompatible(BOOL_TYPE, operandType)) {
-            return BOOL_TYPE;
-        } else {
-            fprintf(stderr, "Type error, line %d: Operand for ! has type %s, should be BOOL.\n",
-                    mylineno, typeName(operandType));
-            foundError = true;
-            return ERROR_TYPE;
-        }
-    } else if(op == NEG_OP) {
-        if(typesCompatible(INT_TYPE, operandType)) {
+static inline Type getBinaryOperandType(BinaryOperation op) {
+    switch(op) {
+        case ADD_OP:
+        case SUB_OP:
+        case MUL_OP:
+        case DIV_OP:
+        case EQ_OP:
+        case NEQ_OP:
+        case LTE_OP:
+        case GTE_OP:
+        case GT_OP:
+        case LT_OP:
             return INT_TYPE;
-        } else {
-            fprintf(stderr, "Type error, line %d: Operand for - has type %s, should be INT.\n",
-                    mylineno, typeName(operandType));
-            foundError = true;
-            return ERROR_TYPE;
-        }
-    } else {
-        return ERROR_TYPE;
+            break;
+        case AND_OP:
+        case OR_OP:
+            return BOOL_TYPE;
+            break;
+    }
+}
+
+static inline Type getBinaryReturnType(BinaryOperation op) {
+    switch(op) {
+        case ADD_OP:
+        case SUB_OP:
+        case MUL_OP:
+        case DIV_OP:
+        case LTE_OP:
+        case GTE_OP:
+        case GT_OP:
+        case LT_OP:
+            return INT_TYPE;
+            break;
+        case EQ_OP:
+        case NEQ_OP:
+        case AND_OP:
+        case OR_OP:
+            return BOOL_TYPE;
+            break;
     }
 }
 
 static inline Type binaryTypeCheck(BinaryOperation op, Type shouldBe, Type left, Type right) {
     if(typesCompatible(shouldBe, left)) {
         if(typesCompatible(shouldBe, right)) {
-            return shouldBe;
+            return getBinaryReturnType(op);
         } else {
             fprintf(stderr, "Type error, line %d: Right operand for %s has type %s, should be %s\n",
                     mylineno, binopString(op), typeName(right), typeName(shouldBe));
@@ -77,35 +93,41 @@ static inline Type typeCheckBinaryExpression(BinaryExpression *expression) {
         Type rightType = typeCheckExpression(expression->rightOperand);
         BinaryOperation op = expression->operation;
 
-        switch(op) {
-            case ADD_OP:
-            case SUB_OP:
-            case MUL_OP:
-            case DIV_OP:
-                return binaryTypeCheck(op, INT_TYPE, leftType, rightType);
-                break;
-            case AND_OP:
-            case OR_OP:
-                return binaryTypeCheck(op, INT_TYPE, leftType, rightType);
-                break;
-            case EQ_OP:
-            case NEQ_OP:
-            case LTE_OP:
-            case GTE_OP:
-            case GT_OP:
-            case LT_OP:
-                if(binaryTypeCheck(op, INT_TYPE, leftType, rightType) != ERROR_TYPE) {
-                    return BOOL_TYPE;
-                } else {
-                    return ERROR_TYPE;
-                }
-                break;
-            default:
-                break;
-        }
+        finalType = binaryTypeCheck(op, getBinaryOperandType(op), leftType, rightType);
     }
 
     return finalType;
+}
+
+/* Type checking unary expressions */
+static inline char *unopString(UnaryOperation op) {
+    char *string = "error";
+    switch(op) {
+        case NOT_OP: string = "!"; break;
+        case NEG_OP: string = "-"; break;
+    }
+    return string;
+}
+
+static inline Type getUnaryType(UnaryOperation op) {
+    switch(op) {
+        case NOT_OP: return BOOL_TYPE; break;
+        case NEG_OP: return INT_TYPE; break;
+    }
+}
+
+static inline Type typeCheckUnaryExpression(UnaryExpression *expression) {
+    UnaryOperation op = expression->operation;
+    Type unaryOpType = getUnaryType(op);
+    Type operandType = typeCheckExpression(expression->operand);
+
+    if(typesCompatible(unaryOpType, operandType)) {
+        return unaryOpType;
+    } else {
+        fprintf(stderr, "Type Error: On line %d, Unary operation %s expects type %s, found type %s\n",
+                mylineno, unopString(op), typeName(unaryOpType), typeName(operandType));
+        return ERROR_TYPE;
+    }
 }
 
 static inline Type typeCheckVariableExpression(VariableExpression *expression) {
