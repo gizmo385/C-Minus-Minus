@@ -134,7 +134,7 @@ extern : EXTERN {
 }
 
 func : type ID LEFT_PAREN param_types RIGHT_PAREN LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CURLY_BRACKET {
-        FunctionDeclaration *decl = newFunction($1, $2, $4, $7, $8);
+        FunctionDeclaration *decl = newFunction(currentFunctionReturnType, $2, $4, $7, $8);
         scope = newScope(globalScope);
         addFunctionDeclarationToScope(decl);
         funcTypeSet = false;
