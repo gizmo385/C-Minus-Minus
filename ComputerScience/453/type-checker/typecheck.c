@@ -364,7 +364,7 @@ static inline bool typeCheckForStatement(Scope *scope, ForStatement *stmt) {
             bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
             if(!compatible) {
-                fprintf(stderr, "ERROR: On line %d, the condition in the a for loop must be a boolean, not %s\n",
+                fprintf(stderr, "ERROR: On line %d, the condition in a for loop must be a boolean, not %s\n",
                         mylineno, typeName(conditionType));
                 typeChecks = false;
             }
@@ -381,7 +381,7 @@ static inline bool typeCheckWhileStatement(Scope *scope, WhileStatement *stmt) {
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
-            fprintf(stderr, "ERROR: On line %d, the condition in the a while loop must be a boolean, not %s\n",
+            fprintf(stderr, "ERROR: On line %d, the condition in a while loop must be a boolean, not %s\n",
                     mylineno, typeName(conditionType));
             typeChecks = false;
         }
@@ -396,7 +396,7 @@ static inline bool typeCheckIfStatement(Scope *scope, IfStatement *stmt) {
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
-            fprintf(stderr, "ERROR: On line %d, the condition in the an if statement must be a boolean, not %s\n",
+            fprintf(stderr, "ERROR: On line %d, the condition in an if statement must be a boolean, not %s\n",
                     mylineno, typeName(conditionType));
             typeChecks = false;
         }
@@ -411,7 +411,7 @@ static inline bool typeCheckIfElseStatement(Scope *scope, IfElseStatement *stmt)
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
-            fprintf(stderr, "ERROR: On line %d, the condition in the an if/else statement must be a boolean, not %s\n",
+            fprintf(stderr, "ERROR: On line %d, the condition in an if/else statement must be a boolean, not %s\n",
                     mylineno, typeName(conditionType));
             typeChecks = false;
         }
