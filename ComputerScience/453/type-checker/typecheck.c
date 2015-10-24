@@ -52,16 +52,16 @@ static inline Type getBinaryReturnType(BinaryOperation op) {
         case SUB_OP:
         case MUL_OP:
         case DIV_OP:
-        case LTE_OP:
-        case GTE_OP:
-        case GT_OP:
-        case LT_OP:
             return INT_TYPE;
             break;
         case EQ_OP:
         case NEQ_OP:
         case AND_OP:
         case OR_OP:
+        case LTE_OP:
+        case GTE_OP:
+        case GT_OP:
+        case LT_OP:
             return BOOL_TYPE;
             break;
     }
