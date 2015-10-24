@@ -162,7 +162,6 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
             return false;
         }
     } else {
-        debug(E_DEBUG, "Declaring undeclared function \"%s\"\n", identifier);
         ScopeFunction *scopeFunction = malloc(sizeof(ScopeFunction));
         scopeFunction->returnType = returnType;
         scopeFunction->argumentNames = argumentNames;
