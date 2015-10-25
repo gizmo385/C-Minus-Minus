@@ -314,16 +314,19 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
 
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
                     {
-                        List *names = newList(insertAtRear);
-                        List *types = newList(insertAtRear);
+                        List *names = NULL;
+                        List *types = NULL;
                         FunctionParameter *param = $3;
-
-                        while(param) {
-                            listInsert(names, param->identifier);
-                            Type *typeP = malloc(sizeof(Type));
-                            *typeP = param->type;
-                            listInsert(types, typeP);
-                            param = param->next;
+                        if(param) {
+                            names = newList(insertAtRear);
+                            types = newList(insertAtRear);
+                            while(param) {
+                                listInsert(names, param->identifier);
+                                Type *typeP = malloc(sizeof(Type));
+                                *typeP = param->type;
+                                listInsert(types, typeP);
+                                param = param->next;
+                            }
                         }
 
                         declareFunction(globalScope, currentFunctionReturnType, $1, names, types,
