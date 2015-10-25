@@ -28,6 +28,7 @@ Type baseDeclType;
 int insertAtFront(void *a, void *b);
 int insertAtRear(void *a, void *b);
 bool addFunctionDeclarationToScope(Type type, char *identifier, FunctionParameter *parameters);
+void resetFunctionType();
 
 %}
 
@@ -126,18 +127,29 @@ decl : type var_decl_list SEMICOLON
             // TODO: Make this better
             globalScope = flattenScope(scope);
             scope = newScope(globalScope); // Clear out the scope the declaration was made in (ew)
+            resetFunctionType();
         }
-     | type name_args_lists SEMICOLON                           { scope = newScope(globalScope); }
-     | VOID name_args_lists SEMICOLON                           { scope = newScope(globalScope); }
+     | type name_args_lists SEMICOLON
+        {
+            scope = newScope(globalScope);
+            resetFunctionType();
+        }
+     | void name_args_lists SEMICOLON
+        {
+            scope = newScope(globalScope);
+            resetFunctionType();
+        }
      | extern type name_args_lists SEMICOLON
         {
             scope = newScope(globalScope);
             declaredExtern = false;
+            resetFunctionType();
         }
-     | extern VOID name_args_lists SEMICOLON
+     | extern void name_args_lists SEMICOLON
         {
             scope = newScope(globalScope);
             declaredExtern = false;
+            resetFunctionType();
         }
      | error SEMICOLON
      ;
@@ -146,11 +158,13 @@ extern : EXTERN                                                 { declaredExtern
 
 func_header : type ID LEFT_PAREN param_types RIGHT_PAREN
                 {
-                    addFunctionDeclarationToScope(currentFunctionReturnType, $2, $4);
+                    debug(E_DEBUG, "Declaring function %s with type %s\n", $2, typeName($1));
+                    addFunctionDeclarationToScope($1, $2, $4);
                     $$ = $2;
                 }
-            | VOID ID LEFT_PAREN param_types RIGHT_PAREN
+            | void ID LEFT_PAREN param_types RIGHT_PAREN
                 {
+                    debug(E_DEBUG, "Declaring function %s with type %s\n", $2, "VOID_TYPE");
                     addFunctionDeclarationToScope(VOID_TYPE, $2, $4);
                     $$ = $2;
                 }
@@ -166,12 +180,12 @@ func : func_header LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CUR
                 FunctionDeclaration *decl = newFunction(currentFunctionReturnType, identifier,
                                                         argumentNames, argumentTypes, $3, $4);
                 scope = newScope(globalScope);
-                funcTypeSet = false;
 
                 $$ = decl;
             } else {
                 $$ = NULL;
             }
+            resetFunctionType();
         }
         ;
 
@@ -328,6 +342,7 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
 
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
                     {
+                        debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $1, typeName(currentFunctionReturnType));
                         List *names = NULL;
                         List *types = NULL;
                         FunctionParameter *param = $3;
@@ -346,6 +361,7 @@ name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
                         declareFunction(globalScope, currentFunctionReturnType, $1, names, types,
                                         declaredExtern, true);
                         scope = newScope(globalScope);
+                        resetFunctionType();
                     }
                 | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
                     {
@@ -367,6 +383,7 @@ name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
                         declareFunction(globalScope, currentFunctionReturnType, $3, names, types,
                                         declaredExtern, true);
                         scope = newScope(globalScope);
+                        resetFunctionType();
                     }
                 ;
 
@@ -448,6 +465,7 @@ var_decl_list : var_decl                        { $$ = $1; }
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 type : CHAR                             { baseDeclType = CHAR_TYPE; }
      | INT                              { baseDeclType = INT_TYPE; }
 =======
@@ -465,6 +483,15 @@ type : CHAR {
             currentFunctionReturnType = CHAR_TYPE;
             funcTypeSet = true;
 =======
+=======
+void : VOID
+        {
+            if(!funcTypeSet) {
+                currentFunctionReturnType = VOID_TYPE;
+                funcTypeSet = true;
+            }
+        }
+>>>>>>> ce38c86... 453 3: Fix function type matching
 type : CHAR
         {
             if(!funcTypeSet) {
@@ -494,7 +521,7 @@ type : CHAR
      ;
 >>>>>>> 826657f... 453 3: Function parameters entered into scope
 
-param_types : VOID                                              { $$ = NULL; }
+param_types : void                                              { $$ = NULL; }
             | non_void_param_type { $$ = $1; }
             | param_types_list COMMA non_void_param_type { $3->next = $1; $$ = $3; }
             ;
@@ -667,6 +694,11 @@ bool addFunctionDeclarationToScope(Type type, char *identifier, FunctionParamete
     }
 
     return success;
+}
+
+void resetFunctionType() {
+    funcTypeSet = false;
+    currentFunctionReturnType = VOID_TYPE;
 }
 
 int main(int argc, char **argv){
