@@ -154,6 +154,17 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
 
 static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expression *suppliedArguments) {
     bool valid = true;
+    // Check that arguments aren't being supplied to a void function
+    if(!expectedTypes) {
+        if(suppliedArguments) {
+            fprintf(stderr, "Error, on line %d: Attempting to supply arguments to void function.\n",
+                    mylineno);
+            return false;
+        } else {
+            return valid;
+        }
+    }
+
     ListNode *current = expectedTypes->head;
     int numSupplied = 0, numExpected = 0;
 
@@ -167,8 +178,7 @@ static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expressio
                 numSupplied += 1;
                 Type supplied = typeCheckExpression(suppliedArguments);
 
-                debug(E_DEBUG, "Comparing types %s and %s for argument %d of call to %s on line %d.\n",
-                        typeName(expected), typeName(supplied), numSupplied, id, mylineno);
+                // Check that argument types are compatible with those expected
                 if(! typesCompatible(supplied, expected)) {
                     fprintf(stderr, "Type error: On line %d, argument %d to %s expected %s, got %s.\n",
                             mylineno, numExpected, id, typeName(expected), typeName(supplied));
@@ -185,6 +195,7 @@ static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expressio
     while(current) { numExpected += 1; current = current->next; }
     while(suppliedArguments) { numSupplied += 1; suppliedArguments = suppliedArguments->next; }
 
+    // Ensure these match
     if(numSupplied != numExpected) {
         fprintf(stderr, "Error: On line %d, %s expected %d arguments, was given %d.\n", mylineno,
                 id, numExpected, numSupplied);
@@ -276,6 +287,7 @@ static inline bool typeCheckReturnStatement(Scope *scope, ReturnStatement *stmt)
                     fprintf(stderr, "Type error, line %d: Attempting to return %s from function declared to return %s\n",
                             mylineno, typeName(returnValueType),
                             typeName(currentFunctionReturnType));
+                    typeChecks = false;
                 }
             }
         }
