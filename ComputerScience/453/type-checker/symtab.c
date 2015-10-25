@@ -220,6 +220,12 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
                                 identifier, mylineno);
                         validDeclaration = false;
                     } else {
+                        if(returnType != func->returnType) {
+                                fprintf(stderr, "ERROR: Attempting to change return type of %s from %s to %s on line %d.\n",
+                                        identifier, typeName(func->returnType),
+                                        typeName(returnType), mylineno);
+                                validDeclaration = false;
+                        }
                         // Neither the prototype nor the declaration expect arguments
                         func->implemented = true;
                     }
