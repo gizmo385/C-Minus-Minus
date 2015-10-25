@@ -180,8 +180,8 @@ extern Statement *newAssignmentStatement(Scope *scope, char *identifier, Express
 /* Constructor functions for Declarations */
 extern FunctionParameter *newFunctionParameter(Type type, char *identifier);
 extern VariableDeclaration *newVariable(Type type, char *identifier);
-extern FunctionDeclaration *newFunction(Type returnType, char *functionName,
-        FunctionParameter *parameters, VariableDeclaration *declarations, Statement *body);
+extern FunctionDeclaration *newFunction(Type returnType, char *functionName, List *argumentNames,
+        List *argumentTypes, VariableDeclaration *declarations, Statement *body);
 
 /* Utility functions */
 extern char *expressionTypeName(Expression *expression);
