@@ -135,9 +135,18 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
         // If that thing is a function, check some properties
         if(foundVar->elementType == SCOPE_FUNC) {
             ScopeFunction *func = foundVar->function;
+            // Determine whether or not a function prototype has been duplicated
             if(isPrototype) {
                 fprintf(stderr, "Error: Attempting to redefine prototype for function %s on line %d.\n",
                         identifier, mylineno);
+                validDeclaration = false;
+            }
+
+            // Check if the function's return type has been changed
+            if(returnType != func->returnType) {
+                fprintf(stderr, "ERROR: Attempting to change return type of %s from %s to %s on line %d.\n",
+                        identifier, typeName(func->returnType),
+                        typeName(returnType), mylineno);
                 validDeclaration = false;
             }
 
@@ -220,12 +229,6 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
                                 identifier, mylineno);
                         validDeclaration = false;
                     } else {
-                        if(returnType != func->returnType) {
-                                fprintf(stderr, "ERROR: Attempting to change return type of %s from %s to %s on line %d.\n",
-                                        identifier, typeName(func->returnType),
-                                        typeName(returnType), mylineno);
-                                validDeclaration = false;
-                        }
                         // Neither the prototype nor the declaration expect arguments
                         func->implemented = true;
                     }
