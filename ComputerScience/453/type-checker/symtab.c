@@ -126,7 +126,7 @@ void declareVar(Scope *scope, Type type, char *identifier) {
 }
 
 bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argumentNames,
-        List *argumentTypes, bool declaredExtern) {
+        List *argumentTypes, bool declaredExtern, bool isPrototype) {
     ScopeElement *foundVar = findScopeElement(scope, identifier);
     bool validDeclaration = true;
 
@@ -135,6 +135,11 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
         // If that thing is a function, check some properties
         if(foundVar->elementType == SCOPE_FUNC) {
             ScopeFunction *func = foundVar->function;
+            if(isPrototype) {
+                fprintf(stderr, "Error: Attempting to redefine prototype for function %s on line %d.\n",
+                        identifier, mylineno);
+                validDeclaration = false;
+            }
 
             // Determine if the function has been implemented or declared as extern
             if(func->implemented) {
