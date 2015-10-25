@@ -125,7 +125,7 @@ Expression *newCharConstExpression(char val) {
     Value value;
     value.char_value = val;
 
-    debug(E_DEBUG, "Creating int const with value %d\n", val);
+    debug(E_DEBUG, "Creating char const with value %c\n", val);
     return newConstExpression(CHAR_TYPE, value);
 }
 
@@ -133,7 +133,7 @@ Expression *newCharArrayConstExpression(char val[]) {
     Value value;
     value.char_array_value = val;
 
-    debug(E_DEBUG, "Creating int const with value %d\n", val);
+    debug(E_DEBUG, "Creating char array const with value %s\n", val);
     return newConstExpression(CHAR_ARRAY_TYPE, value);
 }
 
@@ -141,7 +141,7 @@ Expression *newIntArrayConstExpression(int val[]) {
     Value value;
     value.int_array_value = val;
 
-    debug(E_DEBUG, "Creating int const with value %d\n", val);
+    debug(E_DEBUG, "Creating int array const with value %d\n", val);
     return newConstExpression(INT_ARRAY_TYPE, value);
 }
 
