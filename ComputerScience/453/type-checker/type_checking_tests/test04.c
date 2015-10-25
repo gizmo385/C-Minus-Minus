@@ -2,7 +2,7 @@
 extern void printf(char string[]);
 int addAndPrint(int first, int second, int third, char message[]);
 
-void addAndPrint(int first, int second, int third, char message[]) {
+int addAndPrint(int first, int second, int third, char message[]) {
     int result;
     result = first + second + third;
     printf(message);
