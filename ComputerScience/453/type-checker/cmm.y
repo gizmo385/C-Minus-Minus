@@ -333,6 +333,25 @@ name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
                                         declaredExtern);
                     }
                 | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
+                    {
+                        List *names = NULL;
+                        List *types = NULL;
+                        FunctionParameter *param = $5;
+                        if(param) {
+                            names = newList(insertAtRear);
+                            types = newList(insertAtRear);
+                            while(param) {
+                                listInsert(names, param->identifier);
+                                Type *typeP = malloc(sizeof(Type));
+                                *typeP = param->type;
+                                listInsert(types, typeP);
+                                param = param->next;
+                            }
+                        }
+
+                        declareFunction(globalScope, currentFunctionReturnType, $3, names, types,
+                                        declaredExtern);
+                    }
                 ;
 
 <<<<<<< HEAD
