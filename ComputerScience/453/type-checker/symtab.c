@@ -4,6 +4,7 @@
 #include "symtab.h"
 #include "globals.h"
 #include "utils.h"
+#include "typecheck.h"
 
 static inline int compareScopeElements(ScopeElement *a, ScopeElement *b) {
     if(a && b) {
@@ -38,7 +39,6 @@ static inline ScopeElement *inLocalScope(Scope *scope, char *identifier) {
 
     return NULL;
 }
-
 
 Scope *newScope(Scope *enclosingScope) {
     debug(E_DEBUG, "Creating new scope\n");
@@ -127,9 +127,8 @@ void declareVar(Scope *scope, Type type, char *identifier) {
 
 bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argumentNames,
         List *argumentTypes, bool declaredExtern) {
-    Value empty;
-    empty.integer_value = 0;
     ScopeElement *foundVar = findScopeElement(scope, identifier);
+    bool validDeclaration = true;
 
     // Determine if something with that name already exists
     if(foundVar) {
@@ -142,38 +141,93 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
                 // An already implemented function cannot be reimplemented
                 fprintf(stderr, "ERROR: Attempting to redefine function %s on line %d.\n",
                         identifier, mylineno);
-                foundError = true;
-                return false;
+                validDeclaration = false;
             } else if(func->declaredExtern) {
                 // An extern function cannot be declared in the same file
                 fprintf(stderr, "ERROR: Attempting to define function %s declared as extern on line %d.\n",
                         identifier, mylineno);
-                foundError = true;
-                return false;
+                validDeclaration = false;
             } else {
-                func->implemented = true;
-                return true;
+                // Ensure that the prototype and declaration match
+                if(argumentTypes) {
+                    if(func->argumentTypes) {
+                        // Compare the types
+                        ListNode *expectedTypeNode = func->argumentTypes->head;
+                        ListNode *suppliedTypeNode = argumentTypes->head;
+                        int numSupplied = 0, numExpected = 0;
+
+                        while(expectedTypeNode && suppliedTypeNode) {
+                            if(!expectedTypeNode->data) {
+                                expectedTypeNode = expectedTypeNode->next;
+                                continue;
+                            }
+
+                            if (!suppliedTypeNode->data) {
+                                suppliedTypeNode = suppliedTypeNode->next;
+                                continue;
+                            }
+                            Type expected = *((Type *) expectedTypeNode->data);
+                            Type supplied = *((Type *) suppliedTypeNode->data);
+
+                            numSupplied += 1;
+                            numExpected += 1;
+
+                            if(!typesCompatible(expected, supplied)) {
+                                fprintf(stderr, "Error: Attempting to redeclare function %s to expect %s instead of %s on line %d.\n",
+                                        identifier, typeName(supplied), typeName(expected),
+                                        mylineno);
+                                validDeclaration = false;
+                            }
+
+                            expectedTypeNode = expectedTypeNode->next;
+                            suppliedTypeNode = suppliedTypeNode->next;
+                        }
+
+                        // Consume other expected types
+                        while(expectedTypeNode) {
+                            if(expectedTypeNode->data) numExpected += 1;
+                            expectedTypeNode = expectedTypeNode->next;
+                        }
+
+                        // Consume other supplied types
+                        while(suppliedTypeNode) {
+                            if(suppliedTypeNode->data) numSupplied += 1;
+                            suppliedTypeNode = suppliedTypeNode->next;
+                        }
+
+                        // Ensure the same number of arguments were supplied as were expected
+                        if(numExpected != numSupplied) {
+                            fprintf(stderr, "Error: On line %d, Attempting to change declared number of arguments for %s from %d to %d.\n",
+                                    mylineno, identifier, numExpected, numSupplied);
+                            validDeclaration = false;
+
+                        }
+                    } else {
+                        // Declaration provides arguments, prototype does not
+                        fprintf(stderr, "Error: Attempting to redeclare %s on line %d to take arguments.\n",
+                                identifier, mylineno);
+                        validDeclaration = false;
+                    }
+                } else {
+                    if(func->argumentTypes) {
+                        // Declaration provides no arguments, prototype does
+                        fprintf(stderr, "Error: Attempting to redeclare %s on line %d to take no arguments.\n",
+                                identifier, mylineno);
+                        validDeclaration = false;
+                    } else {
+                        // Neither the prototype nor the declaration expect arguments
+                        func->implemented = true;
+                    }
+                }
             }
         } else {
             // If it's a variable, then a variable can't be defined as a scope
             fprintf(stderr, "ERROR: Attempting to redefine variable %s as function on line %d.\n",
                     identifier, mylineno);
-            foundError = true;
-            return false;
+            validDeclaration = false;
         }
     } else {
-        debug(E_DEBUG, "Declaring function %s with arguments: ", identifier);
-        if(argumentTypes) {
-            ListNode *current = argumentTypes->head;
-            while(current) {
-                if(current->data) {
-                    Type *typeP = current->data;
-                    debug(E_DEBUG, "%s ", typeName(*typeP));
-                }
-                current = current->next;
-            }
-        }
-        debug(E_DEBUG, "\n");
+        // Add the function to scope
         ScopeFunction *scopeFunction = malloc(sizeof(ScopeFunction));
         scopeFunction->returnType = returnType;
         scopeFunction->argumentNames = argumentNames;
@@ -189,4 +243,9 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
 
         return true;
     }
+
+    if(!validDeclaration) {
+        foundError = true;
+    }
+    return validDeclaration;
 }
