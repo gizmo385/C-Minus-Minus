@@ -69,7 +69,7 @@ static inline Type binaryTypeCheck(BinaryOperation op, Type shouldBe, Type left,
             error(BIN_OPERAND_TYPE, "Right", binopString(op), typeName(right), typeName(shouldBe));
         }
     } else {
-            error(BIN_OPERAND_TYPE, "Right", binopString(op), typeName(right), typeName(shouldBe));
+            error(BIN_OPERAND_TYPE, "Left", binopString(op), typeName(right), typeName(shouldBe));
     }
 
     return ERROR_TYPE;
