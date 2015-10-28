@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "typecheck.h"
 #include "globals.h"
+#include "errors.h"
 
 /* Defining which types are compatible with each other */
 bool typesCompatible(Type t1, Type t2) {
@@ -65,15 +66,12 @@ static inline Type binaryTypeCheck(BinaryOperation op, Type shouldBe, Type left,
         if(typesCompatible(shouldBe, right)) {
             return getBinaryReturnType(op);
         } else {
-            fprintf(stderr, "Type error, line %d: Right operand for %s has type %s, should be %s\n",
-                    mylineno, binopString(op), typeName(right), typeName(shouldBe));
+            error(BIN_OPERAND_TYPE, "Right", binopString(op), typeName(right), typeName(shouldBe));
         }
     } else {
-            fprintf(stderr, "Type error, line %d: Left operand for %s has type %s, should be %s\n",
-                    mylineno, binopString(op), typeName(left), typeName(shouldBe));
+            error(BIN_OPERAND_TYPE, "Right", binopString(op), typeName(right), typeName(shouldBe));
     }
 
-    foundError = true;
     return ERROR_TYPE;
 }
 
@@ -117,8 +115,7 @@ static inline Type typeCheckUnaryExpression(UnaryExpression *expression) {
     if(typesCompatible(unaryOpType, operandType)) {
         return unaryOpType;
     } else {
-        fprintf(stderr, "Type Error: On line %d, Unary operation %s expects type %s, found type %s\n",
-                mylineno, unopString(op), typeName(unaryOpType), typeName(operandType));
+        error(UNARY_OPERAND_TYPE, unopString(op), typeName(unaryOpType), typeName(operandType));
         return ERROR_TYPE;
     }
 }
@@ -138,9 +135,7 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
                     finalType = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
                 } else {
                     // A non-int expression constitutes a type error
-                    fprintf(stderr, "Type error, line %d: Attempting to index array with %s, should be INT\n",
-                            mylineno, typeName(indexType));
-                    foundError = true;
+                    error(ARRAY_INDEX_TYPE, typeName(indexType));
                 }
             } else {
                 finalType = varType;
@@ -157,9 +152,7 @@ static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expressio
     // Check that arguments aren't being supplied to a void function
     if(!expectedTypes) {
         if(suppliedArguments) {
-            fprintf(stderr, "Error, on line %d: Attempting to supply arguments to void function.\n",
-                    mylineno);
-            return false;
+            error(ARGS_TO_VOID);
         } else {
             return valid;
         }
@@ -180,8 +173,7 @@ static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expressio
 
                 // Check that argument types are compatible with those expected
                 if(! typesCompatible(supplied, expected)) {
-                    fprintf(stderr, "Type error: On line %d, argument %d to %s expected %s, got %s.\n",
-                            mylineno, numExpected, id, typeName(expected), typeName(supplied));
+                    error(ARG_TYPE_MISMATCH, numExpected, id, typeName(expected), typeName(supplied));
                     valid = false;
                 }
                 suppliedArguments = suppliedArguments->next;
@@ -197,8 +189,7 @@ static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expressio
 
     // Ensure these match
     if(numSupplied != numExpected) {
-        fprintf(stderr, "Error: On line %d, %s expected %d arguments, was given %d.\n", mylineno,
-                id, numExpected, numSupplied);
+        error(NUM_ARGS_DIFFER, id, numExpected, numSupplied);
         valid = false;
     }
 
@@ -221,15 +212,11 @@ static inline Type typeCheckFunctionCall(FunctionExpression *function) {
                 foundError = true;
             }
         } else {
-            fprintf(stderr, "Attempting to call variable %s as function on line %d.\n", identifier,
-                    mylineno);
-            foundError = true;
+            error(VAR_AS_FUNCTION, identifier);
             finalType = ERROR_TYPE;
         }
     } else {
-        fprintf(stderr, "Attempting to call undefined function %s on line %d.\n", identifier,
-                mylineno);
-        foundError = true;
+        error(CALL_UNDEF_FUNCTION, identifier);
         finalType = ERROR_TYPE;
     }
 
@@ -276,17 +263,14 @@ static inline bool typeCheckReturnStatement(Scope *scope, ReturnStatement *stmt)
         if(currentFunctionReturnType == VOID_TYPE) {
             if(returnValue) {
                 Type returnValueType = typeCheckExpression(returnValue);
-                fprintf(stderr, "Type error, line %d: Attempting to return %s from function declared to return VOID\n",
-                        mylineno, typeName(returnValueType));
+                error(RETURN_FROM_VOID, typeName(returnValueType));
                 typeChecks = false;
             }
         } else {
             if(returnValue) {
                 Type returnValueType = typeCheckExpression(returnValue);
                 if(! typesCompatible(currentFunctionReturnType, returnValueType)) {
-                    fprintf(stderr, "Type error, line %d: Attempting to return %s from function declared to return %s\n",
-                            mylineno, typeName(returnValueType),
-                            typeName(currentFunctionReturnType));
+                    error(RETURN_MISMATCH, typeName(returnValueType), typeName(currentFunctionReturnType));
                     typeChecks = false;
                 }
             }
@@ -316,8 +300,7 @@ static inline bool typeCheckAssignmentStatement(Scope *scope, AssignmentStatemen
 
                         // The array index must be an INT
                         if(! typesCompatible(INT_TYPE, arrayIndexType) ) {
-                            fprintf(stderr, "Type error, line %d: Attempting to index into array with %s\n",
-                                    mylineno, typeName(arrayIndexType));
+                            error(ARRAY_INDEX_TYPE, typeName(arrayIndexType));
                             typeChecks = false;
                         }
 
@@ -325,26 +308,23 @@ static inline bool typeCheckAssignmentStatement(Scope *scope, AssignmentStatemen
                         // expression being assigned to the location in the array
                         Type typeContained = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
                         if(! typesCompatible(exprType, typeContained)) {
-                            fprintf(stderr, "Type error, line %d: Attempting to assign %s to field of type %s\n",
-                                    mylineno, typeName(exprType), typeName(typeContained));
+                            error(VAR_TYPE_MISMATCH, typeName(exprType), typeName(typeContained));
                             typeChecks = false;
                         }
 
                     } else {
-                        fprintf(stderr, "Type error, line %d: %s is an array, requires index\n",
-                                mylineno, identifier);
+                        error(ARRAY_AS_VAR, identifier);
                         typeChecks = false;
                     }
                 } else {
                     // Type checking for non-array assignment
                     if(! typesCompatible(varType, exprType)) {
-                        fprintf(stderr, "Type error, line %d: Attempting to assign %s to %s.\n", mylineno,
-                                typeName(exprType), typeName(varType));
+                        error(VAR_TYPE_MISMATCH, typeName(exprType), typeName(varType));
                         typeChecks = false;
                     }
                 }
             } else {
-                fprintf(stderr, "Type error, line %d: Attempting to assign to function.\n", mylineno);
+                error(ASSIGN_TO_FUNC);
                 typeChecks = false;
             }
         }
@@ -363,8 +343,7 @@ static inline bool typeCheckForStatement(Scope *scope, ForStatement *stmt) {
             bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
             if(!compatible) {
-                fprintf(stderr, "ERROR: On line %d, the condition in a for loop must be a boolean, not %s\n",
-                        mylineno, typeName(conditionType));
+                error(INVALID_COND, typeName(conditionType));
                 typeChecks = false;
             }
         }
@@ -380,8 +359,7 @@ static inline bool typeCheckWhileStatement(Scope *scope, WhileStatement *stmt) {
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
-            fprintf(stderr, "ERROR: On line %d, the condition in a while loop must be a boolean, not %s\n",
-                    mylineno, typeName(conditionType));
+            error(INVALID_COND, typeName(conditionType));
             typeChecks = false;
         }
     }
@@ -395,8 +373,7 @@ static inline bool typeCheckIfStatement(Scope *scope, IfStatement *stmt) {
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
-            fprintf(stderr, "ERROR: On line %d, the condition in an if statement must be a boolean, not %s\n",
-                    mylineno, typeName(conditionType));
+            error(INVALID_COND, typeName(conditionType));
             typeChecks = false;
         }
     }
@@ -410,8 +387,7 @@ static inline bool typeCheckIfElseStatement(Scope *scope, IfElseStatement *stmt)
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
-            fprintf(stderr, "ERROR: On line %d, the condition in an if/else statement must be a boolean, not %s\n",
-                    mylineno, typeName(conditionType));
+            error(INVALID_COND, typeName(conditionType));
             typeChecks = false;
         }
     }
