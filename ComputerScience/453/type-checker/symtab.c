@@ -180,7 +180,7 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
                             numExpected += 1;
 
                             if(!typesCompatible(expected, supplied)) {
-                                error(ARG_TYPE_CHANGE, identifier, numSupplied, typeName(supplied), typeName(expected));
+                                error(ARG_TYPE_CHANGE, numSupplied, identifier, typeName(supplied), typeName(expected));
                                 validDeclaration = false;
                             }
 
