@@ -19,6 +19,7 @@ const char *RETURN_FROM_VOID        = "Attempting to return %s from function dec
 const char *RETURN_MISMATCH         = "Attempting to return %s from function declared to return %s.\n";
 const char *VAR_TYPE_MISMATCH       = "Attempting to assign %s to variable of type %s.\n";
 const char *ARRAY_AS_VAR            = "%s is an array, requires an index.\n";
+const char *VAR_AS_ARRAY            = "%s is not an array, should not have an index.\n";
 const char *ASSIGN_TO_FUNC          = "Attempting to assign to function.\n";
 const char *INVALID_COND            = "Expected condition with type BOOL, found type %s.\n";
 

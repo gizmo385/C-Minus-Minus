@@ -15,6 +15,7 @@ extern const char *RETURN_FROM_VOID;
 extern const char *RETURN_MISMATCH;
 extern const char *VAR_TYPE_MISMATCH;
 extern const char *ARRAY_AS_VAR;
+extern const char *VAR_AS_ARRAY;
 extern const char *ASSIGN_TO_FUNC;
 extern const char *INVALID_COND;
 

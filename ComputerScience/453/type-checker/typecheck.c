@@ -141,7 +141,12 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
                 finalType = varType;
             }
         } else {
-            finalType = varType;
+            if(expression->arrayIndex) {
+                error(VAR_AS_ARRAY, expression->identifier);
+                finalType = ERROR_TYPE;
+            } else {
+                finalType = varType;
+            }
         }
     }
     return finalType;
