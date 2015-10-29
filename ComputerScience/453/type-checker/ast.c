@@ -5,6 +5,7 @@
 #include "symtab.h"
 #include "utils.h"
 #include "globals.h"
+#include "errors.h"
 
 Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right) {
     BinaryExpression *binaryExpr = malloc(sizeof(BinaryExpression));
@@ -60,11 +61,10 @@ Expression *newVariableExpression(Scope *scope, char *identifier, Expression *ar
             debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
 
         } else {
-            fprintf(stderr, "ERROR: On line %d, %s is a function!\n", mylineno, identifier);
-            foundError = true;
+            error(VAR_AS_FUNCTION, identifier);
         }
     } else {
-        fprintf(stderr, "ERROR: Undeclared identifier \"%s\" on line %d.\n", identifier, mylineno);
+        error(UNDECLARED_INDENTIFIER, identifier);
         foundError = true;
     }
 
@@ -90,12 +90,10 @@ Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *ar
 
             debug(E_DEBUG, "Creating function expression for ID %s\n", identifier);
         } else {
-            fprintf(stderr, "ERROR: On line %d, %s is not a function!\n", mylineno, identifier);
-            foundError = true;
+            error(VAR_AS_FUNCTION, identifier);
         }
     } else {
-        fprintf(stderr, "ERROR: Undeclared function \"%s\" on line %d.\n", identifier, mylineno);
-        foundError = true;
+        error(CALL_UNDEF_FUNCTION, identifier);
     }
 
     return expr;
