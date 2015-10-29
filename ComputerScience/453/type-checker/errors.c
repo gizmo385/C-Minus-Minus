@@ -22,6 +22,19 @@ const char *ARRAY_AS_VAR            = "%s is an array, requires an index.\n";
 const char *ASSIGN_TO_FUNC          = "Attempting to assign to function.\n";
 const char *INVALID_COND            = "Expected condition with type BOOL, found type %s.\n";
 
+/* SYMBOL TABLE ERRORS */
+const char *REDECL_GLOBAL_VAR       = "Attempting to redeclare global variable %s.\n";
+const char *VAR_ALREADY_DECLARED    = "The variable %s has already been declared.\n";
+const char *REDEF_PROTOTYPE         = "Attempting to redefine prototype for function %s.\n";
+const char *REDEF_FUNCTION          = "Attempting to redefine function %s.\n";
+const char *REDEF_EXTERN            = "Attempting to define function %s originally declared as extern.\n";
+const char *CHANGE_RET_TYPE         = "Attempting to change return type of %s from %s to %s.\n";
+const char *ARG_TYPE_CHANGE         = "Attempting to change argument %d of %s to expect %s instead of %s.\n";
+const char *ARG_NUM_CHANGE          = "Attempting to change %s to take %d arguments instaed of %d.\n";
+const char *REDEF_WITH_ARGS         = "Attempting to change redeclare %s to take arguments.\n";
+const char *REDEF_WITHOUT_ARGS      = "Attempting to change redeclare %s to take no arguments.\n";
+const char *REDEF_VAR_AS_FUNC       = "Attempting to redefine variable %s as function.\n";
+
 
 void error(const char *format, ...) {
     fprintf(stderr, "Error on line %d: ", mylineno);

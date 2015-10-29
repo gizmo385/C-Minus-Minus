@@ -18,6 +18,19 @@ extern const char *ARRAY_AS_VAR;
 extern const char *ASSIGN_TO_FUNC;
 extern const char *INVALID_COND;
 
+/* SYMBOL TABLE ERRORS */
+extern const char *REDECL_GLOBAL_VAR;
+extern const char *VAR_ALREADY_DECLARED;
+extern const char *REDEF_PROTOTYPE;
+extern const char *REDEF_FUNCTION;
+extern const char *REDEF_EXTERN;
+extern const char *CHANGE_RET_TYPE;
+extern const char *ARG_TYPE_CHANGE;
+extern const char *ARG_NUM_CHANGE;
+extern const char *REDEF_WITH_ARGS;
+extern const char *REDEF_WITHOUT_ARGS;
+extern const char *REDEF_VAR_AS_FUNC;
+
 extern void error(const char *format, ...);
 
 #endif

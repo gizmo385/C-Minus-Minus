@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "utils.h"
 #include "typecheck.h"
+#include "errors.h"
 
 static inline int compareScopeElements(ScopeElement *a, ScopeElement *b) {
     if(a && b) {
@@ -64,9 +65,7 @@ Scope *flattenScope(Scope *scope) {
 
             // If it hasn't already been declared in the flattened scope, "declare it"
             if(inLocalScope(destinationScope, identifier)) {
-                fprintf(stderr, "ERROR: Redeclaration of global variable %s on line %d\n",
-                        identifier, mylineno);
-                foundError = true;
+                error(REDECL_GLOBAL_VAR, identifier);
             } else {
                 listInsert(destinationScope->variables, elem);
             }
@@ -109,8 +108,7 @@ void declareVar(Scope *scope, Type type, char *identifier) {
     ScopeElement *foundVar = inLocalScope(scope, identifier);
 
     if(foundVar) {
-        fprintf(stderr, "ERROR: On line %d, %s has already been declared!\n", mylineno, identifier);
-        foundError = true;
+        error(VAR_ALREADY_DECLARED, identifier);
     } else {
         debug(E_DEBUG, "Declaring undeclared variable \"%s\" with type %s\n", identifier, typeName(type));
         ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
@@ -137,29 +135,24 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
             ScopeFunction *func = foundVar->function;
             // Determine whether or not a function prototype has been duplicated
             if(isPrototype) {
-                fprintf(stderr, "Error: Attempting to redefine prototype for function %s on line %d.\n",
-                        identifier, mylineno);
+                error(REDEF_PROTOTYPE, identifier);
                 validDeclaration = false;
             }
 
             // Check if the function's return type has been changed
             if(returnType != func->returnType) {
-                fprintf(stderr, "ERROR: Attempting to change return type of %s from %s to %s on line %d.\n",
-                        identifier, typeName(func->returnType),
-                        typeName(returnType), mylineno);
+                error(CHANGE_RET_TYPE, identifier, typeName(func->returnType), typeName(returnType));
                 validDeclaration = false;
             }
 
             // Determine if the function has been implemented or declared as extern
             if(func->implemented) {
                 // An already implemented function cannot be reimplemented
-                fprintf(stderr, "ERROR: Attempting to redefine function %s on line %d.\n",
-                        identifier, mylineno);
+                error(REDEF_FUNCTION, identifier);
                 validDeclaration = false;
             } else if(func->declaredExtern) {
                 // An extern function cannot be declared in the same file
-                fprintf(stderr, "ERROR: Attempting to define function %s declared as extern on line %d.\n",
-                        identifier, mylineno);
+                error(REDEF_EXTERN, identifier);
                 validDeclaration = false;
             } else {
                 // Ensure that the prototype and declaration match
@@ -187,9 +180,7 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
                             numExpected += 1;
 
                             if(!typesCompatible(expected, supplied)) {
-                                fprintf(stderr, "Error: Attempting to redeclare function %s to expect %s instead of %s on line %d.\n",
-                                        identifier, typeName(supplied), typeName(expected),
-                                        mylineno);
+                                error(ARG_TYPE_CHANGE, identifier, numSupplied, typeName(supplied), typeName(expected));
                                 validDeclaration = false;
                             }
 
@@ -211,22 +202,19 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
 
                         // Ensure the same number of arguments were supplied as were expected
                         if(numExpected != numSupplied) {
-                            fprintf(stderr, "Error: On line %d, Attempting to change declared number of arguments for %s from %d to %d.\n",
-                                    mylineno, identifier, numExpected, numSupplied);
+                            error(ARG_NUM_CHANGE, identifier, numExpected, numSupplied);
                             validDeclaration = false;
 
                         }
                     } else {
                         // Declaration provides arguments, prototype does not
-                        fprintf(stderr, "Error: Attempting to redeclare %s on line %d to take arguments.\n",
-                                identifier, mylineno);
+                        error(REDEF_WITH_ARGS, identifier);
                         validDeclaration = false;
                     }
                 } else {
                     if(func->argumentTypes) {
                         // Declaration provides no arguments, prototype does
-                        fprintf(stderr, "Error: Attempting to redeclare %s on line %d to take no arguments.\n",
-                                identifier, mylineno);
+                        error(REDEF_WITHOUT_ARGS, identifier);
                         validDeclaration = false;
                     } else {
                         // Neither the prototype nor the declaration expect arguments
@@ -236,8 +224,7 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
             }
         } else {
             // If it's a variable, then a variable can't be defined as a scope
-            fprintf(stderr, "ERROR: Attempting to redefine variable %s as function on line %d.\n",
-                    identifier, mylineno);
+            error(REDEF_VAR_AS_FUNC, identifier);
             validDeclaration = false;
         }
     } else {
@@ -257,10 +244,6 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argu
         listInsert(scope->variables, elem);
 
         return true;
-    }
-
-    if(!validDeclaration) {
-        foundError = true;
     }
     return validDeclaration;
 }
