@@ -5,7 +5,7 @@
 
 /* Type checking functions */
 extern Type typeCheckExpression(Expression *expression);
-extern bool typeCheckStatement(Scope *scope, Statement *statement);
+extern void typeCheckStatement(Scope *scope, Statement *statement);
 extern bool typesCompatible(Type t1, Type t2);
 
 #endif

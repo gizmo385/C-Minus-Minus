@@ -147,14 +147,13 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
     return finalType;
 }
 
-static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expression *suppliedArguments) {
-    bool valid = true;
+static inline void compareArgumentTypes(char *id, List *expectedTypes, Expression *suppliedArguments) {
     // Check that arguments aren't being supplied to a void function
     if(!expectedTypes) {
         if(suppliedArguments) {
             error(ARGS_TO_VOID);
         } else {
-            return valid;
+            return;
         }
     }
 
@@ -174,7 +173,6 @@ static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expressio
                 // Check that argument types are compatible with those expected
                 if(! typesCompatible(supplied, expected)) {
                     error(ARG_TYPE_MISMATCH, numExpected, id, typeName(expected), typeName(supplied));
-                    valid = false;
                 }
                 suppliedArguments = suppliedArguments->next;
             }
@@ -190,10 +188,7 @@ static inline bool compareArgumentTypes(char *id, List *expectedTypes, Expressio
     // Ensure these match
     if(numSupplied != numExpected) {
         error(NUM_ARGS_DIFFER, id, numExpected, numSupplied);
-        valid = false;
     }
-
-    return valid;
 }
 
 static inline Type typeCheckFunctionCall(FunctionExpression *function) {
@@ -208,9 +203,7 @@ static inline Type typeCheckFunctionCall(FunctionExpression *function) {
             finalType = defn->returnType;
             Expression *suppliedArguments = function->arguments;
 
-            if(! compareArgumentTypes(identifier, argumentTypes, suppliedArguments)) {
-                foundError = true;
-            }
+            compareArgumentTypes(identifier, argumentTypes, suppliedArguments);
         } else {
             error(VAR_AS_FUNCTION, identifier);
             finalType = ERROR_TYPE;
@@ -229,9 +222,7 @@ Type typeCheckExpression(Expression *expression) {
         ExpressionType type = expression->type;
         switch(type) {
             case CONST:
-                finalType = expression->constantExpression ?
-                    expression->constantExpression->type :
-                    ERROR_TYPE;
+                finalType = expression->constantExpression ?  expression->constantExpression->type : ERROR_TYPE;
                 break;
             case VARIABLE:
                 finalType = typeCheckVariableExpression(expression->variableExpression);
@@ -248,15 +239,10 @@ Type typeCheckExpression(Expression *expression) {
         }
     }
 
-    if(finalType == ERROR_TYPE) {
-        foundError = true;
-    }
-
     return finalType;
 }
 
-static inline bool typeCheckReturnStatement(Scope *scope, ReturnStatement *stmt) {
-    bool typeChecks = true;
+static inline void typeCheckReturnStatement(Scope *scope, ReturnStatement *stmt) {
     if(stmt) {
         Expression *returnValue = stmt->returnValue;
 
@@ -264,23 +250,19 @@ static inline bool typeCheckReturnStatement(Scope *scope, ReturnStatement *stmt)
             if(returnValue) {
                 Type returnValueType = typeCheckExpression(returnValue);
                 error(RETURN_FROM_VOID, typeName(returnValueType));
-                typeChecks = false;
             }
         } else {
             if(returnValue) {
                 Type returnValueType = typeCheckExpression(returnValue);
                 if(! typesCompatible(currentFunctionReturnType, returnValueType)) {
                     error(RETURN_MISMATCH, typeName(returnValueType), typeName(currentFunctionReturnType));
-                    typeChecks = false;
                 }
             }
         }
     }
-    return typeChecks;
 }
 
-static inline bool typeCheckAssignmentStatement(Scope *scope, AssignmentStatement *stmt) {
-    bool typeChecks = true;
+static inline void typeCheckAssignmentStatement(Scope *scope, AssignmentStatement *stmt) {
     if(stmt) {
         char *identifier = stmt->identifier;
         Expression *expression = stmt->expression;
@@ -301,7 +283,6 @@ static inline bool typeCheckAssignmentStatement(Scope *scope, AssignmentStatemen
                         // The array index must be an INT
                         if(! typesCompatible(INT_TYPE, arrayIndexType) ) {
                             error(ARRAY_INDEX_TYPE, typeName(arrayIndexType));
-                            typeChecks = false;
                         }
 
                         // The type contained in the array must be compatible with the type of the
@@ -309,31 +290,25 @@ static inline bool typeCheckAssignmentStatement(Scope *scope, AssignmentStatemen
                         Type typeContained = (varType == CHAR_ARRAY_TYPE) ? CHAR_TYPE : INT_TYPE;
                         if(! typesCompatible(exprType, typeContained)) {
                             error(VAR_TYPE_MISMATCH, typeName(exprType), typeName(typeContained));
-                            typeChecks = false;
                         }
 
                     } else {
                         error(ARRAY_AS_VAR, identifier);
-                        typeChecks = false;
                     }
                 } else {
                     // Type checking for non-array assignment
                     if(! typesCompatible(varType, exprType)) {
                         error(VAR_TYPE_MISMATCH, typeName(exprType), typeName(varType));
-                        typeChecks = false;
                     }
                 }
             } else {
                 error(ASSIGN_TO_FUNC);
-                typeChecks = false;
             }
         }
     }
-    return typeChecks;
 }
 
-static inline bool typeCheckForStatement(Scope *scope, ForStatement *stmt) {
-    bool typeChecks = true;
+static inline void typeCheckForStatement(Scope *scope, ForStatement *stmt) {
     if(stmt) {
         Expression *condition = stmt->condition;
 
@@ -344,101 +319,74 @@ static inline bool typeCheckForStatement(Scope *scope, ForStatement *stmt) {
 
             if(!compatible) {
                 error(INVALID_COND, typeName(conditionType));
-                typeChecks = false;
             }
         }
 
     }
-    return typeChecks;
 }
 
-static inline bool typeCheckWhileStatement(Scope *scope, WhileStatement *stmt) {
-    bool typeChecks = true;
+static inline void typeCheckWhileStatement(Scope *scope, WhileStatement *stmt) {
     if(stmt) {
         Type conditionType = typeCheckExpression(stmt->condition);
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
             error(INVALID_COND, typeName(conditionType));
-            typeChecks = false;
         }
     }
-    return typeChecks;
 }
 
-static inline bool typeCheckIfStatement(Scope *scope, IfStatement *stmt) {
-    bool typeChecks = true;
+static inline void typeCheckIfStatement(Scope *scope, IfStatement *stmt) {
     if(stmt) {
         Type conditionType = typeCheckExpression(stmt->condition);
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
             error(INVALID_COND, typeName(conditionType));
-            typeChecks = false;
         }
     }
-    return typeChecks;
 }
 
-static inline bool typeCheckIfElseStatement(Scope *scope, IfElseStatement *stmt) {
-    bool typeChecks = true;
+static inline void typeCheckIfElseStatement(Scope *scope, IfElseStatement *stmt) {
     if(stmt) {
         Type conditionType = typeCheckExpression(stmt->condition);
         bool compatible = typesCompatible(BOOL_TYPE, conditionType);
 
         if(!compatible) {
             error(INVALID_COND, typeName(conditionType));
-            typeChecks = false;
         }
     }
-    return typeChecks;
 }
 
-static inline bool typeCheckFunctionCallStatement(Scope *scope, FunctionCallStatement *stmt) {
-    bool typeChecks = true;
+static inline void typeCheckFunctionCallStatement(Scope *scope, FunctionCallStatement *stmt) {
     if(stmt) {
         Expression *functionCall = stmt->functionCall;
-
-        if(functionCall->type == FUNCTION) {
-            typeChecks = typeCheckExpression(functionCall) != ERROR_TYPE;
-        } else {
-            fprintf(stderr, "SEVERE ERROR: FunctionCallStatement doesn't contain a function, contains %s\n",
-                    expressionTypeName(functionCall));
-            typeChecks = false;
-        }
+        typeCheckExpression(functionCall);
     }
-    return typeChecks;
 }
 
-bool typeCheckStatement(Scope *scope, Statement *statement) {
-    bool typeChecks = true;
+void typeCheckStatement(Scope *scope, Statement *statement) {
     switch(statement->type) {
         case ST_FOR:
-            typeChecks = typeCheckForStatement(scope, statement->stmt_for);
+            typeCheckForStatement(scope, statement->stmt_for);
             break;
         case ST_WHILE:
-            typeChecks = typeCheckWhileStatement(scope, statement->stmt_while);
+            typeCheckWhileStatement(scope, statement->stmt_while);
             break;
         case ST_FUNC:
             typeCheckFunctionCallStatement(scope, statement->stmt_func);
             break;
         case ST_IF:
-            typeChecks = typeCheckIfStatement(scope, statement->stmt_if);
+            typeCheckIfStatement(scope, statement->stmt_if);
             break;
         case ST_IF_ELSE:
-            typeChecks = typeCheckIfElseStatement(scope, statement->stmt_if_else);
+            typeCheckIfElseStatement(scope, statement->stmt_if_else);
             break;
         case ST_RETURN:
-            typeChecks = typeCheckReturnStatement(scope, statement->stmt_return);
+            typeCheckReturnStatement(scope, statement->stmt_return);
             break;
         case ST_ASSIGN:
-            typeChecks = typeCheckAssignmentStatement(scope, statement->stmt_assign);
+            typeCheckAssignmentStatement(scope, statement->stmt_assign);
             break;
     }
-
-    if(!typeChecks) {
-        foundError = true;
-    }
-
-    return typeChecks;
 }
