@@ -1,2 +1,0 @@
-/* the empty program */
-
