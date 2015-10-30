@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #directory=453tests
-directory=type_checking_tests
+#directory=type_checking_tests
+directory=debray_type_checking_tests
 
 echo "Compiling..."
 make clean compile 2>/dev/null >/dev/null
