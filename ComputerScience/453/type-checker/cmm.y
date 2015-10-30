@@ -25,8 +25,6 @@ Scope *scope;
 Type baseDeclType;
 
 // Helper functions
-int insertAtFront(void *a, void *b);
-int insertAtRear(void *a, void *b);
 bool addFunctionDeclarationToScope(Type type, char *identifier, FunctionParameter *parameters);
 void resetFunctionType();
 
@@ -343,44 +341,13 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
                     {
                         debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $1, typeName(currentFunctionReturnType));
-                        List *names = NULL;
-                        List *types = NULL;
-                        FunctionParameter *param = $3;
-                        if(param) {
-                            names = newList(insertAtRear);
-                            types = newList(insertAtRear);
-                            while(param) {
-                                listInsert(names, param->identifier);
-                                Type *typeP = malloc(sizeof(Type));
-                                *typeP = param->type;
-                                listInsert(types, typeP);
-                                param = param->next;
-                            }
-                        }
-
-                        declareFunction(globalScope, currentFunctionReturnType, $1, names, types,
-                                        declaredExtern, true);
+                        declareFunction(globalScope, currentFunctionReturnType, $1, $3, declaredExtern, true);
                         scope = newScope(globalScope);
                     }
                 | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
                     {
-                        List *names = NULL;
-                        List *types = NULL;
-                        FunctionParameter *param = $5;
-                        if(param) {
-                            names = newList(insertAtRear);
-                            types = newList(insertAtRear);
-                            while(param) {
-                                listInsert(names, param->identifier);
-                                Type *typeP = malloc(sizeof(Type));
-                                *typeP = param->type;
-                                listInsert(types, typeP);
-                                param = param->next;
-                            }
-                        }
-
-                        declareFunction(globalScope, currentFunctionReturnType, $3, names, types,
-                                        declaredExtern, true);
+                        debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $3, typeName(currentFunctionReturnType));
+                        declareFunction(globalScope, currentFunctionReturnType, $3, $5, declaredExtern, true);
                         scope = newScope(globalScope);
                     }
                 ;
@@ -654,35 +621,9 @@ epsilon:
        ;
 
 %%
-int insertAtFront(void *a, void *b) {
-    return 1;
-}
 
-int insertAtRear(void *a, void *b) {
-    return -1;
-}
-
-/*bool addFunctionDeclarationToScope(FunctionDeclaration *declaration) {*/
 bool addFunctionDeclarationToScope(Type type, char *identifier, FunctionParameter *parameters) {
-    List *names = NULL;
-    List *types = NULL;
-
-    if(parameters) {
-        names = newList(insertAtRear);
-        types = newList(insertAtRear);
-
-        while(parameters) {
-            listInsert(names, parameters->identifier);
-            Type *typeP = malloc(sizeof(Type));
-            *typeP = parameters->type;
-            listInsert(types, typeP);
-            parameters = parameters->next;
-        }
-
-    }
-
-    bool success = declareFunction(globalScope, type, identifier, names, types, declaredExtern,
-                                    false);
+    bool success = declareFunction(globalScope, type, identifier, parameters, declaredExtern, false);
 
     // Mark the function as implemented
     if(success) {

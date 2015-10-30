@@ -15,6 +15,10 @@ static inline int compareScopeElements(ScopeElement *a, ScopeElement *b) {
     }
 }
 
+static inline int insertAtRear(void *a, void *b) {
+    return -1;
+}
+
 static inline ScopeElement *inLocalScope(Scope *scope, char *identifier) {
     if(scope) {
         List *variables = scope->variables;
@@ -123,10 +127,27 @@ void declareVar(Scope *scope, Type type, char *identifier) {
     }
 }
 
-bool declareFunction(Scope *scope, Type returnType, char *identifier, List *argumentNames,
-        List *argumentTypes, bool declaredExtern, bool isPrototype) {
+bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionParameter *parameters,
+        bool declaredExtern, bool isPrototype) {
     ScopeElement *foundVar = findScopeElement(scope, identifier);
     bool validDeclaration = true;
+
+    // Parse out the names and types of the declared argument types
+    List *argumentNames = NULL;
+    List *argumentTypes = NULL;
+
+    if(parameters) {
+        argumentNames = newList(insertAtRear);
+        argumentTypes = newList(insertAtRear);
+
+        while(parameters) {
+            listInsert(argumentNames, parameters->identifier);
+            Type *typeP = malloc(sizeof(Type));
+            *typeP = parameters->type;
+            listInsert(argumentTypes, typeP);
+            parameters = parameters->next;
+        }
+    }
 
     // Determine if something with that name already exists
     if(foundVar) {
