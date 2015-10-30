@@ -173,10 +173,8 @@ func : func_header LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CUR
             ScopeElement *elem = findScopeElement(globalScope, identifier);
             if(elem->elementType == SCOPE_FUNC) {
                 ScopeFunction *func = elem->function;
-                List *argumentNames = func->argumentNames;
-                List *argumentTypes = func->argumentTypes;
                 FunctionDeclaration *decl = newFunction(currentFunctionReturnType, identifier,
-                                                        argumentNames, argumentTypes, $3, $4);
+                                                        func->parameters, $3, $4);
                 scope = newScope(globalScope);
 
                 $$ = decl;

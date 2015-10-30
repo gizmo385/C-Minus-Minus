@@ -16,8 +16,7 @@ typedef struct {
 
 typedef struct {
     Type returnType;
-    List *argumentNames;
-    List *argumentTypes;
+    FunctionParameter *parameters;
     bool implemented;
     bool declaredExtern;
 } ScopeFunction;

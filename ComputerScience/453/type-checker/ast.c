@@ -256,28 +256,8 @@ FunctionParameter *newFunctionParameter(Type type, char *identifier) {
     return param;
 }
 
-FunctionDeclaration *newFunction(Type returnType, char *functionName, List *argumentNames,
-        List *argumentTypes, VariableDeclaration *declarations, Statement *body) {
-    FunctionParameter *parameters = NULL;
-    if(argumentNames && argumentTypes) {
-        ListNode *nameNode = argumentNames->head;
-        ListNode *typeNode = argumentTypes->head;
-
-        while(nameNode && typeNode) {
-            if(nameNode->data && typeNode->data) {
-                Type type = *((Type *) typeNode->data);
-                char *name = typeNode->data;
-                if(parameters) {
-                    parameters->next = newFunctionParameter(type, name);
-                } else {
-                    parameters = newFunctionParameter(type, name);
-                }
-            }
-
-            nameNode = nameNode->next;
-            typeNode = typeNode->next;
-        }
-    }
+FunctionDeclaration *newFunction(Type returnType, char *functionName,
+        FunctionParameter *parameters, VariableDeclaration *declarations, Statement *body) {
 
     FunctionDeclaration *funcDecl = malloc(sizeof(FunctionDeclaration));
     funcDecl->returnType = returnType;

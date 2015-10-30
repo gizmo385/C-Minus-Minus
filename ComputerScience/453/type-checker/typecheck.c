@@ -152,9 +152,9 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
     return finalType;
 }
 
-static inline void compareArgumentTypes(char *id, List *expectedTypes, Expression *suppliedArguments) {
+static inline void compareArgumentTypes(char *id, FunctionParameter *parameters, Expression *suppliedArguments) {
     // Check that arguments aren't being supplied to a void function
-    if(!expectedTypes) {
+    if(!parameters) {
         if(suppliedArguments) {
             error(ARGS_TO_VOID);
         } else {
@@ -162,32 +162,29 @@ static inline void compareArgumentTypes(char *id, List *expectedTypes, Expressio
         }
     }
 
-    ListNode *current = expectedTypes->head;
     int numSupplied = 0, numExpected = 0;
 
-    while(current) {
-        if(current->data) {
-            numExpected += 1;
-            Type *typeP = current->data;
-            Type expected = *typeP;
+    while(parameters) {
+        numExpected += 1;
+        Type expected = parameters->type;
 
-            if(suppliedArguments) {
-                numSupplied += 1;
-                Type supplied = typeCheckExpression(suppliedArguments);
+        if(suppliedArguments) {
+            numSupplied += 1;
+            Type supplied = typeCheckExpression(suppliedArguments);
 
-                // Check that argument types are compatible with those expected
-                if(! typesCompatible(supplied, expected)) {
-                    error(ARG_TYPE_MISMATCH, numExpected, id, typeName(expected), typeName(supplied));
-                }
-                suppliedArguments = suppliedArguments->next;
+            // Check that argument types are compatible with those expected
+            if(! typesCompatible(supplied, expected)) {
+                error(ARG_TYPE_MISMATCH, numExpected, id, typeName(expected), typeName(supplied));
             }
+
+            suppliedArguments = suppliedArguments->next;
         }
 
-        current = current->next;
+        parameters = parameters->next;
     }
 
     // Tally up remaining arguments
-    while(current) { numExpected += 1; current = current->next; }
+    while(parameters) { numExpected += 1; parameters = parameters->next; }
     while(suppliedArguments) { numSupplied += 1; suppliedArguments = suppliedArguments->next; }
 
     // Ensure these match
@@ -204,11 +201,11 @@ static inline Type typeCheckFunctionCall(FunctionExpression *function) {
     if(elem) {
         if(elem->elementType == SCOPE_FUNC) {
             ScopeFunction *defn = elem->function;
-            List *argumentTypes = defn->argumentTypes;
+            FunctionParameter *parameters = defn->parameters;
             finalType = defn->returnType;
             Expression *suppliedArguments = function->arguments;
 
-            compareArgumentTypes(identifier, argumentTypes, suppliedArguments);
+            compareArgumentTypes(identifier, parameters, suppliedArguments);
         } else {
             error(VAR_AS_FUNCTION, identifier);
             finalType = ERROR_TYPE;

@@ -15,10 +15,6 @@ static inline int compareScopeElements(ScopeElement *a, ScopeElement *b) {
     }
 }
 
-static inline int insertAtRear(void *a, void *b) {
-    return -1;
-}
-
 static inline ScopeElement *inLocalScope(Scope *scope, char *identifier) {
     if(scope) {
         List *variables = scope->variables;
@@ -132,23 +128,6 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionPa
     ScopeElement *foundVar = findScopeElement(scope, identifier);
     bool validDeclaration = true;
 
-    // Parse out the names and types of the declared argument types
-    List *argumentNames = NULL;
-    List *argumentTypes = NULL;
-
-    if(parameters) {
-        argumentNames = newList(insertAtRear);
-        argumentTypes = newList(insertAtRear);
-
-        while(parameters) {
-            listInsert(argumentNames, parameters->identifier);
-            Type *typeP = malloc(sizeof(Type));
-            *typeP = parameters->type;
-            listInsert(argumentTypes, typeP);
-            parameters = parameters->next;
-        }
-    }
-
     // Determine if something with that name already exists
     if(foundVar) {
         // If that thing is a function, check some properties
@@ -177,48 +156,37 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionPa
                 validDeclaration = false;
             } else {
                 // Ensure that the prototype and declaration match
-                if(argumentTypes) {
-                    if(func->argumentTypes) {
+                if(parameters) {
+                    if(func->parameters) {
                         // Compare the types
-                        ListNode *expectedTypeNode = func->argumentTypes->head;
-                        ListNode *suppliedTypeNode = argumentTypes->head;
+                        FunctionParameter *declaredParameters = func->parameters;
                         int numSupplied = 0, numExpected = 0;
 
-                        while(expectedTypeNode && suppliedTypeNode) {
-                            if(!expectedTypeNode->data) {
-                                expectedTypeNode = expectedTypeNode->next;
-                                continue;
-                            }
+                        while(parameters && declaredParameters) {
+                            Type supplied = parameters->type;
+                            Type expected = declaredParameters->type;
 
-                            if (!suppliedTypeNode->data) {
-                                suppliedTypeNode = suppliedTypeNode->next;
-                                continue;
-                            }
-                            Type expected = *((Type *) expectedTypeNode->data);
-                            Type supplied = *((Type *) suppliedTypeNode->data);
-
-                            numSupplied += 1;
-                            numExpected += 1;
-
-                            if(!typesCompatible(expected, supplied)) {
+                            if(! typesCompatible(supplied, expected)) {
                                 error(ARG_TYPE_CHANGE, numSupplied, identifier, typeName(supplied), typeName(expected));
                                 validDeclaration = false;
                             }
 
-                            expectedTypeNode = expectedTypeNode->next;
-                            suppliedTypeNode = suppliedTypeNode->next;
+                            numSupplied += 1;
+                            numExpected += 1;
+                            parameters = parameters->next;
+                            declaredParameters = declaredParameters->next;
                         }
 
                         // Consume other expected types
-                        while(expectedTypeNode) {
-                            if(expectedTypeNode->data) numExpected += 1;
-                            expectedTypeNode = expectedTypeNode->next;
+                        while(declaredParameters) {
+                            numExpected += 1;
+                            declaredParameters = declaredParameters->next;
                         }
 
                         // Consume other supplied types
-                        while(suppliedTypeNode) {
-                            if(suppliedTypeNode->data) numSupplied += 1;
-                            suppliedTypeNode = suppliedTypeNode->next;
+                        while(parameters) {
+                            numExpected += 1;
+                            parameters = parameters->next;
                         }
 
                         // Ensure the same number of arguments were supplied as were expected
@@ -233,7 +201,7 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionPa
                         validDeclaration = false;
                     }
                 } else {
-                    if(func->argumentTypes) {
+                    if(func->parameters) {
                         // Declaration provides no arguments, prototype does
                         error(REDEF_WITHOUT_ARGS, identifier);
                         validDeclaration = false;
@@ -253,8 +221,7 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionPa
         debug(E_DEBUG, "Declaring function %s on line %d.\n", identifier, mylineno);
         ScopeFunction *scopeFunction = malloc(sizeof(ScopeFunction));
         scopeFunction->returnType = returnType;
-        scopeFunction->argumentNames = argumentNames;
-        scopeFunction->argumentTypes = argumentTypes;
+        scopeFunction->parameters = parameters;
         scopeFunction->implemented = false;
         scopeFunction->declaredExtern = declaredExtern;
 
