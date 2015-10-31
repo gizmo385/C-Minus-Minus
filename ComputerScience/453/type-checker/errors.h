@@ -18,6 +18,7 @@ extern const char *ARRAY_AS_VAR;
 extern const char *VAR_AS_ARRAY;
 extern const char *ASSIGN_TO_FUNC;
 extern const char *INVALID_COND;
+extern const char *NON_VOID_STMT_FUNC;
 
 /* SYMBOL TABLE ERRORS */
 extern const char *REDECL_GLOBAL_VAR;

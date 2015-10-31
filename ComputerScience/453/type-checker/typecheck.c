@@ -375,7 +375,11 @@ static inline void typeCheckIfElseStatement(Scope *scope, IfElseStatement *stmt)
 static inline void typeCheckFunctionCallStatement(Scope *scope, FunctionCallStatement *stmt) {
     if(stmt) {
         Expression *functionCall = stmt->functionCall;
-        typeCheckExpression(functionCall);
+        Type returnType = typeCheckExpression(functionCall);
+
+        if(returnType != VOID_TYPE) {
+            error(NON_VOID_STMT_FUNC, typeName(returnType));
+        }
     }
 }
 

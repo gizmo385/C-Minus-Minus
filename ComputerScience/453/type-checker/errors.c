@@ -22,6 +22,7 @@ const char *ARRAY_AS_VAR            = "%s is an array, requires an index.\n";
 const char *VAR_AS_ARRAY            = "%s is not an array, should not have an index.\n";
 const char *ASSIGN_TO_FUNC          = "Attempting to assign to function.\n";
 const char *INVALID_COND            = "Expected condition with type BOOL, found type %s.\n";
+const char *NON_VOID_STMT_FUNC      = "Attempting to call non-void function of type %s in statement.\n";
 
 /* SYMBOL TABLE ERRORS */
 const char *REDECL_GLOBAL_VAR       = "Attempting to redeclare global variable %s.\n";
