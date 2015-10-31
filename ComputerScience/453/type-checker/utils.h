@@ -1,11 +1,3 @@
-/*
- * General utility functions. This includes functions to write debug statements and make assertions.
- * This assertions and debug statements can be turned off by changing the debug reporting level
- * using the setDebugReporting function.
- *
- * Created by Christopher Chapline.
- *
- */
 #include <stdio.h>
 
 #ifndef UTILS_H
@@ -25,8 +17,6 @@
 #define assertNull(assertionValue, msgFormat, ...) __assert(((assertionValue) == NULL), __FILE__, __LINE__, __func__, msgFormat,  ##__VA_ARGS__ )
 #define assertNotNull(assertionValue, msgFormat, ...) __assert(((assertionValue) != NULL), __FILE__, __LINE__, __func__, msgFormat,  ##__VA_ARGS__ )
 
-//extern void __assert( bool assertionValue, char *srcFilename, int lineNumber, char *functionName,
-        //char *msgFormat, ... );
 extern int globalDebugLevel;
 extern FILE *debugOutputStream;
 
@@ -61,24 +51,6 @@ extern void setDebuggingLevel( int debugLevel );
  *
  */
 extern void setDebugOutputStream( FILE *outputStream );
-
-/*
- * Provides the concrete implementation of the assertion testing and output. On test failure, this
- * will print a message in the following format:
- *
- * <srcFilename>:<lineNumber> <functionName>: <msg>
- *
- * where <msg> is the msgFormat with replacements parsed in a printf-style manner.
- *
- * Arguments:
- * assertionValue -- If this is false, the assertion output will be printed. Otherwise, nothing will
- *                   happen.
- * srcFilename    -- The name of the filename that this assertion is in.
- * lineNumber     -- The line number that this assertion is on.
- * functionName   -- The name of the function that this assertion is contained in.
- * msgFormat      -- A printf-style message format
- * VA_ARGS        -- A variable-length list of replacements for the printf-style message format.
- */
 extern void __assert( int assertionValue, const char *srcFilename, int lineNumber,
         const char *functionName, char *msgFormat, ... );
 
