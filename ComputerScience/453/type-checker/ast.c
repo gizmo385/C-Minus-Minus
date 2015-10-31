@@ -7,13 +7,22 @@
 #include "globals.h"
 #include "errors.h"
 
+static inline Expression *newExpression() {
+    Expression *expr = malloc(sizeof(Expression));
+    expr->type = CONST;
+    expr->next = NULL;
+    expr->variableExpression = NULL;
+
+    return expr;
+}
+
 Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right) {
     BinaryExpression *binaryExpr = malloc(sizeof(BinaryExpression));
     binaryExpr->operation = op;
     binaryExpr->leftOperand = left;
     binaryExpr->rightOperand = right;
 
-    Expression *expr = malloc(sizeof(Expression));
+    Expression *expr = newExpression();
     expr->binaryExpression = binaryExpr;
     expr->type = BINARY;
 
@@ -29,8 +38,7 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     unaryExpr->operation = op;
     unaryExpr->operand = operand;
 
-    Expression *expr = malloc(sizeof(Expression));
-    expr->unaryExpression = unaryExpr;
+    Expression *expr = newExpression();    expr->unaryExpression = unaryExpr;
     expr->type = UNARY;
 
     debug(E_DEBUG, "Creating unary expression with operand of type %s\n",
@@ -43,7 +51,7 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
 Expression *newVariableExpression(Scope *scope, char *identifier, Expression *arrayIndex) {
     ScopeElement *elem = findScopeElement(scope, identifier);
     VariableExpression *variableExpression = malloc(sizeof(VariableExpression));
-    Expression *expr = malloc(sizeof(Expression));
+    Expression *expr = newExpression();
 
     if(elem) {
         if(elem->elementType == SCOPE_VAR) {
@@ -73,11 +81,13 @@ Expression *newVariableExpression(Scope *scope, char *identifier, Expression *ar
 
 Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *arguments) {
     ScopeElement *elem = findScopeElement(scope, identifier);
-    FunctionExpression *functionExpression = malloc(sizeof(FunctionExpression));
-    Expression *expr = malloc(sizeof(Expression));
+    Expression *expr = NULL;
 
     if(elem) {
         if(elem->elementType == SCOPE_FUNC) {
+            FunctionExpression *functionExpression = malloc(sizeof(FunctionExpression));
+            expr = newExpression();
+
             // Create the function expression
             ScopeFunction *func = elem->function;
             functionExpression->identifier = identifier;
@@ -104,7 +114,7 @@ Expression *newConstExpression(Type type, Value value) {
     constExpr->type = type;
     constExpr->value = value;
 
-    Expression *expr = malloc(sizeof(Expression));
+    Expression *expr = newExpression();
     expr->constantExpression = constExpr;
     expr->type = CONST;
 
@@ -250,8 +260,12 @@ VariableDeclaration *newVariable(Type type, char *identifier) {
 
 FunctionParameter *newFunctionParameter(Type type, char *identifier) {
     FunctionParameter *param = malloc(sizeof(FunctionParameter));
-    param->type = type;
-    param->identifier = identifier;
+
+    if(param) {
+        param->type = type;
+        param->identifier = identifier;
+        param->next = NULL;
+    }
 
     return param;
 }
