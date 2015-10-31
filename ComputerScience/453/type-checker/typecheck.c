@@ -6,6 +6,10 @@
 #include "globals.h"
 #include "errors.h"
 
+/***************************************************************************************************
+ * Utility type checking functions
+ **************************************************************************************************/
+
 /* Defining which types are compatible with each other */
 bool typesCompatible(Type t1, Type t2) {
     return (t1 == t2 ||
@@ -74,6 +78,10 @@ static inline Type binaryTypeCheck(BinaryOperation op, Type shouldBe, Type left,
 
     return ERROR_TYPE;
 }
+
+/***************************************************************************************************
+ * Expression type checking
+ **************************************************************************************************/
 
 static inline Type typeCheckBinaryExpression(BinaryExpression *expression) {
     Type finalType = ERROR_TYPE;
@@ -243,6 +251,10 @@ Type typeCheckExpression(Expression *expression) {
 
     return finalType;
 }
+
+/***************************************************************************************************
+ * Statement type checking
+ **************************************************************************************************/
 
 static inline void typeCheckReturnStatement(Scope *scope, ReturnStatement *stmt) {
     if(stmt) {
