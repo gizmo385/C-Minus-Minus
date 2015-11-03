@@ -1,0 +1,53 @@
+int g;
+
+void func(int a, int b);
+int main(int a, int b, char c);
+extern void anExternFunction(void);
+extern void printf(int a);
+
+int main(int a, int b, char c) {
+    int x;
+    int y;
+    int z[5];
+    int aCharacter;
+    int true, false;
+
+    /* Should work */
+    int g;
+    return main(1, 2, 3);
+    return a;
+    func(1, 3);
+    true = 0;
+    false = 1;
+    aCharacter = 'x';
+    aCharacter = 'x' + 'y';
+    y = z[1];
+    if(true == true) return aCharacter;
+    z[3] = 3;
+    return -(1 + 4 * 3 / 5);
+    return 'x';
+    return g;
+
+    /* Shouldn't work */
+    x = 5 + 1 - "fjdafkdajlfkad";
+    func("oops");
+    z[3] = "this should not work";
+    z = 7;
+    y = 1 + (3 < 4);
+    y = 3 < 4 < 5;
+    y = z["type error"];
+    return !(1 + 3);
+    return "testing";
+}
+
+int main(void) { }
+
+int g;
+
+char testing(void) {
+    return g;
+    return "testing";
+}
+
+char testing(void) { }
+void anExternFunction(void) { }
