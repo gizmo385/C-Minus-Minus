@@ -1,40 +1,22 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "vector.h"
 #include "symtab.h"
 #include "globals.h"
 #include "utils.h"
 #include "typecheck.h"
 #include "errors.h"
 
-static inline int compareScopeElements(ScopeElement *a, ScopeElement *b) {
-    if(a && b) {
-        return strcmp(a->identifier, b->identifier);
-    } else {
-        return -1;
-    }
-}
-
 static inline ScopeElement *inLocalScope(Scope *scope, char *identifier) {
     if(scope) {
-        List *variables = scope->variables;
-        ListNode *current = variables->head;
-
-        // Check all the variables in this level of scope
-        while( current->next != NULL ) {
-            ScopeElement *element = current->data;
+        Vector *variables = scope->variables;
+        for(int i = 0; i < variables->size; i++) {
+            ScopeElement *element = vectorGet(variables, i);
 
             if(element && strcmp(element->identifier, identifier) == 0) {
                 return element;
             }
-
-            current = current->next;
-        }
-
-        // Check the last element in the scope list
-        ScopeElement *element = current->data;
-        if(element && strcmp(element->identifier, identifier) == 0) {
-            return element;
         }
     }
 
@@ -45,7 +27,7 @@ Scope *newScope(Scope *enclosingScope) {
     debug(E_DEBUG, "Creating new scope\n");
     Scope *scope = malloc(sizeof(Scope));
     scope->enclosingScope = enclosingScope;
-    scope->variables = newList( (ComparisonFunction) compareScopeElements );
+    scope->variables = newVector(25);
 
     return scope;
 }
@@ -55,21 +37,18 @@ Scope *flattenScope(Scope *scope) {
 
     // Traverse every level of scope
     while(scope) {
-        List *vars = scope->variables;
-        ListNode *current = vars->head;
+        Vector *vars = scope->variables;
 
-        // Visit every element in scope
-        while(current->data) {
-            ScopeElement *elem = current->data;
+        for(int i = 0; i < vars->size; i++) {
+            ScopeElement *elem = vectorGet(vars, i);
             char *identifier = elem->identifier;
 
             // If it hasn't already been declared in the flattened scope, "declare it"
             if(inLocalScope(destinationScope, identifier)) {
                 error(REDECL_GLOBAL_VAR, identifier);
             } else {
-                listInsert(destinationScope->variables, elem);
+                vectorAdd(destinationScope->variables, elem);
             }
-            current = current->next;
         }
 
         scope = scope->enclosingScope;
@@ -119,7 +98,7 @@ void declareVar(Scope *scope, Type type, char *identifier) {
         elem->identifier = identifier;
         elem->elementType = SCOPE_VAR;
         elem->variable = scopeVariable;
-        listInsert(scope->variables, elem);
+        vectorAdd(scope->variables, elem);
     }
 }
 
@@ -229,7 +208,7 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionPa
         elem->identifier = identifier;
         elem->elementType = SCOPE_FUNC;
         elem->function = scopeFunction;
-        listInsert(scope->variables, elem);
+        vectorAdd(scope->variables, elem);
 
         return true;
     }

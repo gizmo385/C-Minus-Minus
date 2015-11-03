@@ -16,7 +16,7 @@ ifeq ($(OS),Linux)
 	FLEX_LIB = -lfl
 endif
 
-compile: clean cmm.l cmm.y utils.o list.o ast.o symtab.o typecheck.o errors.o
+compile: clean cmm.l cmm.y utils.o vector.o ast.o symtab.o typecheck.o errors.o
 	bison -d --debug --verbose cmm.y
 	flex -o cmm.lex.c cmm.l
 	${CC} ${CFLAGS} -o compile cmm.tab.c cmm.lex.c *.o ${FLEX_LIB}
