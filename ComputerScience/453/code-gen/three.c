@@ -43,26 +43,48 @@ void statementTAC(Vector *code, Statement *statement) {
     if(statement) {
         switch(statement->type) {
             case ST_FOR:
-                debug(E_WARNING,  "This has not yet been implemented.\n");
-                break;
+                {
+                    debug(E_WARNING, "For loops: not implemented.\n");
+                    break;
+                }
             case ST_WHILE:
-                debug(E_WARNING, "This has not yet been implemented.\n");
-                break;
+                {
+                    debug(E_WARNING, "While loops: not implemented.\n");
+                    break;
+                }
             case ST_IF:
-                debug(E_WARNING, "This has not yet been implemented.\n");
-                break;
+                {
+                    debug(E_WARNING, "If: not implemented.\n");
+                    break;
+                }
             case ST_IF_ELSE:
-                debug(E_WARNING, "This has not yet been implemented.\n");
-                break;
+                {
+                    debug(E_WARNING, "If/else: not implemented.\n");
+                    break;
+                }
             case ST_RETURN:
-                debug(E_WARNING, "This has not yet been implemented.\n");
-                break;
+                {
+                    debug(E_WARNING, "Returns: not implemented.\n");
+                    break;
+                }
             case ST_FUNC:
-                debug(E_WARNING, "This has not yet been implemented.\n");
-                break;
+                {
+                    debug(E_WARNING, "Function call statement: not implemented.\n");
+                    break;
+                }
             case ST_ASSIGN:
-                debug(E_WARNING, "This has not yet been implemented.\n");
-                break;
+                {
+                    AssignmentStatement *assignment = statement->stmt_assign;
+                    if(assignment->arrayIndex) {
+                        // TODO: Handle array indices
+                        debug(E_WARNING, "Array index assignment: not implemented.\n");
+                    } else {
+                        expressionTAC(code, assignment->expression);
+                        // TODO: How do I know where the expression was stored?
+                        debug(E_WARNING, "Storing assignment: not implemented.\n");
+                    }
+                    break;
+                }
         }
     }
 }
