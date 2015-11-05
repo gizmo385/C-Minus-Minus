@@ -230,7 +230,13 @@ static inline Type typeCheckFunctionCall(FunctionExpression *function) {
 
 Type typeCheckExpression(Expression *expression) {
     Type finalType = ERROR_TYPE;
+
     if(expression) {
+        // Check if we've already determined the type
+        if(expression->inferredType != UNKNOWN) {
+            return expression->inferredType;
+        }
+
         ExpressionType type = expression->type;
         switch(type) {
             case CONST:
@@ -249,6 +255,8 @@ Type typeCheckExpression(Expression *expression) {
                 finalType = typeCheckBinaryExpression(expression->binaryExpression);
                 break;
         }
+
+        expression->inferredType = finalType;
     }
 
     return finalType;

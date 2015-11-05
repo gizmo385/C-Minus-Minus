@@ -11,6 +11,7 @@ static inline Expression *newExpression() {
     Expression *expr = malloc(sizeof(Expression));
     expr->type = CONST;
     expr->next = NULL;
+    expr->inferredType = UNKNOWN;
     expr->variableExpression = NULL;
 
     return expr;
@@ -29,7 +30,7 @@ Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression
     debug(E_DEBUG, "Creating binary expression with left operand types %s and %s\n",
             expressionTypeName(left), expressionTypeName(right));
 
-
+    typeCheckExpression(expr);
     return expr;
 }
 
@@ -44,7 +45,7 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     debug(E_DEBUG, "Creating unary expression with operand of type %s\n",
             expressionTypeName(operand));
 
-
+    typeCheckExpression(expr);
     return expr;
 }
 
@@ -76,6 +77,7 @@ Expression *newVariableExpression(Scope *scope, char *identifier, Expression *ar
         foundError = true;
     }
 
+    typeCheckExpression(expr);
     return expr;
 }
 
@@ -106,6 +108,7 @@ Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *ar
         error(CALL_UNDEF_FUNCTION, identifier);
     }
 
+    typeCheckExpression(expr);
     return expr;
 }
 
@@ -117,6 +120,7 @@ Expression *newConstExpression(Type type, Value value) {
     Expression *expr = newExpression();
     expr->constantExpression = constExpr;
     expr->type = CONST;
+    expr->inferredType = type;
 
     return expr;
 }
