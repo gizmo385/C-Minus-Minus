@@ -4,6 +4,8 @@
 #include "vector.h"
 #include "ast.h"
 
+static int temporaryId = 0;
+
 typedef enum {
     /* Assignment */
     ASSG_ADD, ASSG_SUB, ASSG_MUL, ASSG_DIV, ASSG_UNARY_MINUS, ASSG_ADDR, ASSG_DEREF, ASSG_VAR,
@@ -38,6 +40,7 @@ typedef struct {
     TACValueType src2Type;
 } ThreeAddressInstruction;
 
+extern ScopeElement *newTemporaryVariable(Type t);
 extern void expressionTAC(Vector *code, Expression *expression);
 extern void statementTAC(Vector *code, Statement *statement);
 extern ThreeAddressInstruction *newTAC(ThreeAddressOperation op, char *dest, TACValue src1,

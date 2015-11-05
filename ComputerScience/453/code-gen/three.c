@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include "utils.h"
 #include "three.h"
+#include "globals.h"
 #include "ast.h"
 
 ThreeAddressInstruction *newTAC(ThreeAddressOperation op, char *dest, TACValue src1,
@@ -17,11 +18,32 @@ ThreeAddressInstruction *newTAC(ThreeAddressOperation op, char *dest, TACValue s
     return instruction;
 }
 
+ScopeElement *newTemporaryVariable(Type type) {
+    Value empty;
+    empty.integer_value = 0;
+
+    ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
+    scopeVariable->type = type;
+    scopeVariable->value = empty;
+
+    // Create its ID
+    const int LEN = 20;
+    char id[LEN];
+    snprintf(id, LEN, "_tmp%d", temporaryId);
+
+    ScopeElement *elem = malloc(sizeof(ScopeElement));
+    elem->identifier = id;
+    elem->elementType = SCOPE_VAR;
+    elem->variable = scopeVariable;
+
+    return elem;
+}
+
 void expressionTAC(Vector *code, Expression *expression) {
     if(expression) {
         switch(expression->type) {
             case CONST:
-                debug(E_WARNING, "This has not yet been implemented.\n");
+                // TODO: Create a field in the expressions to mark its location
                 break;
             case VARIABLE:
                 debug(E_WARNING, "This has not yet been implemented.\n");
