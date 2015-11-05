@@ -4,6 +4,7 @@
 #include "three.h"
 #include "globals.h"
 #include "ast.h"
+#include "types.h"
 
 ThreeAddressInstruction *newTAC(ThreeAddressOperation op, char *dest, TACValue src1,
         TACValueType src1Type, TACValue src2, TACValueType src2Type) {
