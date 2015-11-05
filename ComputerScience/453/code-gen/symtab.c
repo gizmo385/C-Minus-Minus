@@ -4,6 +4,7 @@
 #include "vector.h"
 #include "symtab.h"
 #include "globals.h"
+#include "ast.h"
 #include "utils.h"
 #include "typecheck.h"
 #include "errors.h"

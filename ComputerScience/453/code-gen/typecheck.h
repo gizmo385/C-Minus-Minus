@@ -1,7 +1,7 @@
 #ifndef TYPECHECK_H
 #define TYPECHECK_H
 #include <stdbool.h>
-#include "ast.h"
+#include "types.h"
 
 /* Type checking functions */
 extern Type typeCheckExpression(Expression *expression);

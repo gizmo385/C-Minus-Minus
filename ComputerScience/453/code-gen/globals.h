@@ -1,8 +1,7 @@
 #ifndef CMM_ERRORS_H
 #define CMM_ERRORS_H
 #include <stdbool.h>
-#include "ast.h"
-#include "symtab.h"
+#include "types.h"
 
 extern int mylineno;
 extern int mycolno;

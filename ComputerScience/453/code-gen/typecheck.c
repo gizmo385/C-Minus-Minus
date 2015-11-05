@@ -5,6 +5,8 @@
 #include "typecheck.h"
 #include "globals.h"
 #include "errors.h"
+#include "types.h"
+#include "symtab.h"
 
 /***************************************************************************************************
  * Utility type checking functions
