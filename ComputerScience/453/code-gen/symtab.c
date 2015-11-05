@@ -83,8 +83,6 @@ ScopeElement *findScopeElement(Scope *scope, char *identifier) {
 }
 
 void declareVar(Scope *scope, Type type, char *identifier) {
-    Value empty;
-    empty.integer_value = 0;
     ScopeElement *foundVar = inLocalScope(scope, identifier);
 
     if(foundVar) {
@@ -93,7 +91,6 @@ void declareVar(Scope *scope, Type type, char *identifier) {
         debug(E_DEBUG, "Declaring undeclared variable \"%s\" with type %s\n", identifier, typeName(type));
         ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
         scopeVariable->type = type;
-        scopeVariable->value = empty;
 
         ScopeElement *elem = malloc(sizeof(ScopeElement));
         elem->identifier = identifier;

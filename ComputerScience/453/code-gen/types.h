@@ -35,7 +35,6 @@ typedef enum { SCOPE_VAR, SCOPE_FUNC } ScopeElementType;
 
 typedef struct {
     Type type;
-    Value value;
 } ScopeVariable;
 
 typedef struct {
@@ -202,23 +201,11 @@ typedef enum {
     NO_OP
 } ThreeAddressOperation;
 
-typedef union {
-    char *tac_id;
-    int tac_int;
-    char tac_char;
-} TACValue;
-
-typedef enum {
-    TAC_IDENTIFIER, TAC_INTEGER, TAC_CHARACTER
-} TACValueType;
-
 typedef struct {
     ThreeAddressOperation op;
-    char *dest;
-    TACValue src1;
-    TACValue src2;
-    TACValueType src1Type;
-    TACValueType src2Type;
-} ThreeAddressInstruction;
+    ScopeElement *dest;
+    ScopeElement *src1;
+    ScopeElement *src2;
+} TACInstruction;
 
 #endif

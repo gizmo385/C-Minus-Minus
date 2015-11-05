@@ -6,15 +6,13 @@
 #include "ast.h"
 #include "types.h"
 
-ThreeAddressInstruction *newTAC(ThreeAddressOperation op, char *dest, TACValue src1,
-        TACValueType src1Type, TACValue src2, TACValueType src2Type) {
-    ThreeAddressInstruction *instruction = malloc(sizeof(ThreeAddressInstruction));
+TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest,
+        ScopeElement *src1, ScopeElement *src2) {
+    TACInstruction *instruction = malloc(sizeof(TACInstruction));
     instruction->op = op;
     instruction->dest = dest;
     instruction->src1 = src1;
     instruction->src2 = src2;
-    instruction->src1Type = src1Type;
-    instruction->src2Type = src2Type;
 
     return instruction;
 }
@@ -25,7 +23,6 @@ ScopeElement *newTemporaryVariable(Type type) {
 
     ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
     scopeVariable->type = type;
-    scopeVariable->value = empty;
 
     // Create its ID
     const int LEN = 20;
@@ -44,8 +41,14 @@ void expressionTAC(Vector *code, Expression *expression) {
     if(expression) {
         switch(expression->type) {
             case CONST:
-                // TODO: Create a field in the expressions to mark its location
-                break;
+                {
+                    // Declare a value to place the constant in
+                    ScopeElement *newTemp = newTemporaryVariable(expression->inferredType);
+                    expression->place = newTemp;
+                    TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, NULL, NULL);
+                    vectorAdd(code, instruction);
+                    break;
+                }
             case VARIABLE:
                 debug(E_WARNING, "This has not yet been implemented.\n");
                 break;
@@ -102,9 +105,14 @@ void statementTAC(Vector *code, Statement *statement) {
                         // TODO: Handle array indices
                         debug(E_WARNING, "Array index assignment: not implemented.\n");
                     } else {
-                        expressionTAC(code, assignment->expression);
-                        // TODO: How do I know where the expression was stored?
-                        debug(E_WARNING, "Storing assignment: not implemented.\n");
+                        // Get the location for the value being assigned
+                        Expression *value = assignment->expression;
+                        expressionTAC(code, value);
+
+                        // Location to store it in
+                        ScopeElement *newTemp = newTemporaryVariable(value->inferredType);
+                        TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, value->place, NULL);
+                        vectorAdd(code, instruction);
                     }
                     break;
                 }
