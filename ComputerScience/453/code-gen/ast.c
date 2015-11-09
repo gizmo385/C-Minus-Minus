@@ -283,6 +283,7 @@ FunctionDeclaration *newFunction(Type returnType, char *functionName,
     funcDecl->parameters = parameters;
     funcDecl->declarations = declarations;
     funcDecl->body = body;
+    funcDecl->next = NULL;
 
     return funcDecl;
 }

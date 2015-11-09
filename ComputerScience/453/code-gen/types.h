@@ -183,6 +183,8 @@ typedef struct FunctionDeclaration {
     FunctionParameter *parameters;
     VariableDeclaration *declarations;
     Statement *body;
+
+    struct FunctionDeclaration *next;
 } FunctionDeclaration;
 
 /* Three Address Code */

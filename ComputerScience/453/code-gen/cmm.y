@@ -24,6 +24,9 @@ Scope *globalScope;
 Scope *scope;
 Type baseDeclType;
 
+// Root of the syntax tree
+FunctionDeclaration *root;
+
 // Helper functions
 bool addFunctionDeclarationToScope(Type type, char *identifier, FunctionParameter *parameters);
 void resetFunctionType();
@@ -43,7 +46,7 @@ void resetFunctionType();
 %type<expression> expr optional_expr expr_list
 %type<statement> stmt assg optional_assign stmt_list
 %type<type> type
-%type<functionDeclaration> func
+%type<functionDeclaration> func prog
 %type<variableDeclaration> optional_var_decl_list var_decl var_decl_list
 %type<parameter> param_types param_types_list non_void_param_type
 %type<string> func_header
@@ -88,9 +91,9 @@ void resetFunctionType();
 
 %%
 
-prog : decl prog
-     | func prog
-     | epsilon
+prog : decl prog { $$ = $2; root = $$; }
+     | func prog { $1->next = $2; $$ = $1; root = $$; }
+     | epsilon { $$ = NULL; root = $$; }
 
 decl : type var_decl_list SEMICOLON
         {
@@ -124,7 +127,7 @@ decl : type var_decl_list SEMICOLON
      | error SEMICOLON
      ;
 
-extern : EXTERN                                                 { declaredExtern = true; }
+extern : EXTERN { declaredExtern = true; }
 
 func_header : type ID LEFT_PAREN param_types RIGHT_PAREN
                 {
