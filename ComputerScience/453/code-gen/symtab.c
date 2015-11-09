@@ -89,8 +89,12 @@ void declareVar(Scope *scope, Type type, char *identifier) {
         error(VAR_ALREADY_DECLARED, identifier);
     } else {
         debug(E_DEBUG, "Declaring undeclared variable \"%s\" with type %s\n", identifier, typeName(type));
+        Value empty;
+        empty.integer_value = 0;
+
         ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
         scopeVariable->type = type;
+        scopeVariable->value = empty;
 
         ScopeElement *elem = malloc(sizeof(ScopeElement));
         elem->identifier = identifier;

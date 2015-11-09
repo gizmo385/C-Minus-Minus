@@ -35,6 +35,7 @@ typedef enum { SCOPE_VAR, SCOPE_FUNC } ScopeElementType;
 
 typedef struct {
     Type type;
+    Value value;
 } ScopeVariable;
 
 typedef struct {
