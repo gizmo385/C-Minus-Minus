@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "utils.h"
+#include "symtab.h"
 #include "three.h"
 #include "globals.h"
 #include "ast.h"
@@ -23,6 +24,7 @@ ScopeElement *newTemporaryVariable(Type type) {
 
     ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
     scopeVariable->type = type;
+    scopeVariable->value = empty;
 
     // Create its ID
     const int LEN = 20;
@@ -42,16 +44,38 @@ void expressionTAC(Vector *code, Expression *expression) {
         switch(expression->type) {
             case CONST:
                 {
-                    // Declare a value to place the constant in
+                    // Create a new location for the constant
                     ScopeElement *newTemp = newTemporaryVariable(expression->inferredType);
                     expression->place = newTemp;
+
+                    // Store the value of the constant
+                    ConstExpression *e = expression->constantExpression;
+                    newTemp->variable->value = e->value;
+
+                    // Create an assignment instruction for the constant
                     TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, NULL, NULL);
                     vectorAdd(code, instruction);
                     break;
                 }
             case VARIABLE:
-                debug(E_WARNING, "This has not yet been implemented.\n");
-                break;
+                {
+                    // Create a new temporary
+                    ScopeElement *newTemp = newTemporaryVariable(expression->inferredType);
+
+                    // Find the location of the expression's referenced variable
+                    VariableExpression *var = expression->variableExpression;
+                    ScopeElement *varLocation = findScopeElement(scope, var->identifier);
+                    ScopeElement *arrayIndexLocation = NULL;
+                    if(var->arrayIndex) {
+                        arrayIndexLocation = var->arrayIndex->place;
+                    }
+
+                    // Create a new instruction
+                    TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, varLocation,
+                            arrayIndexLocation);
+                    vectorAdd(code, instruction);
+                    break;
+                }
             case FUNCTION:
                 debug(E_WARNING, "This has not yet been implemented.\n");
                 break;
