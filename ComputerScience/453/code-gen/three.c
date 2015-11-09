@@ -109,8 +109,10 @@ void statementTAC(Vector *code, Statement *statement) {
                         Expression *value = assignment->expression;
                         expressionTAC(code, value);
 
-                        // Location to store it in
+                        // Create a new temporary variable that we can assign it to
                         ScopeElement *newTemp = newTemporaryVariable(value->inferredType);
+
+                        // Create a new TAC instruction that represents this assignment.
                         TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, value->place, NULL);
                         vectorAdd(code, instruction);
                     }
