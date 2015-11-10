@@ -4,3 +4,8 @@ void test(void) {
     y = x;
     z = y;
 }
+
+void second_test(int a) {
+    int b;
+    b = a;
+}
