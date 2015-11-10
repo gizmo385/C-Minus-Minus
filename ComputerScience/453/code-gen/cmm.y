@@ -378,6 +378,8 @@ int main(int argc, char **argv) {
     if(foundError) {
         return 1;
     } else {
+        // Generate code for the syntax tree
+        generateCode(root);
         return 0;
     }
 }
