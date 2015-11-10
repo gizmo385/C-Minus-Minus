@@ -1,5 +1,6 @@
 #ifndef TYPES_H
 #define TYPES_H
+#include <stdbool.h>
 #include "vector.h"
 
 /* Defining types */
@@ -199,7 +200,7 @@ typedef enum {
     IF_GTE, IF_LTE, IF_GT, IF_LT, IF_EQ, IF_NEQ, GOTO, LABEL,
 
     /* Procedures */
-    ENTER, LEAVE, RETVAL, RETURN_FROM, CALL, PARAM,
+    ENTER, LEAVE, RETVAL, RETURN_FROM, CALL, RETRIEVE, PARAM,
 
     /* Other */
     NO_OP
