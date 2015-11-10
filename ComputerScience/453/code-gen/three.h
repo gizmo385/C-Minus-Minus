@@ -7,10 +7,10 @@
 
 static int temporaryId = 0;
 
-extern ScopeElement *newTemporaryVariable(Type type);
-extern void expressionTAC(Vector *code, Expression *expression);
-extern void statementTAC(Vector *code, Statement *statement);
-TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest, ScopeElement *src1,
+extern ScopeElement *newTemporaryVariable(Scope *functionScope, Type type);
+extern void expressionTAC(Scope *functionScope, Vector *code, Expression *expression);
+extern void statementTAC(Scope *functionScope, Vector *code, Statement *statement);
+extern TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest, ScopeElement *src1,
         ScopeElement *src2);
 
 #endif

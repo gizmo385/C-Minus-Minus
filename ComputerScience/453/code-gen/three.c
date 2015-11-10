@@ -18,7 +18,7 @@ TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest,
     return instruction;
 }
 
-ScopeElement *newTemporaryVariable(Type type) {
+ScopeElement *newTemporaryVariable(Scope *functionScope, Type type) {
     Value empty;
     empty.integer_value = 0;
 
@@ -28,24 +28,28 @@ ScopeElement *newTemporaryVariable(Type type) {
 
     // Create its ID
     const int LEN = 20;
-    char id[LEN];
+    char *id = calloc(LEN, sizeof(char));
     snprintf(id, LEN, "_tmp%d", temporaryId);
+    temporaryId += 1;
 
     ScopeElement *elem = malloc(sizeof(ScopeElement));
     elem->identifier = id;
     elem->elementType = SCOPE_VAR;
     elem->variable = scopeVariable;
 
+    // Add the temporary variable to function scope
+    vectorAdd(functionScope->variables, elem);
+
     return elem;
 }
 
-void expressionTAC(Vector *code, Expression *expression) {
+void expressionTAC(Scope *functionScope, Vector *code, Expression *expression) {
     if(expression) {
         switch(expression->type) {
             case CONST:
                 {
                     // Create a new location for the constant
-                    ScopeElement *newTemp = newTemporaryVariable(expression->inferredType);
+                    ScopeElement *newTemp = newTemporaryVariable(functionScope, expression->inferredType);
                     expression->place = newTemp;
 
                     // Store the value of the constant
@@ -55,25 +59,23 @@ void expressionTAC(Vector *code, Expression *expression) {
                     // Create an assignment instruction for the constant
                     TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, NULL, NULL);
                     vectorAdd(code, instruction);
+                    debug(E_DEBUG, "Declaring constant in %s.\n", newTemp->identifier);
                     break;
                 }
             case VARIABLE:
                 {
-                    // Create a new temporary
-                    ScopeElement *newTemp = newTemporaryVariable(expression->inferredType);
-
                     // Find the location of the expression's referenced variable
                     VariableExpression *var = expression->variableExpression;
-                    ScopeElement *varLocation = findScopeElement(scope, var->identifier);
+                    ScopeElement *varLocation = findScopeElement(functionScope, var->identifier);
+                    expression->place = varLocation;
                     ScopeElement *arrayIndexLocation = NULL;
+
+                    // Generate code for the array index if one is present
                     if(var->arrayIndex) {
+                        expressionTAC(functionScope, code, var->arrayIndex);
                         arrayIndexLocation = var->arrayIndex->place;
                     }
 
-                    // Create a new instruction
-                    TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, varLocation,
-                            arrayIndexLocation);
-                    vectorAdd(code, instruction);
                     break;
                 }
             case FUNCTION:
@@ -89,7 +91,7 @@ void expressionTAC(Vector *code, Expression *expression) {
     }
 }
 
-void statementTAC(Vector *code, Statement *statement) {
+void statementTAC(Scope *functionScope, Vector *code, Statement *statement) {
     if(statement) {
         switch(statement->type) {
             case ST_FOR:
@@ -125,19 +127,18 @@ void statementTAC(Vector *code, Statement *statement) {
             case ST_ASSIGN:
                 {
                     AssignmentStatement *assignment = statement->stmt_assign;
+                    ScopeElement *dest = findScopeElement(functionScope, assignment->identifier);
                     if(assignment->arrayIndex) {
                         // TODO: Handle array indices
                         debug(E_WARNING, "Array index assignment: not implemented.\n");
                     } else {
                         // Get the location for the value being assigned
                         Expression *value = assignment->expression;
-                        expressionTAC(code, value);
-
-                        // Create a new temporary variable that we can assign it to
-                        ScopeElement *newTemp = newTemporaryVariable(value->inferredType);
+                        expressionTAC(functionScope, code, value);
 
                         // Create a new TAC instruction that represents this assignment.
-                        TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, value->place, NULL);
+                        TACInstruction *instruction = newTAC(ASSG_VAR, dest, value->place, NULL);
+                        debug(E_DEBUG, "%s = %s\n", dest->identifier, value->place->identifier);
                         vectorAdd(code, instruction);
                     }
                     break;
