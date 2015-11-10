@@ -184,6 +184,7 @@ typedef struct FunctionDeclaration {
     FunctionParameter *parameters;
     VariableDeclaration *declarations;
     Statement *body;
+    Scope *functionScope;
 
     struct FunctionDeclaration *next;
 } FunctionDeclaration;

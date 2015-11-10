@@ -148,8 +148,10 @@ func : func_header LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CUR
             ScopeElement *elem = findScopeElement(globalScope, identifier);
             if(elem->elementType == SCOPE_FUNC) {
                 ScopeFunction *func = elem->function;
+                Scope *functionScope = newScope(globalScope);
                 FunctionDeclaration *decl = newFunction(currentFunctionReturnType, identifier,
                                                         func->parameters, $3, $4);
+                decl->functionScope = scope;
                 scope = newScope(globalScope);
 
                 $$ = decl;
@@ -239,7 +241,7 @@ var_decl : ID
          ;
 
 var_decl_list : var_decl                        { $$ = $1; }
-              | var_decl_list COMMA var_decl    { $3->next = $1; $$ = $3; }
+              | var_decl_list COMMA var_decl    { $1->next = $3; $$ = $1; }
               | epsilon                         { $$ = NULL; }
 
 void : VOID
@@ -365,7 +367,7 @@ void resetFunctionType() {
     currentFunctionReturnType = VOID_TYPE;
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
 #ifdef DEBUG
     setDebuggingLevel(E_ALL);
 #endif

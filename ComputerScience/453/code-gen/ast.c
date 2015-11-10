@@ -284,6 +284,7 @@ FunctionDeclaration *newFunction(Type returnType, char *functionName,
     funcDecl->declarations = declarations;
     funcDecl->body = body;
     funcDecl->next = NULL;
+    funcDecl->functionScope = NULL;
 
     return funcDecl;
 }
