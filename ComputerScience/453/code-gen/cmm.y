@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "ast.h"
 #include "globals.h"
+#include "codegen.h"
 #include "cmm.tab.h"
 
 extern char *yytext;
@@ -148,7 +149,6 @@ func : func_header LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CUR
             ScopeElement *elem = findScopeElement(globalScope, identifier);
             if(elem->elementType == SCOPE_FUNC) {
                 ScopeFunction *func = elem->function;
-                Scope *functionScope = newScope(globalScope);
                 FunctionDeclaration *decl = newFunction(currentFunctionReturnType, identifier,
                                                         func->parameters, $3, $4);
                 decl->functionScope = scope;
@@ -379,6 +379,7 @@ int main(int argc, char **argv) {
         return 1;
     } else {
         // Generate code for the syntax tree
+        debug(E_DEBUG, "-------------------BEGIN CODE GEN-------------------\n");
         generateCode(root);
         return 0;
     }
