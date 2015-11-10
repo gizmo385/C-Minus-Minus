@@ -11,7 +11,10 @@ static void functionTAC(FunctionDeclaration *declaration, Vector *code) {
     ScopeElement *func = findScopeElement(scope, functionName);
     Scope *functionScope = declaration->functionScope;
 
-    // Enter the function
+    // Create the function header (label and enter statement)
+    TACInstruction *label = newLabel(functionName);
+    vectorAdd(code, label);
+
     TACInstruction *enter = newTAC(ENTER, func, NULL, NULL);
     vectorAdd(code, enter);
     debug(E_DEBUG, "enter %s\n", functionName);
@@ -27,7 +30,7 @@ static void functionTAC(FunctionDeclaration *declaration, Vector *code) {
     // Leave the function
     TACInstruction *leave = newTAC(LEAVE, func, NULL, NULL);
     vectorAdd(code, leave);
-    debug(E_DEBUG, "leave %s\n", functionName);
+    debug(E_DEBUG, "leave %s\n\n", functionName);
 }
 
 Vector *generateTAC(FunctionDeclaration *declarations) {

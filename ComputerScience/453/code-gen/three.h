@@ -6,8 +6,11 @@
 #include "types.h"
 
 static int temporaryId = 0;
+static int labelId = 0;
 
 extern ScopeElement *newTemporaryVariable(Scope *functionScope, Type type);
+extern TACInstruction *newLabel(char *id);
+extern TACInstruction *newRandomLabel();
 extern void expressionTAC(Scope *functionScope, Vector *code, Expression *expression);
 extern void statementTAC(Scope *functionScope, Vector *code, Statement *statement);
 extern TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest, ScopeElement *src1,

@@ -32,7 +32,7 @@ typedef struct FunctionParameter {
 } FunctionParameter;
 
 /* Defining the structure of the Scope */
-typedef enum { SCOPE_VAR, SCOPE_FUNC } ScopeElementType;
+typedef enum { SCOPE_VAR, SCOPE_FUNC, SCOPE_LABEL} ScopeElementType;
 
 typedef struct {
     Type type;

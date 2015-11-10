@@ -18,6 +18,35 @@ TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest,
     return instruction;
 }
 
+TACInstruction *newLabel(char *id) {
+    // Create scope element
+    ScopeElement *labelElement = malloc(sizeof(ScopeElement));
+    labelElement->identifier = id;
+    labelElement->variable = NULL;
+    labelElement->elementType = SCOPE_LABEL;
+
+    // Create the instruction
+    TACInstruction *instruction = malloc(sizeof(TACInstruction));
+    instruction->op = LABEL;
+    instruction->dest = labelElement;
+    instruction->src1 = NULL;
+    instruction->src2 = NULL;
+
+    debug(E_DEBUG, "%s:\n", id);
+
+    return instruction;
+}
+
+TACInstruction *newRandomLabel() {
+    // String identifier
+    const int LEN = 20;
+    char *id = calloc(LEN, sizeof(char));
+    snprintf(id, LEN, "_L%d", labelId);
+    labelId += 1;
+
+    return newLabel(id);
+}
+
 ScopeElement *newTemporaryVariable(Scope *functionScope, Type type) {
     Value empty;
     empty.integer_value = 0;
