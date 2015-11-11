@@ -56,7 +56,7 @@ TACInstruction *newLabel(char *id) {
     instruction->src1 = NULL;
     instruction->src2 = NULL;
 
-    debug(E_DEBUG, "%s:\n", id);
+    debug(E_INFO, "%s:\n", id);
 
     return instruction;
 }

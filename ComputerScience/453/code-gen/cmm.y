@@ -367,7 +367,7 @@ void resetFunctionType() {
 
 int main(int argc, char **argv) {
 #ifdef DEBUG
-    setDebuggingLevel(E_ALL);
+    setDebuggingLevel(E_INFO | E_WARNING);
 #endif
     globalScope = newScope(NULL);
     scope = newScope(globalScope);
