@@ -28,7 +28,7 @@ debug: clean compile
 	${CC} ${CFLAGS} -c $^
 
 todo:
-	@grep -ni "TODO" *.c *.h
+	@grep -ni "TODO" *.c *.h *.y *.l
 
 .PHONY : clean
 clean:
