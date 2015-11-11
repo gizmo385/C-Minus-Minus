@@ -219,6 +219,9 @@ typedef struct FunctionDeclaration {
     Statement *body;
     Scope *functionScope;
 
+    TACInstruction *codeStart;
+    TACInstruction *codeEnd;
+
     struct FunctionDeclaration *next;
 } FunctionDeclaration;
 
