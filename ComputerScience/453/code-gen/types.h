@@ -70,7 +70,7 @@ typedef enum {
     IF_GTE, IF_LTE, IF_GT, IF_LT, IF_EQ, IF_NEQ, GOTO, LABEL,
 
     /* Procedures */
-    ENTER, LEAVE, RETVAL, RETURN_FROM, CALL, RETRIEVE, PARAM,
+    ENTER, LEAVE, RETURN_FROM, CALL, RETRIEVE, PARAM,
 
     /* Other */
     NO_OP
@@ -141,8 +141,7 @@ struct Expression {
 
     // Code generation information
     ScopeElement *place;
-    TACInstruction *codeStart;
-    TACInstruction *codeEnd;
+    Vector *code;
 };
 
 /* Different kinds of statements */
@@ -200,8 +199,7 @@ struct Statement {
     };
     Statement *next;
 
-    TACInstruction *codeStart;
-    TACInstruction *codeEnd;
+    Vector *code;
 };
 
 /* Variable and function declarations */
@@ -219,8 +217,7 @@ typedef struct FunctionDeclaration {
     Statement *body;
     Scope *functionScope;
 
-    TACInstruction *codeStart;
-    TACInstruction *codeEnd;
+    Vector *code;
 
     struct FunctionDeclaration *next;
 } FunctionDeclaration;

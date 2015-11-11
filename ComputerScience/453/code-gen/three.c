@@ -42,29 +42,6 @@ static char *constantValueString(ConstExpression *expr) {
     return valueString;
 }
 
-static void consExpressionCode(Expression *left, Expression *right) {
-    TACInstruction *tail = left->codeEnd;
-
-    if(tail) {
-        tail->next = right->codeStart;
-    } else {
-        tail = right->codeStart;
-    }
-
-    left->codeEnd = right->codeEnd;
-}
-
-static void consInstruction(Expression *expression, TACInstruction *newInstruction) {
-    TACInstruction *tail = expression->codeEnd;
-    if(tail) {
-        tail->next = newInstruction;
-    } else {
-        tail = newInstruction;
-    }
-
-    expression->codeEnd = newInstruction;
-}
-
 TACInstruction *newLabel(char *id) {
     // Create scope element
     ScopeElement *labelElement = malloc(sizeof(ScopeElement));
@@ -134,8 +111,8 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
 
                     // Create an assignment instruction for the constant
                     TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, NULL, NULL);
-                    consInstruction(expression, instruction);
-                    debug(E_DEBUG, "%s = %s\n", newTemp->identifier, constantValueString(e));
+                    vectorAdd(expression->code, instruction);
+                    debug(E_INFO, "%s = %s\n", newTemp->identifier, constantValueString(e));
                     break;
                 }
             case VARIABLE:
@@ -155,12 +132,10 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
                         // Create the instruction
                         TACInstruction *assign;
                         assign = newTAC(ASSG_TO_INDEX, dest, varLocation, arrayIndexLocation);
-                        expression->codeStart = assign;
-                        expression->codeEnd = assign;
-
+                        vectorAdd(expression->code, assign);
                         expression->place = dest;
 
-                        debug(E_DEBUG, "%s = %s[%s]\n", dest->identifier, varLocation->identifier,
+                        debug(E_INFO, "%s = %s[%s]\n", dest->identifier, varLocation->identifier,
                                 arrayIndexLocation->identifier);
                     } else {
                         expression->place = varLocation;
@@ -228,9 +203,8 @@ void statementTAC(Scope *functionScope, Statement *statement) {
 
                         // Create a new TAC instruction that represents this assignment.
                         TACInstruction *instruction = newTAC(ASSG_VAR, dest, value->place, NULL);
-                        statement->codeStart = instruction;
-                        statement->codeEnd = instruction;
-                        debug(E_DEBUG, "%s = %s\n", dest->identifier, value->place->identifier);
+                        vectorAdd(statement->code, instruction);
+                        debug(E_INFO, "%s = %s\n", dest->identifier, value->place->identifier);
                     }
                     break;
                 }

@@ -15,21 +15,18 @@ static void functionTAC(FunctionDeclaration *declaration) {
     TACInstruction *label = newLabel(functionName);
     TACInstruction *enter = newTAC(ENTER, func, NULL, NULL);
     label->next = enter;
-    declaration->codeStart = label;
-    declaration->codeEnd = enter;
-    debug(E_DEBUG, "enter %s\n", functionName);
+    vectorAdd(declaration->code, label);
+    vectorAdd(declaration->code, enter);
+    debug(E_INFO, "enter %s\n", functionName);
 
     // Generate code for the body of the function
     Statement *body = declaration->body;
     while(body) {
         statementTAC(functionScope, body);
 
-        TACInstruction *tail = declaration->codeEnd;
-        if(tail) {
-            tail->next = body->codeStart;
-            declaration->codeEnd = body->codeEnd;
-        } else {
-            declaration->codeEnd = body->codeEnd;
+        Vector *bodyCode = body->code;
+        for(int i = 0; i < bodyCode->size; i++ ) {
+            vectorAdd(declaration->code, vectorGet(bodyCode, i));
         }
 
         body = body->next;
@@ -37,9 +34,8 @@ static void functionTAC(FunctionDeclaration *declaration) {
 
     // Leave the function
     TACInstruction *leave = newTAC(LEAVE, func, NULL, NULL);
-    declaration->codeEnd->next = leave;
-    declaration->codeEnd = leave;
-    debug(E_DEBUG, "leave %s\n\n", functionName);
+    vectorAdd(declaration->code, leave);
+    debug(E_INFO, "leave %s\n\n", functionName);
 }
 
 void generateTAC(FunctionDeclaration *declarations) {

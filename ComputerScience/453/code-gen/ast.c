@@ -6,6 +6,15 @@
 #include "utils.h"
 #include "globals.h"
 #include "errors.h"
+#include "vector.h"
+
+static inline Statement *newStatement() {
+    Statement *statement = malloc(sizeof(Statement));
+    statement->next = NULL;
+    statement->code = newVector(25);
+
+    return statement;
+}
 
 static inline Expression *newExpression() {
     Expression *expr = malloc(sizeof(Expression));
@@ -14,8 +23,7 @@ static inline Expression *newExpression() {
     expr->inferredType = UNKNOWN;
     expr->variableExpression = NULL;
     expr->place = NULL;
-    expr->codeStart = NULL;
-    expr->codeEnd = NULL;
+    expr->code = newVector(25);
 
     return expr;
 }
@@ -170,7 +178,7 @@ Statement *newForStatement(Scope *scope, AssignmentStatement *initial, Expressio
     forStatement->change = change;
     forStatement->body = body;
 
-    Statement *stmt = malloc(sizeof(Statement));
+    Statement *stmt = newStatement();
     stmt->stmt_for = forStatement;
     stmt->type = ST_FOR;
 
@@ -183,7 +191,7 @@ Statement *newWhileStatement(Scope *scope, Expression *condition, Statement *bod
     whileStatement->condition = condition;
     whileStatement->body = body;
 
-    Statement *stmt = malloc(sizeof(Statement));
+    Statement *stmt = newStatement();
     stmt->stmt_while = whileStatement;
     stmt->type = ST_WHILE;
 
@@ -195,7 +203,7 @@ Statement *newFunctionCallStatement(Scope *scope, Expression *functionCall) {
     FunctionCallStatement *callStatement = malloc(sizeof(FunctionCallStatement));
     callStatement->functionCall = functionCall;
 
-    Statement *stmt = malloc(sizeof(Statement));
+    Statement *stmt = newStatement();
     stmt->stmt_func = callStatement;
     stmt->type = ST_FUNC;
 
@@ -208,7 +216,7 @@ Statement *newIfStatement(Scope *scope, Expression *condition, Statement *body) 
     ifStatement->condition = condition;
     ifStatement->satisfied = body;
 
-    Statement *stmt = malloc(sizeof(Statement));
+    Statement *stmt = newStatement();
     stmt->stmt_if = ifStatement;
     stmt->type = ST_IF;
 
@@ -222,7 +230,7 @@ Statement *newIfElseStatement(Scope *scope, Expression *condition, Statement *sa
     ifElseStatement->satisfied = satisfied;
     ifElseStatement->unsatisfied = unsatisfied;
 
-    Statement *stmt = malloc(sizeof(Statement));
+    Statement *stmt = newStatement();
     stmt->stmt_if_else = ifElseStatement;
     stmt->type = ST_IF_ELSE;
 
@@ -234,7 +242,7 @@ Statement *newReturnStatement(Scope *scope, Expression *returnValue) {
     ReturnStatement *returnStatement = malloc(sizeof(ReturnStatement));
     returnStatement->returnValue = returnValue;
 
-    Statement *stmt = malloc(sizeof(Statement));
+    Statement *stmt = newStatement();
     stmt->stmt_return = returnStatement;
     stmt->type = ST_RETURN;
 
@@ -248,7 +256,7 @@ Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *ar
     assign->arrayIndex = arrayIndex;
     assign->expression = expression;
 
-    Statement *stmt = malloc(sizeof(Statement));
+    Statement *stmt = newStatement();
     stmt->stmt_assign = assign;
     stmt->type = ST_ASSIGN;
 
@@ -288,6 +296,7 @@ FunctionDeclaration *newFunction(Type returnType, char *functionName,
     funcDecl->body = body;
     funcDecl->next = NULL;
     funcDecl->functionScope = NULL;
+    funcDecl->code = newVector(25);
 
     return funcDecl;
 }
