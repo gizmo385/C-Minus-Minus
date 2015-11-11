@@ -60,6 +60,31 @@ typedef struct Scope {
     struct Scope *enclosingScope;
 } Scope;
 
+/* Three Address Code */
+typedef enum {
+    /* Assignment */
+    ASSG_ADD, ASSG_SUB, ASSG_MUL, ASSG_DIV, ASSG_UNARY_MINUS, ASSG_ADDR, ASSG_DEREF, ASSG_VAR,
+    ASSG_FROM_INDEX, ASSG_TO_INDEX,
+
+    /* Jumps and Labels */
+    IF_GTE, IF_LTE, IF_GT, IF_LT, IF_EQ, IF_NEQ, GOTO, LABEL,
+
+    /* Procedures */
+    ENTER, LEAVE, RETVAL, RETURN_FROM, CALL, RETRIEVE, PARAM,
+
+    /* Other */
+    NO_OP
+} ThreeAddressOperation;
+
+typedef struct TACInstruction TACInstruction;
+struct TACInstruction {
+    ThreeAddressOperation op;
+    ScopeElement *dest;
+    ScopeElement *src1;
+    ScopeElement *src2;
+
+    TACInstruction *next;
+};
 
 /* Different kinds of operations */
 typedef enum { NOT_OP, NEG_OP } UnaryOperation;
@@ -113,7 +138,11 @@ struct Expression {
     };
     Expression *next;
     Type inferredType;
+
+    // Code generation information
     ScopeElement *place;
+    TACInstruction *codeStart;
+    TACInstruction *codeEnd;
 };
 
 /* Different kinds of statements */
@@ -170,6 +199,9 @@ struct Statement {
         FunctionCallStatement *stmt_func;
     };
     Statement *next;
+
+    TACInstruction *codeStart;
+    TACInstruction *codeEnd;
 };
 
 /* Variable and function declarations */
@@ -189,28 +221,5 @@ typedef struct FunctionDeclaration {
 
     struct FunctionDeclaration *next;
 } FunctionDeclaration;
-
-/* Three Address Code */
-typedef enum {
-    /* Assignment */
-    ASSG_ADD, ASSG_SUB, ASSG_MUL, ASSG_DIV, ASSG_UNARY_MINUS, ASSG_ADDR, ASSG_DEREF, ASSG_VAR,
-    ASSG_FROM_INDEX, ASSG_TO_INDEX,
-
-    /* Jumps and Labels */
-    IF_GTE, IF_LTE, IF_GT, IF_LT, IF_EQ, IF_NEQ, GOTO, LABEL,
-
-    /* Procedures */
-    ENTER, LEAVE, RETVAL, RETURN_FROM, CALL, RETRIEVE, PARAM,
-
-    /* Other */
-    NO_OP
-} ThreeAddressOperation;
-
-typedef struct {
-    ThreeAddressOperation op;
-    ScopeElement *dest;
-    ScopeElement *src1;
-    ScopeElement *src2;
-} TACInstruction;
 
 #endif

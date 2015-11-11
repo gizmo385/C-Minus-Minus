@@ -23,7 +23,7 @@ static void functionTAC(FunctionDeclaration *declaration, Vector *code) {
     // Generate code for the body of the function
     Statement *body = declaration->body;
     while(body) {
-        statementTAC(functionScope, code, body);
+        statementTAC(functionScope, body);
         body = body->next;
     }
 

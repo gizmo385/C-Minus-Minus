@@ -14,8 +14,32 @@ TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest,
     instruction->dest = dest;
     instruction->src1 = src1;
     instruction->src2 = src2;
+    instruction->next = NULL;
 
     return instruction;
+}
+
+static void consExpressionCode(Expression *left, Expression *right) {
+    TACInstruction *tail = left->codeEnd;
+
+    if(tail) {
+        tail->next = right->codeStart;
+    } else {
+        tail = right->codeStart;
+    }
+
+    left->codeEnd = right->codeEnd;
+}
+
+static void consInstruction(Expression *expression, TACInstruction *newInstruction) {
+    TACInstruction *tail = expression->codeEnd;
+    if(tail) {
+        tail->next = newInstruction;
+    } else {
+        tail = newInstruction;
+    }
+
+    expression->codeEnd = newInstruction;
 }
 
 TACInstruction *newLabel(char *id) {
@@ -72,7 +96,7 @@ ScopeElement *newTemporaryVariable(Scope *functionScope, Type type) {
     return elem;
 }
 
-void expressionTAC(Scope *functionScope, Vector *code, Expression *expression) {
+void expressionTAC(Scope *functionScope, Expression *expression) {
     if(expression) {
         switch(expression->type) {
             case CONST:
@@ -87,7 +111,7 @@ void expressionTAC(Scope *functionScope, Vector *code, Expression *expression) {
 
                     // Create an assignment instruction for the constant
                     TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, NULL, NULL);
-                    vectorAdd(code, instruction);
+                    consInstruction(expression, instruction);
                     debug(E_DEBUG, "Declaring constant in %s.\n", newTemp->identifier);
                     break;
                 }
@@ -101,8 +125,20 @@ void expressionTAC(Scope *functionScope, Vector *code, Expression *expression) {
 
                     // Generate code for the array index if one is present
                     if(var->arrayIndex) {
-                        expressionTAC(functionScope, code, var->arrayIndex);
+                        expressionTAC(functionScope, var->arrayIndex);
                         arrayIndexLocation = var->arrayIndex->place;
+
+                        // Create an area to hold the result value
+                        Type elementType = var->type == INT_ARRAY_TYPE ? INT_TYPE : CHAR_TYPE;
+                        ScopeElement *dest = newTemporaryVariable(functionScope, elementType);
+
+                        // Create the instruction
+                        TACInstruction *assign;
+                        assign = newTAC(ASSG_TO_INDEX, dest, expression->place, arrayIndexLocation);
+                        expression->codeStart = assign;
+                        expression->codeEnd = assign;
+                    } else {
+
                     }
 
                     break;
@@ -120,7 +156,7 @@ void expressionTAC(Scope *functionScope, Vector *code, Expression *expression) {
     }
 }
 
-void statementTAC(Scope *functionScope, Vector *code, Statement *statement) {
+void statementTAC(Scope *functionScope, Statement *statement) {
     if(statement) {
         switch(statement->type) {
             case ST_FOR:
@@ -157,18 +193,20 @@ void statementTAC(Scope *functionScope, Vector *code, Statement *statement) {
                 {
                     AssignmentStatement *assignment = statement->stmt_assign;
                     ScopeElement *dest = findScopeElement(functionScope, assignment->identifier);
+
                     if(assignment->arrayIndex) {
                         // TODO: Handle array indices
                         debug(E_WARNING, "Array index assignment: not implemented.\n");
                     } else {
                         // Get the location for the value being assigned
                         Expression *value = assignment->expression;
-                        expressionTAC(functionScope, code, value);
+                        expressionTAC(functionScope, value);
 
                         // Create a new TAC instruction that represents this assignment.
                         TACInstruction *instruction = newTAC(ASSG_VAR, dest, value->place, NULL);
+                        statement->codeStart = instruction;
+                        statement->codeEnd = instruction;
                         debug(E_DEBUG, "%s = %s\n", dest->identifier, value->place->identifier);
-                        vectorAdd(code, instruction);
                     }
                     break;
                 }

@@ -13,6 +13,9 @@ static inline Expression *newExpression() {
     expr->next = NULL;
     expr->inferredType = UNKNOWN;
     expr->variableExpression = NULL;
+    expr->place = NULL;
+    expr->codeStart = NULL;
+    expr->codeEnd = NULL;
 
     return expr;
 }
