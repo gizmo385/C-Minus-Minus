@@ -199,7 +199,8 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionPa
         }
     } else {
         // Add the function to scope
-        debug(E_DEBUG, "Declaring function %s on line %d.\n", identifier, mylineno);
+        debug(E_DEBUG, "Declaring function %s of type %s on line %d.\n", identifier,
+                typeName(returnType), mylineno);
         ScopeFunction *scopeFunction = malloc(sizeof(ScopeFunction));
         scopeFunction->returnType = returnType;
         scopeFunction->parameters = parameters;

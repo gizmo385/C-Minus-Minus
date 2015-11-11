@@ -132,13 +132,11 @@ extern : EXTERN { declaredExtern = true; }
 
 func_header : type ID LEFT_PAREN param_types RIGHT_PAREN
                 {
-                    debug(E_DEBUG, "Declaring function %s with type %s\n", $2, typeName($1));
                     addFunctionDeclarationToScope($1, $2, $4);
                     $$ = $2;
                 }
             | void ID LEFT_PAREN param_types RIGHT_PAREN
                 {
-                    debug(E_DEBUG, "Declaring function %s with type %s\n", $2, "VOID_TYPE");
                     addFunctionDeclarationToScope(VOID_TYPE, $2, $4);
                     $$ = $2;
                 }
