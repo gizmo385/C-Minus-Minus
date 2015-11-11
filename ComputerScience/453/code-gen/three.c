@@ -143,13 +143,10 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
                     // Find the location of the expression's referenced variable
                     VariableExpression *var = expression->variableExpression;
                     ScopeElement *varLocation = findScopeElement(functionScope, var->identifier);
-                    expression->place = varLocation;
-                    ScopeElement *arrayIndexLocation = NULL;
 
-                    // Generate code for the array index if one is present
                     if(var->arrayIndex) {
                         expressionTAC(functionScope, var->arrayIndex);
-                        arrayIndexLocation = var->arrayIndex->place;
+                        ScopeElement *arrayIndexLocation = var->arrayIndex->place;
 
                         // Create an area to hold the result value
                         Type elementType = var->type == INT_ARRAY_TYPE ? INT_TYPE : CHAR_TYPE;
@@ -157,13 +154,17 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
 
                         // Create the instruction
                         TACInstruction *assign;
-                        assign = newTAC(ASSG_TO_INDEX, dest, expression->place, arrayIndexLocation);
+                        assign = newTAC(ASSG_TO_INDEX, dest, varLocation, arrayIndexLocation);
                         expression->codeStart = assign;
                         expression->codeEnd = assign;
+
+                        expression->place = dest;
+
+                        debug(E_DEBUG, "%s = %s[%s]\n", dest->identifier, varLocation->identifier,
+                                arrayIndexLocation->identifier);
                     } else {
-
+                        expression->place = varLocation;
                     }
-
                     break;
                 }
             case FUNCTION:
