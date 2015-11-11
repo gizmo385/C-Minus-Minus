@@ -19,6 +19,29 @@ TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest,
     return instruction;
 }
 
+static char *constantValueString(ConstExpression *expr) {
+    const int LEN = 20;
+    char *valueString = calloc(LEN, sizeof(char));
+
+    Value value = expr->value;
+    switch(expr->type) {
+        case INT_TYPE:
+            snprintf(valueString, LEN, "%d", value.integer_value);
+            break;
+        case CHAR_TYPE:
+            snprintf(valueString, LEN, "%c", value.char_value);
+            break;
+        case CHAR_ARRAY_TYPE:
+            valueString = value.char_array_value;
+            break;
+        default:
+            valueString = "";
+            break;
+    }
+
+    return valueString;
+}
+
 static void consExpressionCode(Expression *left, Expression *right) {
     TACInstruction *tail = left->codeEnd;
 
@@ -112,7 +135,7 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
                     // Create an assignment instruction for the constant
                     TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, NULL, NULL);
                     consInstruction(expression, instruction);
-                    debug(E_DEBUG, "Declaring constant in %s.\n", newTemp->identifier);
+                    debug(E_DEBUG, "%s = %s\n", newTemp->identifier, constantValueString(e));
                     break;
                 }
             case VARIABLE:
