@@ -64,7 +64,7 @@ typedef struct Scope {
 typedef enum {
     /* Assignment */
     ASSG_ADD, ASSG_SUB, ASSG_MUL, ASSG_DIV, ASSG_UNARY_MINUS, ASSG_ADDR, ASSG_DEREF, ASSG_VAR,
-    ASSG_FROM_INDEX, ASSG_TO_INDEX,
+    ASSG_TO_INDEX,
 
     /* Jumps and Labels */
     IF_GTE, IF_LTE, IF_GT, IF_LT, IF_EQ, IF_NEQ, GOTO, LABEL,
