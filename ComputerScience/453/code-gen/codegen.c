@@ -4,6 +4,7 @@
 #include "three.h"
 #include "globals.h"
 #include "symtab.h"
+#include "mips.h"
 
 static void functionTAC(FunctionDeclaration *declaration) {
     // Find the function scope entry
@@ -47,4 +48,5 @@ void generateTAC(FunctionDeclaration *declarations) {
 
 void generateCode(FunctionDeclaration *declarations) {
     generateTAC(declarations);
+    generateMipsFunctions(declarations);
 }
