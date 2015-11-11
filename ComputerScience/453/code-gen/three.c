@@ -143,8 +143,41 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
                     break;
                 }
             case FUNCTION:
-                debug(E_WARNING, "Function calls have not yet been implemented.\n");
-                break;
+                {
+                    FunctionExpression *function = expression->functionExpression;
+                    Expression *arguments = function->arguments;
+
+                    // Handle the function parameters
+                    while(arguments) {
+                        expressionTAC(functionScope, arguments);
+
+                        Vector *argumentCode = arguments->code;
+                        for(int i = 0; i < argumentCode->size; i++) {
+                            vectorAdd(expression->code, vectorGet(argumentCode, i));
+                        }
+
+                        TACInstruction *param = newTAC(PARAM, arguments->place, NULL, NULL);
+                        vectorAdd(expression->code, param);
+
+                        debug(E_INFO, "param %s\n", arguments->place->identifier);
+
+                        arguments = arguments->next;
+                    }
+
+                    // Call the function
+                    ScopeElement *f = findScopeElement(functionScope, function->identifier);
+                    TACInstruction *call = newTAC(CALL, f, NULL, NULL);
+                    vectorAdd(expression->code, call);
+                    debug(E_INFO, "call %s\n", f->identifier);
+
+                    // Retrieve the return value
+                    ScopeElement *result = newTemporaryVariable(functionScope, function->returnType);
+                    TACInstruction *retrieveResult = newTAC(RETRIEVE, result, NULL, NULL);
+                    vectorAdd(expression->code, retrieveResult);
+                    expression->place = result;
+                    debug(E_INFO, "retrieve %s\n", result->identifier);
+                    break;
+                }
             case UNARY:
                 debug(E_WARNING, "Unary operations have not yet been implemented.\n");
                 break;
@@ -185,7 +218,35 @@ void statementTAC(Scope *functionScope, Statement *statement) {
                 }
             case ST_FUNC:
                 {
-                    debug(E_WARNING, "Function call statement: not implemented.\n");
+                    // Extract the function call
+                    FunctionCallStatement *functionCall = statement->stmt_func;
+                    Expression *expression = functionCall->functionCall;
+                    FunctionExpression *function = expression->functionExpression;
+                    Expression *arguments = function->arguments;
+
+                    // Handle the function parameters
+                    while(arguments) {
+                        expressionTAC(functionScope, arguments);
+
+                        Vector *argumentCode = arguments->code;
+                        for(int i = 0; i < argumentCode->size; i++) {
+                            vectorAdd(statement->code, vectorGet(argumentCode, i));
+                        }
+
+                        TACInstruction *param = newTAC(PARAM, arguments->place, NULL, NULL);
+                        vectorAdd(statement->code, param);
+
+                        debug(E_INFO, "param %s\n", arguments->place->identifier);
+
+                        arguments = arguments->next;
+                    }
+
+                    // Call the function
+                    ScopeElement *f = findScopeElement(functionScope, function->identifier);
+                    TACInstruction *call = newTAC(CALL, f, NULL, NULL);
+                    vectorAdd(statement->code, call);
+                    debug(E_INFO, "call %s\n", f->identifier);
+
                     break;
                 }
             case ST_ASSIGN:
