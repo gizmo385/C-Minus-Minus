@@ -167,13 +167,13 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
                     break;
                 }
             case FUNCTION:
-                debug(E_WARNING, "This has not yet been implemented.\n");
+                debug(E_WARNING, "Function calls have not yet been implemented.\n");
                 break;
             case UNARY:
-                debug(E_WARNING, "This has not yet been implemented.\n");
+                debug(E_WARNING, "Unary operations have not yet been implemented.\n");
                 break;
             case BINARY:
-                debug(E_WARNING, "This has not yet been implemented.\n");
+                debug(E_WARNING, "Binary operations have not yet been implemented.\n");
                 break;
         }
     }
