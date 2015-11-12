@@ -6,5 +6,6 @@
 #include "types.h"
 
 extern void generateMipsFunctions(FunctionDeclaration *declarations);
+extern int calculateRequiredStackSpace(FunctionDeclaration *declaration);
 
 #endif
