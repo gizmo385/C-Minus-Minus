@@ -264,8 +264,13 @@ void statementTAC(Scope *functionScope, Statement *statement) {
                         conjoinVectors(statement->code, value->code);
 
                         // Create a new TAC instruction that represents this assignment.
-                        TACInstruction *instruction = newTAC(ASSG_VAR, dest, value->place, NULL);
-                        vectorAdd(statement->code, instruction);
+                        if(value->type == CONST) {
+                            TACInstruction *instruction = newTAC(ASSG_CONST, dest, value->place, NULL);
+                            vectorAdd(statement->code, instruction);
+                        } else {
+                            TACInstruction *instruction = newTAC(ASSG_VAR, dest, value->place, NULL);
+                            vectorAdd(statement->code, instruction);
+                        }
                         debug(E_INFO, "%s = %s\n", dest->identifier, value->place->identifier);
                     }
                     break;
