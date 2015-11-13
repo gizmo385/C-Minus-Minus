@@ -18,23 +18,39 @@ static void generateMips(TACInstruction *instruction) {
             case ASSG_ADDR:
             case ASSG_DEREF:
                 break;
-            case ASSG_VAR:
+            case ASSG_CONST:
                 {
                     ScopeVariable *dest = instruction->dest->variable;
 
                     if(instruction->src1) {
                         ScopeVariable *src1 = instruction->src1->variable;
-                        printf("\t# Copying from %s to %s.\n", instruction->src1->identifier,
-                                instruction->dest->identifier);
-                        printf("\tlw $t0, %d($fp)\n", -src1->offset);
-                        printf("\tsw $t0, %d($fp)\n", -dest->offset);
+                        Type srcType = src1->type;
+                        Value *value = src1->value;
+
+                        if(srcType == CHAR_TYPE) {
+                            printf("\tli $t0, %d", (int)value->char_value);
+                        } else if(srcType == INT_TYPE) {
+                            int constant = value->integer_value;
+                            unsigned int higher = constant & 0xFFFF0000;
+                            unsigned int lower = constant & 0x0000FFFF;
+
+                            printf("\tlui $t0, %d\n", higher);
+                            printf("\tori $t0, %d\n", lower);
+                            printf("\tsw $t0, %d($fp)\n", dest->offset);
+                        } else if(srcType == INT_ARRAY_TYPE) {
+                            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+                        } else if(srcType == CHAR_ARRAY_TYPE) {
+                            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+                        } else {
+                            printf("TYPE: %s\n", typeName(srcType));
+                        }
                     } else {
                         // Since there is not a source, we're assigning a constant
                         Type destType = dest->type;
                         printf("\t# Assigning a constant: %s\n",
                                 constantValueString(destType, dest->value));
                         if(destType == CHAR_TYPE) {
-                            printf("\tli $t0, %d($fp), %s\n", -dest->offset,
+                            printf("\tli $t0, %d($fp), %s\n", dest->offset,
                                     constantValueString(destType, dest->value));
                         } else if(destType == INT_TYPE) {
                             int constant = dest->value->integer_value;
@@ -43,7 +59,44 @@ static void generateMips(TACInstruction *instruction) {
 
                             printf("\tlui $t0, %d\n", higher);
                             printf("\tori $t0, %d\n", lower);
-                            printf("\tsw $t0, %d($fp)\n", -dest->offset);
+                            printf("\tsw $t0, %d($fp)\n", dest->offset);
+                        } else if(destType == INT_ARRAY_TYPE) {
+                            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+                        } else if(destType == CHAR_ARRAY_TYPE) {
+                            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+                        } else {
+                            printf("TYPE: %s\n", typeName(destType));
+                        }
+                    }
+                    break;
+                }
+                break;
+            case ASSG_VAR:
+                {
+                    ScopeVariable *dest = instruction->dest->variable;
+
+                    if(instruction->src1) {
+                        ScopeVariable *src1 = instruction->src1->variable;
+                        printf("\t# Copying from %s to %s.\n", instruction->src1->identifier,
+                                instruction->dest->identifier);
+                        printf("\tlw $t0, %d($fp)\n", src1->offset);
+                        printf("\tsw $t0, %d($fp)\n", dest->offset);
+                    } else {
+                        // Since there is not a source, we're assigning a constant
+                        Type destType = dest->type;
+                        printf("\t# Assigning a constant: %s\n",
+                                constantValueString(destType, dest->value));
+                        if(destType == CHAR_TYPE) {
+                            printf("\tli $t0, %d($fp), %s\n", dest->offset,
+                                    constantValueString(destType, dest->value));
+                        } else if(destType == INT_TYPE) {
+                            int constant = dest->value->integer_value;
+                            unsigned int higher = constant & 0xFFFF0000;
+                            unsigned int lower = constant & 0x0000FFFF;
+
+                            printf("\tlui $t0, %d\n", higher);
+                            printf("\tori $t0, %d\n", lower);
+                            printf("\tsw $t0, %d($fp)\n", dest->offset);
                         } else if(destType == INT_ARRAY_TYPE) {
                             /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
                         } else if(destType == CHAR_ARRAY_TYPE) {
@@ -88,9 +141,9 @@ static void generateMips(TACInstruction *instruction) {
                     printf("\t# Handle the argument %s\n", dest->identifier);
 
                     if(var->type == CHAR_TYPE) {
-                        printf("\tlb $t0 %d($fp)", -var->offset);
+                        printf("\tlb $t0 %d($fp)", var->offset);
                     } else if(var->type == INT_TYPE) {
-                        printf("\tlw $t0, %d($fp)\n", -var->offset);
+                        printf("\tlw $t0, %d($fp)\n", var->offset);
                     } else if(var->type == CHAR_ARRAY_TYPE) {
                         printf("\tla $t0, %s\n", dest->identifier);
                     }
@@ -181,6 +234,7 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
             if(element->elementType == SCOPE_VAR) {
                 ScopeVariable *var = element->variable;
                 var->offset = (4 * i) + 4;
+                var->offset *= - 1;
 
                 // Handle string constants
                 if(var->type == CHAR_ARRAY_TYPE) {
@@ -194,7 +248,7 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
         while(parameters) {
             ScopeElement *element = findScopeElement(declarations->functionScope, parameters->identifier);
             ScopeVariable *var = element->variable;
-            var->offset = (4 * loadedParameters) + 4;
+            var->offset = (4 * loadedParameters) + 8;
 
             loadedParameters += 1;
             parameters = parameters->next;
