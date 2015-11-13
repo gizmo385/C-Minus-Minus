@@ -36,7 +36,9 @@ typedef enum { SCOPE_VAR, SCOPE_FUNC, SCOPE_LABEL} ScopeElementType;
 
 typedef struct {
     Type type;
-    Value value;
+    Value *value;
+    int size; // Only used for array variables
+    int offset; // Offset from the frame pointer
 } ScopeVariable;
 
 typedef struct {
@@ -98,7 +100,7 @@ typedef struct Expression Expression;
 typedef struct {
     // Constant expressions just have a value and a type
     Type type;
-    Value value;
+    Value *value;
 } ConstExpression;
 
 typedef struct {
