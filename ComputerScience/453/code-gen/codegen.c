@@ -12,14 +12,6 @@ static void functionTAC(FunctionDeclaration *declaration) {
     ScopeElement *func = findScopeElement(scope, functionName);
     Scope *functionScope = declaration->functionScope;
 
-    // Create the function header (label and enter statement)
-    TACInstruction *label = newLabel(functionName);
-    TACInstruction *enter = newTAC(ENTER, func, NULL, NULL);
-    label->next = enter;
-    vectorAdd(declaration->code, label);
-    vectorAdd(declaration->code, enter);
-    debug(E_INFO, "enter %s\n", functionName);
-
     // Generate code for the body of the function
     Statement *body = declaration->body;
     while(body) {
