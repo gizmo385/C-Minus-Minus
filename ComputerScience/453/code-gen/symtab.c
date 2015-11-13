@@ -82,26 +82,32 @@ ScopeElement *findScopeElement(Scope *scope, char *identifier) {
     return elem;
 }
 
-void declareVar(Scope *scope, Type type, char *identifier) {
+ScopeElement* declareVar(Scope *scope, Type type, char *identifier) {
     ScopeElement *foundVar = inLocalScope(scope, identifier);
 
     if(foundVar) {
         error(VAR_ALREADY_DECLARED, identifier);
     } else {
         debug(E_DEBUG, "Declaring undeclared variable \"%s\" with type %s\n", identifier, typeName(type));
-        Value empty;
-        empty.integer_value = 0;
+        Value *empty = malloc(sizeof(Value));
+        empty->integer_value = 0;
 
         ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
         scopeVariable->type = type;
         scopeVariable->value = empty;
+        scopeVariable->size = -1;
+        scopeVariable->offset = 0;
 
         ScopeElement *elem = malloc(sizeof(ScopeElement));
         elem->identifier = identifier;
         elem->elementType = SCOPE_VAR;
         elem->variable = scopeVariable;
         vectorAdd(scope->variables, elem);
+
+        return elem;
     }
+
+    return NULL;
 }
 
 bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionParameter *parameters,

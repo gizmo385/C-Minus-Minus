@@ -198,7 +198,7 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET { $$ = newVariableExpression(scope, $1, $3); }
      | ID                                               { $$ = newVariableExpression(scope, $1, NULL); }
      | LEFT_PAREN expr RIGHT_PAREN                      { $$ = $2; }
-     | INTCON                                           { $$ = newIntConstExpression(atoi(yytext)); }
+     | INTCON                                           { $$ = newIntConstExpression(atoi(strdup(yytext))); }
      | CHARCON                                          { $$ = newCharConstExpression(yytext[0]); }
      | STRINGCON                                        { $$ = newCharArrayConstExpression(strdup(yytext)); }
      | error                                            { $$ = NULL; }
@@ -225,11 +225,12 @@ var_decl : ID
             }
          | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET
             {
+                ScopeElement *elem = NULL;
                 if(baseDeclType == INT_TYPE) {
-                    declareVar(scope, INT_ARRAY_TYPE, $1);
+                    elem = declareVar(scope, INT_ARRAY_TYPE, $1);
                     $$ = newVariable(INT_ARRAY_TYPE, $1);
                 } else if(baseDeclType == CHAR_TYPE) {
-                    declareVar(scope, CHAR_ARRAY_TYPE, $1);
+                    elem = declareVar(scope, CHAR_ARRAY_TYPE, $1);
                     $$ = newVariable(CHAR_ARRAY_TYPE, $1);
                 } else {
                     fprintf(stderr, "ERROR: Cannot determine type when declaring %s on line %d!\n", $1, mylineno);
@@ -367,7 +368,7 @@ void resetFunctionType() {
 
 int main(int argc, char **argv) {
 #ifdef DEBUG
-    setDebuggingLevel(E_INFO | E_WARNING);
+    setDebuggingLevel(E_ALL);
 #endif
     globalScope = newScope(NULL);
     scope = newScope(globalScope);
