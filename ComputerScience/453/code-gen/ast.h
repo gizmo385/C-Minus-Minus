@@ -8,7 +8,7 @@ extern Expression *newBinaryExpression(BinaryOperation op, Expression *left, Exp
 extern Expression *newUnaryExpression(UnaryOperation op, Expression *operand);
 extern Expression *newVariableExpression(Scope *scope, char *identifier, Expression *arrayIndex);
 extern Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *arguments);
-extern Expression *newConstExpression(Type type, Value value);
+extern Expression *newConstExpression(Type type, Value *value);
 extern Expression *newIntConstExpression(int val);
 extern Expression *newCharConstExpression(char val);
 extern Expression *newCharArrayConstExpression(char val[]);

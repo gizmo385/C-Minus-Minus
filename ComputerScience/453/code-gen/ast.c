@@ -16,7 +16,7 @@ static inline Statement *newStatement() {
     return statement;
 }
 
-static inline Expression *newExpression() {
+static Expression *newExpression() {
     Expression *expr = malloc(sizeof(Expression));
     expr->type = CONST;
     expr->next = NULL;
@@ -50,7 +50,8 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     unaryExpr->operation = op;
     unaryExpr->operand = operand;
 
-    Expression *expr = newExpression();    expr->unaryExpression = unaryExpr;
+    Expression *expr = newExpression();
+    expr->unaryExpression = unaryExpr;
     expr->type = UNARY;
 
     debug(E_DEBUG, "Creating unary expression with operand of type %s\n",
@@ -123,7 +124,7 @@ Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *ar
     return expr;
 }
 
-Expression *newConstExpression(Type type, Value value) {
+Expression *newConstExpression(Type type, Value *value) {
     ConstExpression *constExpr = malloc(sizeof(ConstExpression));
     constExpr->type = type;
     constExpr->value = value;
@@ -137,32 +138,32 @@ Expression *newConstExpression(Type type, Value value) {
 }
 
 Expression *newIntConstExpression(int val) {
-    Value value;
-    value.integer_value = val;
+    Value *value = malloc(sizeof(Value));
+    value->integer_value = val;
 
     debug(E_DEBUG, "Creating int const with value %d\n", val);
     return newConstExpression(INT_TYPE, value);
 }
 
 Expression *newCharConstExpression(char val) {
-    Value value;
-    value.char_value = val;
+    Value *value = malloc(sizeof(Value));
+    value->char_value = val;
 
     debug(E_DEBUG, "Creating char const with value %c\n", val);
     return newConstExpression(CHAR_TYPE, value);
 }
 
 Expression *newCharArrayConstExpression(char val[]) {
-    Value value;
-    value.char_array_value = val;
+    Value *value = malloc(sizeof(Value));
+    value->char_array_value = val;
 
     debug(E_DEBUG, "Creating char array const with value %s\n", val);
     return newConstExpression(CHAR_ARRAY_TYPE, value);
 }
 
 Expression *newIntArrayConstExpression(int val[]) {
-    Value value;
-    value.int_array_value = val;
+    Value *value = malloc(sizeof(Value));
+    value->int_array_value = val;
 
     debug(E_DEBUG, "Creating int array const with value %d\n", val);
     return newConstExpression(INT_ARRAY_TYPE, value);
