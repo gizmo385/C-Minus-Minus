@@ -7,6 +7,7 @@
 static int temporaryId = 0;
 static int labelId = 0;
 
+extern char *constantValueString(Type type, Value *value);
 extern ScopeElement *newTemporaryVariable(Scope *functionScope, Type type);
 extern TACInstruction *newLabel(char *id);
 extern TACInstruction *newRandomLabel();
