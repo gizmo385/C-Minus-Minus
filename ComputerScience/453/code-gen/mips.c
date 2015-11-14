@@ -28,7 +28,8 @@ static void generateMips(TACInstruction *instruction) {
                         Value *value = src1->value;
 
                         if(srcType == CHAR_TYPE) {
-                            printf("\tli $t0, %d", (int)value->char_value);
+                            printf("\tlb $t0, %d($fp)\n", src1->offset);
+                            printf("\tsb $t0, %d($fp)\n", dest->offset);
                         } else if(srcType == INT_TYPE) {
                             int constant = value->integer_value;
                             unsigned int higher = constant & 0xFFFF0000;
@@ -50,8 +51,8 @@ static void generateMips(TACInstruction *instruction) {
                         printf("\t# Assigning a constant: %s\n",
                                 constantValueString(destType, dest->value));
                         if(destType == CHAR_TYPE) {
-                            printf("\tli $t0, %d($fp), %s\n", dest->offset,
-                                    constantValueString(destType, dest->value));
+                            printf("\tli $t0, %d\n", (int)dest->value->char_value);
+                            printf("\tsw $t0, %d($fp)\n", dest->offset);
                         } else if(destType == INT_TYPE) {
                             int constant = dest->value->integer_value;
                             unsigned int higher = constant & 0xFFFF0000;
@@ -87,8 +88,8 @@ static void generateMips(TACInstruction *instruction) {
                         printf("\t# Assigning a constant: %s\n",
                                 constantValueString(destType, dest->value));
                         if(destType == CHAR_TYPE) {
-                            printf("\tli $t0, %d($fp), %s\n", dest->offset,
-                                    constantValueString(destType, dest->value));
+                            printf("\tli $t0, %d\n", (int)dest->value->char_value);
+                            printf("\tsw $t0, %d($fp)\n", dest->offset);
                         } else if(destType == INT_TYPE) {
                             int constant = dest->value->integer_value;
                             unsigned int higher = constant & 0xFFFF0000;
@@ -141,7 +142,7 @@ static void generateMips(TACInstruction *instruction) {
                     printf("\t# Handle the argument %s\n", dest->identifier);
 
                     if(var->type == CHAR_TYPE) {
-                        printf("\tlb $t0 %d($fp)", var->offset);
+                        printf("\tlb $t0 %d($fp)\n", var->offset);
                     } else if(var->type == INT_TYPE) {
                         printf("\tlw $t0, %d($fp)\n", var->offset);
                     } else if(var->type == CHAR_ARRAY_TYPE) {
@@ -195,8 +196,8 @@ int calculateRequiredStackSpace(FunctionDeclaration *declaration) {
     for(int i = 0; i < variables->size; i++) {
         ScopeElement *element = vectorGet(variables, i);
         if(element->elementType == SCOPE_VAR) {
-            int elementSize = sizeForType(element->variable);
-            requiredSpace += elementSize;
+            /*int elementSize = sizeForType(element->variable);*/
+            requiredSpace += 4;
         }
     }
 
