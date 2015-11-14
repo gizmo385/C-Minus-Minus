@@ -15,9 +15,9 @@ int main(void) {
     print_string("This is a test\n");
 
     x = 7;
-    print_int(5);
-    print_string("\n");
     print_int(x);
-    print_int2(x);
+    print_string("\n");
+    print_int(240);
+    print_int2(12345);
     print_string("\n");
 }
