@@ -24,10 +24,8 @@ void varIntoRegister(ScopeElement *varElem, char *reg) {
     } else {
         if(type == CHAR_TYPE || type == INT_TYPE) {
             printf("\tlw %s, %d($fp)\n", reg, var->offset);
-        } else if(type == INT_ARRAY_TYPE) {
-            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-        } else if(type == CHAR_ARRAY_TYPE) {
-            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+        } else if(type == INT_ARRAY_TYPE || type == CHAR_ARRAY_TYPE) {
+            printf("\tla %s, %s\n", reg, varElem->identifier);
         } else {
             printf("TYPE: %s\n", typeName(type));
         }
@@ -154,18 +152,7 @@ static void generateMips(TACInstruction *instruction) {
                 {
                     ScopeElement *dest = instruction->dest;
                     printf("\t# Handle the argument %s\n", dest->identifier);
-                    if(dest->variable->type == CHAR_TYPE || dest->variable->type == INT_TYPE) {
-                        varIntoRegister(dest, "$t0");
-                    } else if(dest->variable->type == CHAR_ARRAY_TYPE) {
-                        printf("\tla $t0, %s\n", dest->identifier);
-                    }
-
-                    /*if(var->type == CHAR_TYPE) {*/
-                        /*printf("\tlw $t0 %d($fp)\n", var->offset);*/
-                    /*} else if(var->type == INT_TYPE) {*/
-                        /*printf("\tlw $t0, %d($fp)\n", var->offset);*/
-                    /*} else if(var->type == CHAR_ARRAY_TYPE) {*/
-                    /*}*/
+                    varIntoRegister(dest, "$t0");
 
                     printf("\tla $sp, -4($sp)\n");
                     printf("\tsw $t0, 0($sp)\n");
