@@ -21,13 +21,6 @@ int mycolno = 1;
 
     /* LITERALS */
 \"[[:print:]]{-}[\n\"]*\"           { mycolno += strlen(yytext); return STRINGCON; }
-\'                                  { BEGIN(character_character); }
-<character_character>(\\n|\\0|[[:print:]]{-}[\\\"]) { BEGIN(looking_for_quote); }
-<looking_for_quote>\'               { BEGIN(INITIAL); }
-<looking_for_quote><<EOF>>          { yyerror(); BEGIN(char_con_error); }
-<looking_for_quote>[^\']            { yyerror(); BEGIN(char_con_error); }
-<char_con_error>[^\n]*              { mycolno += strlen(yytext); }
-<char_con_error>\n                  { BEGIN(INITIAL); }
 \'(\\n|\\0|[[:print:]]{-}[\\\"])\'  { mycolno += strlen(yytext); return CHARCON; }
 [0-9]+                              { mycolno += strlen(yytext); return INTCON; }
 
