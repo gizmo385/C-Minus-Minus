@@ -97,6 +97,7 @@ ScopeElement* declareVar(Scope *scope, Type type, char *identifier) {
         scopeVariable->value = empty;
         scopeVariable->size = -1;
         scopeVariable->offset = 0;
+        scopeVariable->global = false;
 
         ScopeElement *elem = malloc(sizeof(ScopeElement));
         elem->identifier = identifier;

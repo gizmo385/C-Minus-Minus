@@ -98,7 +98,14 @@ prog : decl prog { $$ = $2; root = $$; }
 
 decl : type var_decl_list SEMICOLON
         {
-            // TODO: Make this better
+            Vector *vars = scope->variables;
+            for(int i = 0; i < vars->size; i++) {
+                ScopeElement *elem = vectorGet(vars, i);
+                if(elem->elementType == SCOPE_VAR) {
+                    debug(E_DEBUG, "Making global variable %s\n", elem->identifier);
+                    elem->variable->global = true;
+                }
+            }
             globalScope = flattenScope(scope);
             scope = newScope(globalScope); // Clear out the scope the declaration was made in (ew)
             resetFunctionType();
