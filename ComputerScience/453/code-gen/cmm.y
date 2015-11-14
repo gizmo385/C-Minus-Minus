@@ -199,7 +199,7 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
      | ID                                               { $$ = newVariableExpression(scope, $1, NULL); }
      | LEFT_PAREN expr RIGHT_PAREN                      { $$ = $2; }
      | INTCON                                           { $$ = newIntConstExpression(atoi(strdup(yytext))); }
-     | CHARCON                                          { $$ = newCharConstExpression(yytext[0]); }
+     | CHARCON                                          { $$ = newCharConstExpression(yytext[1]); }
      | STRINGCON                                        { $$ = newCharArrayConstExpression(strdup(yytext)); }
      | error                                            { $$ = NULL; }
      ;
@@ -269,8 +269,8 @@ type : CHAR
      ;
 
 param_types : void                                              { $$ = NULL; }
-            | non_void_param_type { $$ = $1; }
-            | param_types_list COMMA non_void_param_type { $3->next = $1; $$ = $3; }
+            | non_void_param_type                               { $$ = $1; }
+            | param_types_list COMMA non_void_param_type        { $3->next = $1; $$ = $3; }
             ;
 
 non_void_param_type : type ID
