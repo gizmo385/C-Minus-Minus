@@ -7,6 +7,81 @@
 
 static int numberOfParameters = 0;
 
+void varIntoRegister(ScopeElement *varElem, char *reg) {
+    ScopeVariable *var = varElem->variable;
+    Type type = var->type;
+
+    if(var->global) {
+        if(type == CHAR_TYPE) {
+            printf("\tla %s, %s\n", reg, varElem->identifier);
+            printf("\tlb %s, 0(%s)\n", reg, reg);
+        } else if(type == INT_TYPE) {
+            printf("\tla %s, %s\n", reg, varElem->identifier);
+            printf("\tlw %s, 0(%s)\n", reg, reg);
+        } else if(type == INT_ARRAY_TYPE || type == CHAR_ARRAY_TYPE) {
+            printf("\tla %s, %s\n", reg, varElem->identifier);
+        }
+    } else {
+        if(type == CHAR_TYPE || type == INT_TYPE) {
+            printf("\tlw %s, %d($fp)\n", reg, var->offset);
+        } else if(type == INT_ARRAY_TYPE) {
+            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+        } else if(type == CHAR_ARRAY_TYPE) {
+            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+        } else {
+            printf("TYPE: %s\n", typeName(type));
+        }
+    }
+}
+
+void registerIntoVar(ScopeElement *varElem, char *reg) {
+    ScopeVariable *var = varElem->variable;
+    Type type = var->type;
+    if(var->global) {
+        if(var->type == CHAR_TYPE) {
+            printf("\tsb %s, %s\n", reg, varElem->identifier);
+        } else if(var->type == INT_TYPE) {
+            printf("\tsw %s, %s\n", reg, varElem->identifier);
+        }
+    } else {
+        if(type == CHAR_TYPE || type == INT_TYPE) {
+            printf("\tsw %s, %d($fp)\n", reg, var->offset);
+        } else if(type == INT_ARRAY_TYPE) {
+            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+        } else if(type == CHAR_ARRAY_TYPE) {
+            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+        } else {
+            printf("TYPE: %s\n", typeName(type));
+        }
+    }
+}
+
+static void constantToReg(ScopeElement *destElem, char *reg) {
+    // Since there is not a source, we're assigning a constant
+    ScopeVariable *dest = destElem->variable;
+    Type type = dest->type;
+    Value *value = dest->value;
+
+    printf("\t# Assigning constant: %s\n", constantValueString(type, value));
+    if(type == CHAR_TYPE) {
+        printf("\tli %s, %d\n", reg, (int) value->char_value);
+    } else if(type == INT_TYPE) {
+        // Load the 32 bit integer register, then store it on the stack
+        int constant = value->integer_value;
+        unsigned int higher = constant & 0xFFFF0000;
+        unsigned int lower = constant & 0x0000FFFF;
+
+        printf("\tlui %s, %d\n", reg, higher);
+        printf("\tori %s, %d\n", reg, lower);
+    } else if(type == INT_ARRAY_TYPE) {
+        /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+    } else if(type == CHAR_ARRAY_TYPE) {
+        /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+    } else {
+        printf("TYPE: %s\n", typeName(type));
+    }
+}
+
 static void generateMips(TACInstruction *instruction) {
     if(instruction) {
         switch(instruction->op) {
@@ -15,96 +90,36 @@ static void generateMips(TACInstruction *instruction) {
             case ASSG_MUL:
             case ASSG_DIV:
             case ASSG_UNARY_MINUS:
-            case ASSG_ADDR:
-            case ASSG_DEREF:
                 break;
             case ASSG_CONST:
                 {
-                    ScopeVariable *dest = instruction->dest->variable;
+                    ScopeElement *dest = instruction->dest;
 
                     if(instruction->src1) {
-                        ScopeVariable *src1 = instruction->src1->variable;
-                        Type srcType = src1->type;
-                        Value *value = src1->value;
-
-                        if(srcType == CHAR_TYPE) {
-                            printf("\tlb $t0, %d($fp)\n", src1->offset);
-                            printf("\tsb $t0, %d($fp)\n", dest->offset);
-                        } else if(srcType == INT_TYPE) {
-                            int constant = value->integer_value;
-                            unsigned int higher = constant & 0xFFFF0000;
-                            unsigned int lower = constant & 0x0000FFFF;
-
-                            printf("\tlui $t0, %d\n", higher);
-                            printf("\tori $t0, %d\n", lower);
-                            printf("\tsw $t0, %d($fp)\n", dest->offset);
-                        } else if(srcType == INT_ARRAY_TYPE) {
-                            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-                        } else if(srcType == CHAR_ARRAY_TYPE) {
-                            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-                        } else {
-                            printf("TYPE: %s\n", typeName(srcType));
-                        }
+                        constantToReg(instruction->src1, "$t0");
+                        registerIntoVar(dest, "$t0");
                     } else {
-                        // Since there is not a source, we're assigning a constant
-                        Type destType = dest->type;
-                        printf("\t# Assigning a constant: %s\n",
-                                constantValueString(destType, dest->value));
-                        if(destType == CHAR_TYPE) {
-                            printf("\tli $t0, %d\n", (int)dest->value->char_value);
-                            printf("\tsw $t0, %d($fp)\n", dest->offset);
-                        } else if(destType == INT_TYPE) {
-                            int constant = dest->value->integer_value;
-                            unsigned int higher = constant & 0xFFFF0000;
-                            unsigned int lower = constant & 0x0000FFFF;
-
-                            printf("\tlui $t0, %d\n", higher);
-                            printf("\tori $t0, %d\n", lower);
-                            printf("\tsw $t0, %d($fp)\n", dest->offset);
-                        } else if(destType == INT_ARRAY_TYPE) {
-                            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-                        } else if(destType == CHAR_ARRAY_TYPE) {
-                            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-                        } else {
-                            printf("TYPE: %s\n", typeName(destType));
-                        }
+                        constantToReg(dest, "$t0");
+                        registerIntoVar(dest, "$t0");
                     }
                     break;
                 }
                 break;
             case ASSG_VAR:
                 {
-                    ScopeVariable *dest = instruction->dest->variable;
+                    ScopeElement *dest = instruction->dest;
 
                     if(instruction->src1) {
-                        ScopeVariable *src1 = instruction->src1->variable;
-                        printf("\t# Copying from %s to %s.\n", instruction->src1->identifier,
-                                instruction->dest->identifier);
-                        printf("\tlw $t0, %d($fp)\n", src1->offset);
-                        printf("\tsw $t0, %d($fp)\n", dest->offset);
+                        ScopeElement *src1 = instruction->src1;
+                        printf("\t# Copying from %s to %s.\n", src1->identifier,
+                                dest->identifier);
+                        varIntoRegister(src1, "$t0");
+                        registerIntoVar(dest, "$t0");
+                        /*printf("\tlw $t0, %d($fp)\n", src1->variable->offset);*/
+                        /*printf("\tsw $t0, %d($fp)\n", dest->variable->offset);*/
                     } else {
-                        // Since there is not a source, we're assigning a constant
-                        Type destType = dest->type;
-                        printf("\t# Assigning a constant: %s\n",
-                                constantValueString(destType, dest->value));
-                        if(destType == CHAR_TYPE) {
-                            printf("\tli $t0, %d\n", (int)dest->value->char_value);
-                            printf("\tsw $t0, %d($fp)\n", dest->offset);
-                        } else if(destType == INT_TYPE) {
-                            int constant = dest->value->integer_value;
-                            unsigned int higher = constant & 0xFFFF0000;
-                            unsigned int lower = constant & 0x0000FFFF;
-
-                            printf("\tlui $t0, %d\n", higher);
-                            printf("\tori $t0, %d\n", lower);
-                            printf("\tsw $t0, %d($fp)\n", dest->offset);
-                        } else if(destType == INT_ARRAY_TYPE) {
-                            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-                        } else if(destType == CHAR_ARRAY_TYPE) {
-                            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-                        } else {
-                            printf("TYPE: %s\n", typeName(destType));
-                        }
+                        constantToReg(dest, "$t0");
+                        registerIntoVar(dest, "$t0");
                     }
                     break;
                 }
@@ -138,16 +153,19 @@ static void generateMips(TACInstruction *instruction) {
             case PARAM:
                 {
                     ScopeElement *dest = instruction->dest;
-                    ScopeVariable *var = dest->variable;
                     printf("\t# Handle the argument %s\n", dest->identifier);
-
-                    if(var->type == CHAR_TYPE) {
-                        printf("\tlb $t0 %d($fp)\n", var->offset);
-                    } else if(var->type == INT_TYPE) {
-                        printf("\tlw $t0, %d($fp)\n", var->offset);
-                    } else if(var->type == CHAR_ARRAY_TYPE) {
+                    if(dest->variable->type == CHAR_TYPE || dest->variable->type == INT_TYPE) {
+                        varIntoRegister(dest, "$t0");
+                    } else if(dest->variable->type == CHAR_ARRAY_TYPE) {
                         printf("\tla $t0, %s\n", dest->identifier);
                     }
+
+                    /*if(var->type == CHAR_TYPE) {*/
+                        /*printf("\tlw $t0 %d($fp)\n", var->offset);*/
+                    /*} else if(var->type == INT_TYPE) {*/
+                        /*printf("\tlw $t0, %d($fp)\n", var->offset);*/
+                    /*} else if(var->type == CHAR_ARRAY_TYPE) {*/
+                    /*}*/
 
                     printf("\tla $sp, -4($sp)\n");
                     printf("\tsw $t0, 0($sp)\n");
@@ -209,18 +227,23 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
     // Before we handle functions, we should handle the globals
     Vector *globalVariables = globalScope->variables;
 
+    printf(".data\n");
+
     for(int i = 0; i < globalVariables->size; i++) {
         ScopeElement *element = vectorGet(globalVariables, i);
         if(element->elementType == SCOPE_VAR) {
             ScopeVariable *var = element->variable;
             int size = sizeForType(var);
 
-            printf("%s:\t.space %d\n", element->identifier, sizeForType(var));
-            if(size % 4 != 0) {
-                printf(".align %d\n", size);
+            if(var->type == INT_TYPE) {
+                printf("\t.align 2\n");
             }
+
+            printf("%s:\t.space %d\n", element->identifier, size);
         }
     }
+
+    printf(".text\n");
 
     while(declarations) {
         int requiredStackSpace = calculateRequiredStackSpace(declarations);
