@@ -7,12 +7,6 @@
 #include "ast.h"
 #include "types.h"
 
-static void conjoinVectors(Vector *src, Vector *dest) {
-    for(int i = 0; i < src->size; i++) {
-        vectorAdd(dest, vectorGet(src, i));
-    }
-};
-
 TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest,
         ScopeElement *src1, ScopeElement *src2) {
     TACInstruction *instruction = malloc(sizeof(TACInstruction));
@@ -101,7 +95,7 @@ ScopeElement *newTemporaryVariable(Scope *functionScope, Type type) {
     return elem;
 }
 
-void expressionTAC(Scope *functionScope, Expression *expression) {
+void expressionTAC(Scope *functionScope, Expression *expression, Vector *code) {
     if(expression) {
         switch(expression->type) {
             case CONST:
@@ -116,7 +110,7 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
 
                     // Create an assignment instruction for the constant
                     TACInstruction *instruction = newTAC(ASSG_VAR, newTemp, NULL, NULL);
-                    vectorAdd(expression->code, instruction);
+                    vectorAdd(code, instruction);
                     debug(E_INFO, "%s = %s\n", newTemp->identifier,
                             constantValueString(e->type, e->value));
                     break;
@@ -129,8 +123,7 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
 
                     if(var->arrayIndex) {
                         Expression *arrayIndex = var->arrayIndex;
-                        expressionTAC(functionScope, arrayIndex);
-                        conjoinVectors(arrayIndex->code, expression->code);
+                        expressionTAC(functionScope, arrayIndex, code);
                         ScopeElement *arrayIndexLocation = arrayIndex->place;
 
                         // Create an area to hold the result value
@@ -140,7 +133,7 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
                         // Create the instruction
                         TACInstruction *assign;
                         assign = newTAC(ASSG_TO_INDEX, dest, varLocation, arrayIndexLocation);
-                        vectorAdd(expression->code, assign);
+                        vectorAdd(code, assign);
                         expression->place = dest;
 
                         debug(E_INFO, "%s = %s[%s]\n", dest->identifier, varLocation->identifier,
@@ -159,11 +152,10 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
 
                     // Handle the function parameters
                     while(arguments) {
-                        expressionTAC(functionScope, arguments);
-                        conjoinVectors(arguments->code, expression->code);
+                        expressionTAC(functionScope, arguments, code);
 
                         TACInstruction *param = newTAC(PARAM, arguments->place, f, NULL);
-                        vectorAdd(expression->code, param);
+                        vectorAdd(code, param);
 
                         debug(E_INFO, "param %s\n", arguments->place->identifier);
 
@@ -172,13 +164,13 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
 
                     // Call the function
                     TACInstruction *call = newTAC(CALL, f, NULL, NULL);
-                    vectorAdd(expression->code, call);
+                    vectorAdd(code, call);
                     debug(E_INFO, "call %s\n", f->identifier);
 
                     // Retrieve the return value
                     ScopeElement *result = newTemporaryVariable(functionScope, function->returnType);
                     TACInstruction *retrieveResult = newTAC(RETRIEVE, result, NULL, NULL);
-                    vectorAdd(expression->code, retrieveResult);
+                    vectorAdd(code, retrieveResult);
                     expression->place = result;
                     debug(E_INFO, "retrieve %s\n", result->identifier);
                     break;
@@ -193,7 +185,7 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
     }
 }
 
-void statementTAC(Scope *functionScope, Statement *statement) {
+void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
     if(statement) {
         switch(statement->type) {
             case ST_FOR:
@@ -233,11 +225,9 @@ void statementTAC(Scope *functionScope, Statement *statement) {
 
                     // Handle the function parameters
                     while(arguments) {
-                        expressionTAC(functionScope, arguments);
-
-                        conjoinVectors(arguments->code, statement->code);
+                        expressionTAC(functionScope, arguments, code);
                         TACInstruction *param = newTAC(PARAM, arguments->place, f, NULL);
-                        vectorAdd(statement->code, param);
+                            vectorAdd(code, param);
 
                         debug(E_INFO, "param %s\n", arguments->place->identifier);
 
@@ -246,7 +236,7 @@ void statementTAC(Scope *functionScope, Statement *statement) {
 
                     // Call the function
                     TACInstruction *call = newTAC(CALL, f, NULL, NULL);
-                    vectorAdd(statement->code, call);
+                    vectorAdd(code, call);
                     debug(E_INFO, "call %s\n", f->identifier);
 
                     break;
@@ -262,16 +252,15 @@ void statementTAC(Scope *functionScope, Statement *statement) {
                     } else {
                         // Get the location for the value being assigned
                         Expression *value = assignment->expression;
-                        expressionTAC(functionScope, value);
-                        conjoinVectors(statement->code, value->code);
+                        expressionTAC(functionScope, value, code);
 
                         // Create a new TAC instruction that represents this assignment.
                         if(value->type == CONST) {
                             TACInstruction *instruction = newTAC(ASSG_CONST, dest, value->place, NULL);
-                            vectorAdd(statement->code, instruction);
+                            vectorAdd(code, instruction);
                         } else {
                             TACInstruction *instruction = newTAC(ASSG_VAR, dest, value->place, NULL);
-                            vectorAdd(statement->code, instruction);
+                            vectorAdd(code, instruction);
                         }
                         debug(E_INFO, "%s = %s\n", dest->identifier, value->place->identifier);
                     }

@@ -15,7 +15,7 @@ static void functionTAC(FunctionDeclaration *declaration) {
     // Generate code for the body of the function
     Statement *body = declaration->body;
     while(body) {
-        statementTAC(functionScope, body);
+        statementTAC(functionScope, body, declaration->code);
 
         Vector *bodyCode = body->code;
         for(int i = 0; i < bodyCode->size; i++ ) {

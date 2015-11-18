@@ -11,8 +11,8 @@ extern char *constantValueString(Type type, Value *value);
 extern ScopeElement *newTemporaryVariable(Scope *functionScope, Type type);
 extern TACInstruction *newLabel(char *id);
 extern TACInstruction *newRandomLabel();
-extern void expressionTAC(Scope *functionScope, Expression *expression);
-extern void statementTAC(Scope *functionScope, Statement *statement);
+extern void expressionTAC(Scope *functionScope, Expression *expression, Vector *code);
+extern void statementTAC(Scope *functionScope, Statement *statement, Vector *code);
 extern TACInstruction *newTAC(ThreeAddressOperation op, ScopeElement *dest, ScopeElement *src1,
         ScopeElement *src2);
 
