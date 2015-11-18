@@ -44,7 +44,7 @@ typedef struct {
 
 typedef struct {
     Type returnType;
-    FunctionParameter *parameters;
+    Vector *parameters;
     bool implemented;
     bool declaredExtern;
 } ScopeFunction;
@@ -214,7 +214,7 @@ typedef struct VariableDeclaration {
 typedef struct FunctionDeclaration {
     Type returnType;
     char *functionName;
-    FunctionParameter *parameters;
+    Vector *parameters;
     VariableDeclaration *declarations;
     Statement *body;
     Scope *functionScope;

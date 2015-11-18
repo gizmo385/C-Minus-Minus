@@ -111,7 +111,7 @@ ScopeElement* declareVar(Scope *scope, Type type, char *identifier) {
     return NULL;
 }
 
-bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionParameter *parameters,
+bool declareFunction(Scope *scope, Type returnType, char *identifier, Vector *parameters,
         bool declaredExtern, bool isPrototype) {
     ScopeElement *foundVar = findScopeElement(scope, identifier);
     bool validDeclaration = true;
@@ -144,60 +144,37 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, FunctionPa
                 validDeclaration = false;
             } else {
                 // Ensure that the prototype and declaration match
-                if(parameters) {
-                    if(func->parameters) {
-                        // Compare the types
-                        FunctionParameter *declaredParameters = func->parameters;
-                        int numSupplied = 0, numExpected = 0;
+                Vector *expectedParams = func->parameters;
+                int declared = parameters->size;
+                int expected = expectedParams->size;
+                int min = declared < expected ? declared : expected;
 
-                        while(parameters && declaredParameters) {
-                            Type supplied = parameters->type;
-                            Type expected = declaredParameters->type;
+                // Check the types of each declared and expected parameter
+                for(int i = 0; i < min; i++) {
+                    FunctionParameter *declaredParam = vectorGet(parameters, i);
+                    FunctionParameter *expectedParam = vectorGet(expectedParams, i);
 
-                            if(! typesCompatible(supplied, expected)) {
-                                error(ARG_TYPE_CHANGE, numSupplied, identifier, typeName(supplied), typeName(expected));
-                                validDeclaration = false;
-                            }
-
-                            numSupplied += 1;
-                            numExpected += 1;
-                            parameters = parameters->next;
-                            declaredParameters = declaredParameters->next;
-                        }
-
-                        // Consume other expected types
-                        while(declaredParameters) {
-                            numExpected += 1;
-                            declaredParameters = declaredParameters->next;
-                        }
-
-                        // Consume other supplied types
-                        while(parameters) {
-                            numExpected += 1;
-                            parameters = parameters->next;
-                        }
-
-                        // Ensure the same number of arguments were supplied as were expected
-                        if(numExpected != numSupplied) {
-                            error(ARG_NUM_CHANGE, identifier, numExpected, numSupplied);
-                            validDeclaration = false;
-
-                        }
-                    } else {
-                        // Declaration provides arguments, prototype does not
-                        error(REDEF_WITH_ARGS, identifier);
+                    Type declaredType = declaredParam->type;
+                    Type expectedType = expectedParam->type;
+                    if(! typesCompatible(declaredType, expectedType)) {
+                        error(ARG_TYPE_CHANGE, i, identifier, typeName(declaredType),
+                                typeName(expectedType));
                         validDeclaration = false;
-                    }
-                } else {
-                    if(func->parameters) {
-                        // Declaration provides no arguments, prototype does
-                        error(REDEF_WITHOUT_ARGS, identifier);
-                        validDeclaration = false;
-                    } else {
-                        // Neither the prototype nor the declaration expect arguments
-                        func->implemented = true;
                     }
                 }
+
+                if(declared == 0 && expected != 0) {
+                    error(REDEF_WITHOUT_ARGS, identifier);
+                    validDeclaration = false;
+                } else if(declared != 0 && expected == 0) {
+                    error(REDEF_WITH_ARGS, identifier);
+                    validDeclaration = false;
+                } else if(declared != expected) {
+                    error(ARG_NUM_CHANGE, identifier, expected, declared);
+                    validDeclaration = false;
+                }
+
+                func->implemented = true;
             }
         } else {
             // If it's a variable, then a variable can't be defined as a scope

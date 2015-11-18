@@ -162,9 +162,9 @@ static inline Type typeCheckVariableExpression(VariableExpression *expression) {
     return finalType;
 }
 
-static inline void compareArgumentTypes(char *id, FunctionParameter *parameters, Expression *suppliedArguments) {
+static inline void compareArgumentTypes(char *id, Vector *parameters, Expression *suppliedArguments) {
     // Check that arguments aren't being supplied to a void function
-    if(!parameters) {
+    if(parameters->size == 0) {
         if(suppliedArguments) {
             error(ARGS_TO_VOID);
         } else {
@@ -172,34 +172,26 @@ static inline void compareArgumentTypes(char *id, FunctionParameter *parameters,
         }
     }
 
-    int numSupplied = 0, numExpected = 0;
+    int numSupplied = 0;
+    while(suppliedArguments && (numSupplied < parameters->size)) {
+        FunctionParameter *expectedParam = vectorGet(parameters, numSupplied);
+        Type expected = expectedParam->type;
+        Type supplied = typeCheckExpression(suppliedArguments);
 
-    while(parameters) {
-        numExpected += 1;
-        Type expected = parameters->type;
-
-        if(suppliedArguments) {
-            numSupplied += 1;
-            Type supplied = typeCheckExpression(suppliedArguments);
-
-            // Check that argument types are compatible with those expected
-            if(! typesCompatible(supplied, expected)) {
-                error(ARG_TYPE_MISMATCH, numExpected, id, typeName(expected), typeName(supplied));
-            }
-
-            suppliedArguments = suppliedArguments->next;
+        if(! typesCompatible(supplied, expected)) {
+            error(ARG_TYPE_MISMATCH, numSupplied, id, typeName(expected), typeName(supplied));
         }
 
-        parameters = parameters->next;
+        numSupplied += 1;
+        suppliedArguments = suppliedArguments->next;
     }
 
     // Tally up remaining arguments
-    while(parameters) { numExpected += 1; parameters = parameters->next; }
     while(suppliedArguments) { numSupplied += 1; suppliedArguments = suppliedArguments->next; }
 
     // Ensure these match
-    if(numSupplied != numExpected) {
-        error(NUM_ARGS_DIFFER, id, numExpected, numSupplied);
+    if(numSupplied != parameters->size) {
+        error(NUM_ARGS_DIFFER, id, parameters->size, numSupplied);
     }
 }
 
@@ -211,7 +203,7 @@ static inline Type typeCheckFunctionCall(FunctionExpression *function) {
     if(elem) {
         if(elem->elementType == SCOPE_FUNC) {
             ScopeFunction *defn = elem->function;
-            FunctionParameter *parameters = defn->parameters;
+            Vector *parameters = defn->parameters;
             finalType = defn->returnType;
             Expression *suppliedArguments = function->arguments;
 

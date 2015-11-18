@@ -254,18 +254,16 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
             }
         }
 
-        FunctionParameter *parameters = declarations->parameters;
-        int loadedParameters = 0;
-        while(parameters) {
-            ScopeElement *element = findScopeElement(declarations->functionScope, parameters->identifier);
+        // Determine offsets for the function parameters
+        Vector *parameters = declarations->parameters;
+        for(int i = 0; i < parameters->size; i++) {
+            FunctionParameter *parameter = vectorGet(parameters, i);
+            ScopeElement *element = findScopeElement(declarations->functionScope, parameter->identifier);
             ScopeVariable *var = element->variable;
-            var->offset = (4 * loadedParameters) + 8;
-
-            loadedParameters += 1;
-            parameters = parameters->next;
+            var->offset = (4 * i) + 8;
         }
 
-        requiredStackSpace -= (4 * loadedParameters);
+        requiredStackSpace -= (4 * parameters->size);
 
         // Generate the function's prologue
         printf(".text\n");

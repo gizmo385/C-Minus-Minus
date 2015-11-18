@@ -286,8 +286,8 @@ FunctionParameter *newFunctionParameter(Type type, char *identifier) {
     return param;
 }
 
-FunctionDeclaration *newFunction(Type returnType, char *functionName,
-        FunctionParameter *parameters, VariableDeclaration *declarations, Statement *body) {
+FunctionDeclaration *newFunction(Type returnType, char *functionName, Vector *parameters,
+        VariableDeclaration *declarations, Statement *body) {
 
     FunctionDeclaration *funcDecl = malloc(sizeof(FunctionDeclaration));
     funcDecl->returnType = returnType;

@@ -29,6 +29,7 @@ Type baseDeclType;
 FunctionDeclaration *root;
 
 // Helper functions
+Vector *parametersVector(FunctionParameter *parameters);
 bool addFunctionDeclarationToScope(Type type, char *identifier, FunctionParameter *parameters);
 void resetFunctionType();
 
@@ -214,13 +215,15 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
 name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
                     {
                         debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $1, typeName(currentFunctionReturnType));
-                        declareFunction(globalScope, currentFunctionReturnType, $1, $3, declaredExtern, true);
+                        Vector *params = parametersVector($3);
+                        declareFunction(globalScope, currentFunctionReturnType, $1, params, declaredExtern, true);
                         scope = newScope(globalScope);
                     }
                 | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
                     {
                         debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $3, typeName(currentFunctionReturnType));
-                        declareFunction(globalScope, currentFunctionReturnType, $3, $5, declaredExtern, true);
+                        Vector *params = parametersVector($5);
+                        declareFunction(globalScope, currentFunctionReturnType, $3, params, declaredExtern, true);
                         scope = newScope(globalScope);
                     }
                 ;
@@ -355,8 +358,18 @@ epsilon:
 
 %%
 
+Vector *parametersVector(FunctionParameter *parameters) {
+    Vector *params = newVector(5);
+    while(parameters) {
+        vectorAdd(params, parameters);
+        parameters = parameters->next;
+    }
+    return params;
+}
+
 bool addFunctionDeclarationToScope(Type type, char *identifier, FunctionParameter *parameters) {
-    bool success = declareFunction(globalScope, type, identifier, parameters, declaredExtern, false);
+    Vector *params = parametersVector(parameters);
+    bool success = declareFunction(globalScope, type, identifier, params, declaredExtern, false);
 
     // Mark the function as implemented
     if(success) {
