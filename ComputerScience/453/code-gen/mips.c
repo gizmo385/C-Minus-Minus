@@ -22,8 +22,10 @@ void varIntoRegister(ScopeElement *varElem, char *reg) {
             printf("\tla %s, %s\n", reg, varElem->identifier);
         }
     } else {
-        if(type == CHAR_TYPE || type == INT_TYPE) {
+        if(type == INT_TYPE) {
             printf("\tlw %s, %d($fp)\n", reg, var->offset);
+        } else if(type == CHAR_TYPE) {
+            printf("\tlb %s, %d($fp)\n", reg, var->offset);
         } else if(type == INT_ARRAY_TYPE || type == CHAR_ARRAY_TYPE) {
             printf("\tla %s, %s\n", reg, varElem->identifier);
         } else {
@@ -35,6 +37,7 @@ void varIntoRegister(ScopeElement *varElem, char *reg) {
 void registerIntoVar(ScopeElement *varElem, char *reg) {
     ScopeVariable *var = varElem->variable;
     Type type = var->type;
+
     if(var->global) {
         if(var->type == CHAR_TYPE) {
             printf("\tsb %s, %s\n", reg, varElem->identifier);
@@ -42,8 +45,10 @@ void registerIntoVar(ScopeElement *varElem, char *reg) {
             printf("\tsw %s, %s\n", reg, varElem->identifier);
         }
     } else {
-        if(type == CHAR_TYPE || type == INT_TYPE) {
+        if(type == INT_TYPE) {
             printf("\tsw %s, %d($fp)\n", reg, var->offset);
+        } else if(type == CHAR_TYPE) {
+            printf("\tsb %s, %d($fp)\n", reg, var->offset);
         } else if(type == INT_ARRAY_TYPE) {
             /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
         } else if(type == CHAR_ARRAY_TYPE) {
@@ -62,7 +67,7 @@ static void constantToReg(ScopeElement *destElem, char *reg) {
 
     printf("\t# Assigning constant: %s\n", constantValueString(type, value));
     if(type == CHAR_TYPE) {
-        printf("\tli %s, %d\n", reg, (int) value->char_value);
+        printf("\tli %s, %d\n", reg, value->char_value);
     } else if(type == INT_TYPE) {
         // Load the 32 bit integer register, then store it on the stack
         int constant = value->integer_value;
