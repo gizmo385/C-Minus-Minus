@@ -145,9 +145,17 @@ Expression *newIntConstExpression(int val) {
     return newConstExpression(INT_TYPE, value);
 }
 
-Expression *newCharConstExpression(char val) {
+Expression *newCharConstExpression(char *val) {
     Value *value = malloc(sizeof(Value));
-    value->char_value = val;
+    if(val[1] == '\\') {
+        if(val[2] == 0) {
+            value->char_value = '\0';
+        } else if(val[2] == 'n') {
+            value->char_value = '\n';
+        }
+    } else {
+        value->char_value = val[1];
+    }
 
     debug(E_DEBUG, "Creating char const with value %c\n", val);
     return newConstExpression(CHAR_TYPE, value);

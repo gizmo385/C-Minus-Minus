@@ -45,7 +45,7 @@ void resetFunctionType();
     char *string;
 }
 
-%type<expression> expr optional_expr expr_list
+%type<expression> expr optional_expr expr_list int_expr char_expr
 %type<statement> stmt assg optional_assign stmt_list
 %type<type> type
 %type<functionDeclaration> func prog
@@ -72,15 +72,12 @@ void resetFunctionType();
 %token ASSIGN
 
 /* Text tokens */
-%token <expression> INTCON
-%token <expression> CHARCON
 %token <expression> STRINGCON
-%token <string> ID
-%token TEXT SPACE
+%token <string> ID INTCON CHARCON
 
 /* If/Else Precedence fix */
 %nonassoc WITHOUT_ELSE
-%nonassoc ELSE WITH_ELSE
+%nonassoc ELSE
 
 /* Operator Precedence specification */
 %left OR
@@ -206,8 +203,8 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET { $$ = newVariableExpression(scope, $1, $3); }
      | ID                                               { $$ = newVariableExpression(scope, $1, NULL); }
      | LEFT_PAREN expr RIGHT_PAREN                      { $$ = $2; }
-     | INTCON                                           { $$ = newIntConstExpression(atoi(strdup(yytext))); }
-     | CHARCON                                          { $$ = newCharConstExpression(yytext[1]); }
+     | int_expr                                         { $$ = $1; }
+     | char_expr                                        { $$ = $1; }
      | STRINGCON                                        { $$ = newCharArrayConstExpression(strdup(yytext)); }
      | error                                            { $$ = NULL; }
      ;
@@ -233,7 +230,7 @@ var_decl : ID
                 declareVar(scope, baseDeclType, $1);
                 $$ = newVariable(baseDeclType, $1);
             }
-         | ID LEFT_SQUARE_BRACKET INTCON RIGHT_SQUARE_BRACKET
+         | ID LEFT_SQUARE_BRACKET int_expr RIGHT_SQUARE_BRACKET
             {
                 ScopeElement *elem = NULL;
                 if(baseDeclType == INT_TYPE) {
@@ -246,6 +243,7 @@ var_decl : ID
                     fprintf(stderr, "ERROR: Cannot determine type when declaring %s on line %d!\n", $1, mylineno);
                     foundError = true;
                 }
+                elem->variable->size = $3->constantExpression->value->integer_value;
             }
          ;
 
@@ -352,6 +350,12 @@ assg : ID ASSIGN expr
 
 expr_list : optional_expr                                       { $$ = $1; }
           | expr_list COMMA expr                                { $3->next = $1; $$ = $3; }
+
+int_expr: INTCON                                                { $$ = newIntConstExpression(atoi(strdup(yytext))); }
+        ;
+
+char_expr: CHARCON                                              { $$ = newCharConstExpression(strdup(yytext)); }
+         ;
 
 epsilon:
        ;

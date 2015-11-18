@@ -10,7 +10,7 @@ extern Expression *newVariableExpression(Scope *scope, char *identifier, Express
 extern Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *arguments);
 extern Expression *newConstExpression(Type type, Value *value);
 extern Expression *newIntConstExpression(int val);
-extern Expression *newCharConstExpression(char val);
+extern Expression *newCharConstExpression(char *val);
 extern Expression *newCharArrayConstExpression(char val[]);
 extern Expression *newIntArrayConstExpression(int val[]);
 
