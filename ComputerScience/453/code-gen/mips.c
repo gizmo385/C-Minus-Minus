@@ -72,11 +72,11 @@ static void constantToReg(ScopeElement *destElem, char *reg) {
         printf("\tlui %s, %d\n", reg, higher);
         printf("\tori %s, %d\n", reg, lower);
     } else if(type == INT_ARRAY_TYPE) {
-        /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+        debug(E_DEBUG, "INT ARRAY ASSIGNMENT NOT SUPPORTED\n");
     } else if(type == CHAR_ARRAY_TYPE) {
-        /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
+        debug(E_DEBUG, "CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");
     } else {
-        printf("TYPE: %s\n", typeName(type));
+        debug(E_DEBUG, "TYPE: %s\n", typeName(type));
     }
 }
 
@@ -113,8 +113,6 @@ static void generateMips(TACInstruction *instruction) {
                                 dest->identifier);
                         varIntoRegister(src1, "$t0");
                         registerIntoVar(dest, "$t0");
-                        /*printf("\tlw $t0, %d($fp)\n", src1->variable->offset);*/
-                        /*printf("\tsw $t0, %d($fp)\n", dest->variable->offset);*/
                     } else {
                         constantToReg(dest, "$t0");
                         registerIntoVar(dest, "$t0");
@@ -232,6 +230,7 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
 
     printf(".text\n");
 
+    // Now we need to figure out where everything on stack will go
     while(declarations) {
         int requiredStackSpace = calculateRequiredStackSpace(declarations);
 
@@ -305,5 +304,5 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
     printf("\tli $v0, 1\n");
     printf("\tlw $a0, 0($sp)\n");
     printf("\tsyscall\n");
-    printf("\tjr $ra\n\n\n");
+    printf("\tjr $ra\n");
 }
