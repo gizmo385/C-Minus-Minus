@@ -51,6 +51,7 @@ typedef struct {
 
 typedef struct ScopeElement {
     char *identifier;
+    char *protectedIdentifier; // Identifier with prefix. Prevents conflicts with MIPS instructions
     ScopeElementType elementType;
     union {
         ScopeVariable *variable;

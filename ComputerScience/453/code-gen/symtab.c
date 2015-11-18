@@ -99,8 +99,13 @@ ScopeElement* declareVar(Scope *scope, Type type, char *identifier) {
         scopeVariable->offset = 0;
         scopeVariable->global = false;
 
+        int newIdentifierLength = strlen(identifier) + 2;
+        char *protectedIdentifier = malloc(newIdentifierLength);
+        snprintf(protectedIdentifier, newIdentifierLength, "_%s", identifier);
+
         ScopeElement *elem = malloc(sizeof(ScopeElement));
         elem->identifier = identifier;
+        elem->protectedIdentifier = protectedIdentifier;
         elem->elementType = SCOPE_VAR;
         elem->variable = scopeVariable;
         vectorAdd(scope->variables, elem);
@@ -193,6 +198,17 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, Vector *pa
 
         ScopeElement *elem = malloc(sizeof(ScopeElement));
         elem->identifier = identifier;
+
+        // Don't override the function name "main" since it is necessary for execution entry
+        if(strcmp(identifier, "main") == 0) {
+            elem->protectedIdentifier = identifier;
+        } else {
+            int newIdentifierLength = strlen(identifier) + 2;
+            char *protectedIdentifier = malloc(newIdentifierLength);
+            snprintf(protectedIdentifier, newIdentifierLength, "_%s", identifier);
+            elem->protectedIdentifier = protectedIdentifier;
+        }
+
         elem->elementType = SCOPE_FUNC;
         elem->function = scopeFunction;
         vectorAdd(scope->variables, elem);

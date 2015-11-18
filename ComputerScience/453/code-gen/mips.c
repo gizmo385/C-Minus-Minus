@@ -13,13 +13,13 @@ void varIntoRegister(ScopeElement *varElem, char *reg) {
 
     if(var->global) {
         if(type == CHAR_TYPE) {
-            printf("\tla %s, %s\n", reg, varElem->identifier);
+            printf("\tla %s, %s\n", reg, varElem->protectedIdentifier);
             printf("\tlb %s, 0(%s)\n", reg, reg);
         } else if(type == INT_TYPE) {
-            printf("\tla %s, %s\n", reg, varElem->identifier);
+            printf("\tla %s, %s\n", reg, varElem->protectedIdentifier);
             printf("\tlw %s, 0(%s)\n", reg, reg);
         } else if(type == INT_ARRAY_TYPE || type == CHAR_ARRAY_TYPE) {
-            printf("\tla %s, %s\n", reg, varElem->identifier);
+            printf("\tla %s, %s\n", reg, varElem->protectedIdentifier);
         }
     } else {
         if(type == INT_TYPE) {
@@ -27,7 +27,7 @@ void varIntoRegister(ScopeElement *varElem, char *reg) {
         } else if(type == CHAR_TYPE) {
             printf("\tlb %s, %d($fp)\n", reg, var->offset);
         } else if(type == INT_ARRAY_TYPE || type == CHAR_ARRAY_TYPE) {
-            printf("\tla %s, %s\n", reg, varElem->identifier);
+            printf("\tla %s, %s\n", reg, varElem->protectedIdentifier);
         } else {
             printf("TYPE: %s\n", typeName(type));
         }
@@ -40,9 +40,9 @@ void registerIntoVar(ScopeElement *varElem, char *reg) {
 
     if(var->global) {
         if(var->type == CHAR_TYPE) {
-            printf("\tsb %s, %s\n", reg, varElem->identifier);
+            printf("\tsb %s, %s\n", reg, varElem->protectedIdentifier);
         } else if(var->type == INT_TYPE) {
-            printf("\tsw %s, %s\n", reg, varElem->identifier);
+            printf("\tsw %s, %s\n", reg, varElem->protectedIdentifier);
         }
     } else {
         if(type == INT_TYPE) {
@@ -131,10 +131,10 @@ static void generateMips(TACInstruction *instruction) {
             case IF_EQ:
             case IF_NEQ:
             case GOTO:
-                printf("\tj %s\n", instruction->dest->identifier);
+                printf("\tj %s\n", instruction->dest->protectedIdentifier);
                 break;
             case LABEL:
-                printf("%s:\n", instruction->dest->identifier);
+                printf("%s:\n", instruction->dest->protectedIdentifier);
                 break;
             case ENTER:
             case LEAVE:
@@ -142,7 +142,7 @@ static void generateMips(TACInstruction *instruction) {
                 break;
             case CALL:
                 {
-                    char *id = instruction->dest->identifier;
+                    char *id = instruction->dest->protectedIdentifier;
                     printf("\tjal %s # Call %s\n", id, id);
                     printf("\tla $sp, %d($sp)\n", 4 * numberOfParameters);
                     numberOfParameters = 0;
@@ -154,7 +154,7 @@ static void generateMips(TACInstruction *instruction) {
                 {
                     // Load the value into $t0
                     ScopeElement *dest = instruction->dest;
-                    printf("\t# Handle the argument %s\n", dest->identifier);
+                    printf("\t# Handle the argument %s\n", dest->protectedIdentifier);
                     varIntoRegister(dest, "$t0");
 
                     // Adjust the stack pointer
@@ -240,7 +240,7 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
                 printf("\t.align 2\n");
             }
 
-            printf("%s:\t.space %d\n", element->identifier, size);
+            printf("%s:\t.space %d\n", element->protectedIdentifier, size);
         }
     }
 
@@ -264,7 +264,8 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
 
                 // Handle string constants
                 if(var->type == CHAR_ARRAY_TYPE) {
-                    printf("%s:\t.asciiz %s\n", element->identifier, var->value->char_array_value);
+                    printf("%s:\t.asciiz %s\n", element->protectedIdentifier,
+                            var->value->char_array_value);
                 }
             }
         }
@@ -281,9 +282,11 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
         requiredStackSpace -= (4 * parameters->size);
 
         // Generate the function's prologue
+        ScopeElement *functionElement = findScopeElement(globalScope, declarations->functionName);
+        char *functionName = functionElement->protectedIdentifier;
         printf(".text\n");
-        printf("%s:\n", declarations->functionName);
-        printf("\t# Prologue for %s\n", declarations->functionName);
+        printf("%s:\n", functionName);
+        printf("\t# Prologue for %s\n", functionName);
         printf("\tla $sp, -8($sp) # Allocate space for old $fp and $ra\n");
         printf("\tsw $fp, 4($sp) # Save old frame pointer\n");
         printf("\tsw $ra, 0($sp) # Save old return address\n");
@@ -299,7 +302,7 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
 
         // Generate the function's epilogue
         printf("\n");
-        printf("\t# Epilogue for %s\n", declarations->functionName);
+        printf("\t# Epilogue for %s\n", functionName);
         printf("\tla $sp, 0($fp)\n");
         printf("\tlw $ra, 0($sp)\n");
         printf("\tlw $fp, 4($sp)\n");
@@ -309,14 +312,25 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
         declarations = declarations->next;
     }
 
+    // Since we overload function names, we need to jump to main
+    /*printf("main:\n");*/
+    /*printf("\tla $sp, -4($sp) # Allocate space for old $fp and $ra\n");*/
+    /*printf("\tsw $ra, 0($sp) # Save old return address\n");*/
+    /*printf("\tla $fp, 0($sp) # Set up the new frame pointer\n");*/
+    /*printf("\tjal _main\n");*/
+    /*printf("\tla $sp, 0($fp)\n");*/
+    /*printf("\tlw $ra, 0($sp)\n");*/
+    /*printf("\tla $sp, 4($sp)\n");*/
+    /*printf("\tjr $ra\n\n\n");*/
+
     // Generate code for print_string and print_int
-    printf("print_string:\n");
+    printf("_print_string:\n");
     printf("\tli $v0, 4\n");
     printf("\tlw $a0, 0($sp)\n");
     printf("\tsyscall\n");
     printf("\tjr $ra\n\n\n");
 
-    printf("print_int:\n");
+    printf("_print_int:\n");
     printf("\tli $v0, 1\n");
     printf("\tlw $a0, 0($sp)\n");
     printf("\tsyscall\n");

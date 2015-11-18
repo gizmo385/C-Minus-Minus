@@ -95,6 +95,7 @@ ScopeElement *newTemporaryVariable(Scope *functionScope, Type type) {
 
     ScopeElement *elem = malloc(sizeof(ScopeElement));
     elem->identifier = id;
+    elem->protectedIdentifier = id;
     elem->elementType = SCOPE_VAR;
     elem->variable = scopeVariable;
 
