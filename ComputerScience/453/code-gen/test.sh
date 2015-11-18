@@ -1,30 +1,15 @@
 #!/bin/bash
 
-#directory=453tests
-#directory=type_checking_tests
-directory=debray_type_checking_tests
+directory=SPIM_codegen_milestone_1_tests
 
 echo "Compiling..."
 make clean compile 2>/dev/null >/dev/null
 
 # Run the passing test code
-echo "Running tests which should compile"
-for test_file in $(ls ${directory}/test*.c); do
-    ./compile < $test_file 2>/dev/null >/dev/null
-    res=$?
-    if [ $res -ne 0 ]
-    then
-        echo $test_file ": Expected 0, got " $res
-    fi
-done
-
-# Run the error tests
-echo "Running tests which should NOT compile"
-for test_file in $(ls ${directory}/err*.c); do
-    ./compile < $test_file 2>/dev/null >/dev/null
-    res=$?
-    if [ $res -ne 1 ]
-    then
-        echo $test_file ": Expected 1, got " $res
-    fi
+echo "Running tests..."
+for test_num in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27; do
+    echo Running test${test_num}.c
+    ./compile < ${directory}/test${test_num}.c > test${test_num}.s
+    spim -file test${test_num}.s | tail -n +2 > test${test_num}.out
+    diff test${test_num}.out SPIM_codegen_milestone_1_tests/out${test_num}
 done
