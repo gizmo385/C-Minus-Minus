@@ -28,8 +28,17 @@ char *constantValueString(Type type, Value *value) {
             snprintf(valueString, LEN, "%d", value->integer_value);
             break;
         case CHAR_TYPE:
-            snprintf(valueString, LEN, "%c", value->char_value);
-            break;
+            {
+                char val = value->char_value;
+                if(val == '\n') {
+                    snprintf(valueString, LEN, "\\n");
+                } else if(val == '\0') {
+                    snprintf(valueString, LEN, "\\0");
+                } else {
+                    snprintf(valueString, LEN, "%c", value->char_value);
+                }
+                break;
+            }
         case CHAR_ARRAY_TYPE:
             valueString = value->char_array_value;
             break;
@@ -227,7 +236,7 @@ void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
                     while(arguments) {
                         expressionTAC(functionScope, arguments, code);
                         TACInstruction *param = newTAC(PARAM, arguments->place, f, NULL);
-                            vectorAdd(code, param);
+                        vectorAdd(code, param);
 
                         debug(E_INFO, "param %s\n", arguments->place->identifier);
 

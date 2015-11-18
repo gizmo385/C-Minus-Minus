@@ -114,8 +114,7 @@ static void generateMips(TACInstruction *instruction) {
 
                     if(instruction->src1) {
                         ScopeElement *src1 = instruction->src1;
-                        printf("\t# Copying from %s to %s.\n", src1->identifier,
-                                dest->identifier);
+                        printf("\t# Copying from %s to %s.\n", src1->identifier, dest->identifier);
                         varIntoRegister(src1, "$t0");
                         registerIntoVar(dest, "$t0");
                     } else {
