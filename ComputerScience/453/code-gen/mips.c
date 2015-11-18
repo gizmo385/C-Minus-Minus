@@ -153,12 +153,24 @@ static void generateMips(TACInstruction *instruction) {
                 break;
             case PARAM:
                 {
+                    // Load the value into $t0
                     ScopeElement *dest = instruction->dest;
                     printf("\t# Handle the argument %s\n", dest->identifier);
                     varIntoRegister(dest, "$t0");
 
+                    // Adjust the stack pointer
                     printf("\tla $sp, -4($sp)\n");
-                    printf("\tsw $t0, 0($sp)\n");
+
+                    // Load the right size element onto the stack
+                    ScopeFunction *f = instruction->src1->function;
+                    FunctionParameter *param = vectorGet(f->parameters, numberOfParameters);
+
+                    if(param->type == CHAR_TYPE) {
+                        printf("\tsb $t0, 0($sp)\n");
+                    } else {
+                        printf("\tsw $t0, 0($sp)\n");
+                    }
+
                     numberOfParameters += 1;
                     break;
                 }
