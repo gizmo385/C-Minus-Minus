@@ -12,4 +12,5 @@ for test_num in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 2
     ./compile < ${directory}/test${test_num}.c > test${test_num}.s
     spim -file test${test_num}.s | tail -n +2 > test${test_num}.out
     diff test${test_num}.out SPIM_codegen_milestone_1_tests/out${test_num}
+    rm *.s *.out
 done
