@@ -155,12 +155,14 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
                     FunctionExpression *function = expression->functionExpression;
                     Expression *arguments = function->arguments;
 
+                    ScopeElement *f = findScopeElement(globalScope, function->identifier);
+
                     // Handle the function parameters
                     while(arguments) {
                         expressionTAC(functionScope, arguments);
                         conjoinVectors(arguments->code, expression->code);
 
-                        TACInstruction *param = newTAC(PARAM, arguments->place, NULL, NULL);
+                        TACInstruction *param = newTAC(PARAM, arguments->place, f, NULL);
                         vectorAdd(expression->code, param);
 
                         debug(E_INFO, "param %s\n", arguments->place->identifier);
@@ -169,7 +171,6 @@ void expressionTAC(Scope *functionScope, Expression *expression) {
                     }
 
                     // Call the function
-                    ScopeElement *f = findScopeElement(functionScope, function->identifier);
                     TACInstruction *call = newTAC(CALL, f, NULL, NULL);
                     vectorAdd(expression->code, call);
                     debug(E_INFO, "call %s\n", f->identifier);
@@ -228,12 +229,14 @@ void statementTAC(Scope *functionScope, Statement *statement) {
                     FunctionExpression *function = expression->functionExpression;
                     Expression *arguments = function->arguments;
 
+                    ScopeElement *f = findScopeElement(functionScope, function->identifier);
+
                     // Handle the function parameters
                     while(arguments) {
                         expressionTAC(functionScope, arguments);
 
                         conjoinVectors(arguments->code, statement->code);
-                        TACInstruction *param = newTAC(PARAM, arguments->place, NULL, NULL);
+                        TACInstruction *param = newTAC(PARAM, arguments->place, f, NULL);
                         vectorAdd(statement->code, param);
 
                         debug(E_INFO, "param %s\n", arguments->place->identifier);
@@ -242,7 +245,6 @@ void statementTAC(Scope *functionScope, Statement *statement) {
                     }
 
                     // Call the function
-                    ScopeElement *f = findScopeElement(functionScope, function->identifier);
                     TACInstruction *call = newTAC(CALL, f, NULL, NULL);
                     vectorAdd(statement->code, call);
                     debug(E_INFO, "call %s\n", f->identifier);
