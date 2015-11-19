@@ -106,7 +106,6 @@ typedef struct {
 
 typedef struct {
     // A unary expression has a single operand and an operator
-    Type type;
     Expression *operand;
     UnaryOperation operation;
 } UnaryExpression;
