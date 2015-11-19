@@ -186,8 +186,22 @@ void expressionTAC(Scope *functionScope, Expression *expression, Vector *code) {
                     break;
                 }
             case UNARY:
-                debug(E_WARNING, "Unary operations have not yet been implemented.\n");
-                break;
+                {
+                    UnaryExpression *unary = expression->unaryExpression;
+                    Expression *operand = unary->operand;
+                    expressionTAC(functionScope, operand, code);
+
+                    if(unary->operation == NEG_OP) {
+                        ScopeElement *result = newTemporaryVariable(functionScope, expression->inferredType);
+                        TACInstruction *instr = newTAC(ASSG_UNARY_MINUS, result, operand->place, NULL);
+                        vectorAdd(code, instr);
+                        expression->place = result;
+                        debug(E_DEBUG, "%s = -%s\n", result->identifier, operand->place->identifier);
+                    } else {
+                        // TODO Handle NOT operation
+                    }
+                    break;
+                }
             case BINARY:
                 {
                     BinaryExpression *binary = expression->binaryExpression;

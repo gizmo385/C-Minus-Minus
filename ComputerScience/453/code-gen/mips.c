@@ -133,7 +133,14 @@ static void generateMips(TACInstruction *instruction) {
                     break;
                 }
             case ASSG_UNARY_MINUS:
-                break;
+                {
+                    // TODO Handle unary minus correctly
+                    varIntoRegister(instruction->src1, "$t0");
+                    printf("\t# Negate %s\n", instruction->src1->identifier);
+                    printf("\tsub $t0, $zero, $t0\n");
+                    registerIntoVar(instruction->dest, "$t0");
+                    break;
+                }
             case ASSG_CONST:
                 {
                     ScopeElement *dest = instruction->dest;
