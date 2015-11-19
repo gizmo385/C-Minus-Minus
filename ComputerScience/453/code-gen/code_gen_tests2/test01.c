@@ -1,7 +1,7 @@
 extern void print_string(char string[]);
 extern void print_int(int n);
 
-void number_on_line(int shouldBe, int result) {
+void print_result(int shouldBe, int result) {
     print_string("Result should be ");
     print_int(shouldBe);
     print_string(", and is: ");
@@ -10,9 +10,9 @@ void number_on_line(int shouldBe, int result) {
 }
 
 void main(void) {
-    number_on_line(12 , 5 + 7);
-    number_on_line(25, 5 * 5);
-    number_on_line(2, 7 - 5);
-    number_on_line(5, 25 / 5);
-    number_on_line(-5, -(25 / 5));
+    print_result(12 , 5 + 7);
+    print_result(25, 5 * 5);
+    print_result(2, 7 - 5);
+    print_result(5, 25 / 5);
+    print_result(-5, -(25 / 5));
 }
