@@ -338,16 +338,21 @@ void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
                     TACInstruction *topLabel = newRandomLabel();
                     TACInstruction *afterLabel = newRandomLabel();
 
+                    // Jump to evaluation
                     debug(E_INFO, "GOTO %s\n", evalLabel->dest->protectedIdentifier);
                     debug(E_INFO, "%s:\n", topLabel->dest->protectedIdentifier);
                     TACInstruction *gotoEval = newTAC(GOTO, evalLabel->dest, NULL, NULL);
                     vectorAdd(code, gotoEval);
+
+                    // While loop body
                     vectorAdd(code, topLabel);
                     statementTAC(functionScope, whileStatement->body, code);
                     debug(E_INFO, "%s:\n", evalLabel->dest->protectedIdentifier);
+
+                    // Predicate evaluation
                     vectorAdd(code, evalLabel);
                     booleanTAC(functionScope, whileStatement->condition, topLabel->dest,
-                            afterLabel->dest,code);
+                            afterLabel->dest, code);
                     debug(E_INFO, "%s:\n", afterLabel->dest->protectedIdentifier);
                     vectorAdd(code, afterLabel);
                     break;
