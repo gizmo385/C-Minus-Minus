@@ -2,20 +2,117 @@ extern void print_string(char string[]);
 extern void print_int(int n);
 
 void main(void) {
-    int x;
-    x = 1;
+    print_string("Testing the == operator\n");
 
-    print_string("x = ");
-    print_int(x);
-    print_string("\n");
-
-    if(x == 1) {
-        print_string("Hello\n");
+    /* Checking == */
+    if(1 == 1) {
+        print_string("1 == 1 --> CORRECT\n");
+    } else {
+        print_string("1 == 1 --> INCORRECT\n");
     }
 
-    if(x != 1) {
-        print_string("It is not 1!\n");
+    if(2 == 1) {
+        print_string("2 == 1 --> INCORRECT\n");
     } else {
-        print_string("It is 1!\n");
+        print_string("2 == 1 --> CORRECT\n");
+    }
+
+    print_string("Testing the != operator\n");
+
+    /* Checking != */
+    if(1 != 1) {
+        print_string("1 != 1 --> INCORRECT\n");
+    } else {
+        print_string("1 != 1 --> CORRECT\n");
+    }
+
+    if(2 != 1) {
+        print_string("2 != 1 --> CORRECT\n");
+    } else {
+        print_string("2 != 1 --> INCORRECT\n");
+    }
+
+    print_string("Testing the >= operator\n");
+
+    /* Checking >= */
+    if(3 >= 2) {
+        print_string("3 >= 2 --> CORRECT\n");
+    } else {
+        print_string("3 >= 2 --> INCORRECT\n");
+    }
+
+    if(3 >= 3) {
+        print_string("3 >= 3 --> CORRECT\n");
+    } else {
+        print_string("3 >= 3 --> INCORRECT\n");
+    }
+
+    if(2 >= 3) {
+        print_string("2 >= 3 --> INCORRECT\n");
+    } else {
+        print_string("2 >= 3 --> CORRECT\n");
+    }
+
+    print_string("Testing the > operator\n");
+
+    /* Checking > */
+    if(3 > 2) {
+        print_string("3 > 2 --> CORRECT\n");
+    } else {
+        print_string("3 > 2 --> INCORRECT\n");
+    }
+
+    if(3 > 3) {
+        print_string("3 > 3 --> INCORRECT\n");
+    } else {
+        print_string("3 > 3 --> CORRECT\n");
+    }
+
+    if(2 > 3) {
+        print_string("2 > 3 --> INCORRECT\n");
+    } else {
+        print_string("2 > 3 --> CORRECT\n");
+    }
+
+    print_string("Testing the <= operator\n");
+
+    /* Checking >= */
+    if(3 <= 2) {
+        print_string("3 <= 2 --> INCORRECT\n");
+    } else {
+        print_string("3 <= 2 --> CORRECT\n");
+    }
+
+    if(3 <= 3) {
+        print_string("3 <= 3 --> CORRECT\n");
+    } else {
+        print_string("3 <= 3 --> INCORRECT\n");
+    }
+
+    if(2 <= 3) {
+        print_string("2 <= 3 --> CORRECT\n");
+    } else {
+        print_string("2 <= 3 --> INCORRECT\n");
+    }
+
+    print_string("Testing the < operator\n");
+
+    /* Checking >= */
+    if(3 < 2) {
+        print_string("3 < 2 --> INCORRECT\n");
+    } else {
+        print_string("3 < 2 --> CORRECT\n");
+    }
+
+    if(3 < 3) {
+        print_string("3 < 3 --> INCORRECT\n");
+    } else {
+        print_string("3 < 3 --> CORRECT\n");
+    }
+
+    if(2 < 3) {
+        print_string("2 < 3 --> CORRECT\n");
+    } else {
+        print_string("2 < 3 --> INCORRECT\n");
     }
 }
