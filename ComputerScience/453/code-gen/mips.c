@@ -163,8 +163,31 @@ static void generateMips(TACInstruction *instruction) {
             case IF_LTE:
             case IF_GT:
             case IF_LT:
+                break;
             case IF_EQ:
+                {
+                    ScopeElement *trueDest = instruction->dest;
+                    ScopeElement *left = instruction->src1;
+                    ScopeElement *right = instruction->src2;
+
+                    varIntoRegister(left, "$t0");
+                    varIntoRegister(right, "$t1");
+
+                    printf("\tbeq $t0, $t1, %s\n", trueDest->protectedIdentifier);
+                    break;
+                }
             case IF_NEQ:
+                {
+                    ScopeElement *trueDest = instruction->dest;
+                    ScopeElement *left = instruction->src1;
+                    ScopeElement *right = instruction->src2;
+
+                    varIntoRegister(left, "$t0");
+                    varIntoRegister(right, "$t1");
+
+                    printf("\tbne $t0, $t1, %s\n", trueDest->protectedIdentifier);
+                    break;
+                }
             case GOTO:
                 printf("\tj %s\n", instruction->dest->protectedIdentifier);
                 break;
