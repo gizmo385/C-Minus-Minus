@@ -255,7 +255,8 @@ static void generateMips(TACInstruction *instruction) {
             case CALL:
                 {
                     char *id = instruction->dest->protectedIdentifier;
-                    printf("\tjal %s # Call %s\n", id, id);
+                    printf("\t# Call function: %s\n", id);
+                    printf("\tjal %s\n", id);
                     printf("\tla $sp, %d($sp)\n", 4 * numberOfParameters);
                     numberOfParameters = 0;
                     break;
