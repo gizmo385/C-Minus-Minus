@@ -159,11 +159,63 @@ static void generateMips(TACInstruction *instruction) {
                     break;
                 }
             case ASSG_TO_INDEX:
-            case IF_GTE:
-            case IF_LTE:
-            case IF_GT:
-            case IF_LT:
                 break;
+            case IF_GTE:
+                {
+                    ScopeElement *trueDest = instruction->dest;
+                    ScopeElement *left = instruction->src1;
+                    ScopeElement *right = instruction->src2;
+
+                    varIntoRegister(left, "$t0");
+                    varIntoRegister(right, "$t1");
+
+                    printf("\t# Goto %s if %s >= %s\n", trueDest->identifier, left->identifier, right->identifier);
+                    printf("\tsub $t2, $t0, $t1\n");
+                    printf("\tbgez $t2, %s\n", trueDest->protectedIdentifier);
+                    break;
+                }
+            case IF_LTE:
+                {
+                    ScopeElement *trueDest = instruction->dest;
+                    ScopeElement *left = instruction->src1;
+                    ScopeElement *right = instruction->src2;
+
+                    varIntoRegister(left, "$t0");
+                    varIntoRegister(right, "$t1");
+
+                    printf("\t# Goto %s if %s <= %s\n", trueDest->identifier, left->identifier, right->identifier);
+                    printf("\tsub $t2, $t0, $t1\n");
+                    printf("\tblez $t2, %s\n", trueDest->protectedIdentifier);
+                    break;
+                }
+            case IF_GT:
+                {
+                    ScopeElement *trueDest = instruction->dest;
+                    ScopeElement *left = instruction->src1;
+                    ScopeElement *right = instruction->src2;
+
+                    varIntoRegister(left, "$t0");
+                    varIntoRegister(right, "$t1");
+
+                    printf("\t# Goto %s if %s > %s\n", trueDest->identifier, left->identifier, right->identifier);
+                    printf("\tsub $t2, $t0, $t1\n");
+                    printf("\tbgtz $t2, %s\n", trueDest->protectedIdentifier);
+                    break;
+                }
+            case IF_LT:
+                {
+                    ScopeElement *trueDest = instruction->dest;
+                    ScopeElement *left = instruction->src1;
+                    ScopeElement *right = instruction->src2;
+
+                    varIntoRegister(left, "$t0");
+                    varIntoRegister(right, "$t1");
+
+                    printf("\t# Goto %s if %s < %s\n", trueDest->identifier, left->identifier, right->identifier);
+                    printf("\tsub $t2, $t0, $t1\n");
+                    printf("\tbltz $t2, %s\n", trueDest->protectedIdentifier);
+                    break;
+                }
             case IF_EQ:
                 {
                     ScopeElement *trueDest = instruction->dest;
@@ -173,6 +225,7 @@ static void generateMips(TACInstruction *instruction) {
                     varIntoRegister(left, "$t0");
                     varIntoRegister(right, "$t1");
 
+                    printf("\t# Goto %s if %s == %s\n", trueDest->identifier, left->identifier, right->identifier);
                     printf("\tbeq $t0, $t1, %s\n", trueDest->protectedIdentifier);
                     break;
                 }
@@ -185,6 +238,7 @@ static void generateMips(TACInstruction *instruction) {
                     varIntoRegister(left, "$t0");
                     varIntoRegister(right, "$t1");
 
+                    printf("\t# Goto %s if %s != %s\n", trueDest->identifier, left->identifier, right->identifier);
                     printf("\tbne $t0, $t1, %s\n", trueDest->protectedIdentifier);
                     break;
                 }
