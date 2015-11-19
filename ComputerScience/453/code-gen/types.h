@@ -156,9 +156,9 @@ typedef struct {
 } AssignmentStatement;
 
 typedef struct {
-    AssignmentStatement *initial;
+    Statement *initial;
     Expression *condition;
-    AssignmentStatement *change;
+    Statement *change;
     Statement *body;
 } ForStatement;
 

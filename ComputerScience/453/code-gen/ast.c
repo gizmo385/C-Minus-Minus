@@ -179,8 +179,8 @@ Expression *newIntArrayConstExpression(int val[]) {
 
 
 /* Constructor functions for Statements */
-Statement *newForStatement(Scope *scope, AssignmentStatement *initial, Expression *condition,
-        AssignmentStatement *change, Statement *body) {
+Statement *newForStatement(Scope *scope, Statement *initial, Expression *condition,
+        Statement *change, Statement *body) {
     ForStatement *forStatement = malloc(sizeof(ForStatement));
     forStatement->initial = initial;
     forStatement->condition = condition;
