@@ -278,6 +278,7 @@ void expressionTAC(Scope *functionScope, Expression *expression, Vector *code) {
                     // Determine which operation is taking place
                     ThreeAddressOperation op;
                     char *opString = "";
+
                     switch(binary->operation) {
                         case ADD_OP: { op = ASSG_ADD; opString = "+"; break; }
                         case SUB_OP: { op = ASSG_SUB; opString = "-"; break; }
@@ -313,12 +314,49 @@ void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
                 }
             case ST_IF:
                 {
-                    debug(E_WARNING, "If: not implemented.\n");
+                    IfStatement *ifStatement = statement->stmt_if;
+                    TACInstruction *thenLabel = newRandomLabel();
+                    TACInstruction *afterLabel = newRandomLabel();
+
+                    // Condition test
+                    booleanTAC(functionScope, ifStatement->condition, thenLabel->dest,
+                            afterLabel->dest, code);
+
+                    // If statement body
+                    vectorAdd(code, thenLabel);
+                    debug(E_INFO, "%s:\n", thenLabel->dest->protectedIdentifier);
+                    statementTAC(functionScope, ifStatement->satisfied, code);
+                    vectorAdd(code, afterLabel);
+                    debug(E_INFO, "%s:\n", afterLabel->dest->protectedIdentifier);
                     break;
                 }
             case ST_IF_ELSE:
                 {
-                    debug(E_WARNING, "If/else: not implemented.\n");
+                    IfElseStatement *ifStatement = statement->stmt_if_else;
+                    TACInstruction *thenLabel = newRandomLabel();
+                    TACInstruction *afterLabel = newRandomLabel();
+                    TACInstruction *elseLabel = newRandomLabel();
+
+                    // Condition test
+                    booleanTAC(functionScope, ifStatement->condition, thenLabel->dest,
+                            elseLabel->dest, code);
+
+                    // If body
+                    vectorAdd(code, thenLabel);
+                    debug(E_INFO, "%s:\n", thenLabel->dest->protectedIdentifier);
+                    statementTAC(functionScope, ifStatement->satisfied, code);
+                    TACInstruction *gotoAfter = newTAC(GOTO, afterLabel->dest, NULL, NULL);
+                    debug(E_INFO, "GOTO %s\n", afterLabel->dest->protectedIdentifier);
+                    vectorAdd(code, gotoAfter);
+
+                    // Else body
+                    vectorAdd(code, elseLabel);
+                    debug(E_INFO, "%s:\n", elseLabel->dest->protectedIdentifier);
+                    statementTAC(functionScope, ifStatement->unsatisfied, code);
+
+                    // End of if/else block
+                    vectorAdd(code, afterLabel);
+                    debug(E_INFO, "%s:\n", afterLabel->dest->protectedIdentifier);
                     break;
                 }
             case ST_RETURN:
