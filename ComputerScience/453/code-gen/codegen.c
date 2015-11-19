@@ -14,16 +14,7 @@ static void functionTAC(FunctionDeclaration *declaration) {
 
     // Generate code for the body of the function
     Statement *body = declaration->body;
-    while(body) {
-        statementTAC(functionScope, body, declaration->code);
-
-        Vector *bodyCode = body->code;
-        for(int i = 0; i < bodyCode->size; i++ ) {
-            vectorAdd(declaration->code, vectorGet(bodyCode, i));
-        }
-
-        body = body->next;
-    }
+    statementTAC(functionScope, body, declaration->code);
 
     // Leave the function
     TACInstruction *leave = newTAC(LEAVE, func, NULL, NULL);

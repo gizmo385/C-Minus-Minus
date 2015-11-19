@@ -300,7 +300,7 @@ void expressionTAC(Scope *functionScope, Expression *expression, Vector *code) {
 }
 
 void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
-    if(statement) {
+    while(statement) {
         switch(statement->type) {
             case ST_FOR:
                 {
@@ -418,5 +418,6 @@ void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
                     break;
                 }
         }
+        statement = statement->next;
     }
 }
