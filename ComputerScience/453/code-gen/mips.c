@@ -89,9 +89,49 @@ static void generateMips(TACInstruction *instruction) {
     if(instruction) {
         switch(instruction->op) {
             case ASSG_ADD:
+                {
+                    ScopeElement *src1 = instruction->src1;
+                    ScopeElement *src2 = instruction->src2;
+                    varIntoRegister(src1, "$t0");
+                    varIntoRegister(src2, "$t1");
+                    printf("\t# Add %s to %s\n", src1->identifier, src2->identifier);
+                    printf("\tadd $t2, $t0, $t1\n");
+                    registerIntoVar(instruction->dest, "$t2");
+                    break;
+                }
             case ASSG_SUB:
+                {
+                    ScopeElement *src1 = instruction->src1;
+                    ScopeElement *src2 = instruction->src2;
+                    varIntoRegister(src1, "$t0");
+                    varIntoRegister(src2, "$t1");
+                    printf("\t# Subtract %s from %s\n", src1->identifier, src2->identifier);
+                    printf("\tsub $t2, $t0, $t1\n");
+                    registerIntoVar(instruction->dest, "$t2");
+                    break;
+                }
             case ASSG_MUL:
+                {
+                    ScopeElement *src1 = instruction->src1;
+                    ScopeElement *src2 = instruction->src2;
+                    varIntoRegister(src1, "$t0");
+                    varIntoRegister(src2, "$t1");
+                    printf("\t# Multiply %s by %s\n", src1->identifier, src2->identifier);
+                    printf("\tmul $t2, $t0, $t1\n");
+                    registerIntoVar(instruction->dest, "$t2");
+                    break;
+                }
             case ASSG_DIV:
+                {
+                    ScopeElement *src1 = instruction->src1;
+                    ScopeElement *src2 = instruction->src2;
+                    varIntoRegister(src1, "$t0");
+                    varIntoRegister(src2, "$t1");
+                    printf("\t# Divide %s by %s\n", src1->identifier, src2->identifier);
+                    printf("\tdiv $t2, $t0, $t1\n");
+                    registerIntoVar(instruction->dest, "$t2");
+                    break;
+                }
             case ASSG_UNARY_MINUS:
                 break;
             case ASSG_CONST:

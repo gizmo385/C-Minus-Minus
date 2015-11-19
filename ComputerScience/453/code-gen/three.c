@@ -189,8 +189,32 @@ void expressionTAC(Scope *functionScope, Expression *expression, Vector *code) {
                 debug(E_WARNING, "Unary operations have not yet been implemented.\n");
                 break;
             case BINARY:
-                debug(E_WARNING, "Binary operations have not yet been implemented.\n");
-                break;
+                {
+                    BinaryExpression *binary = expression->binaryExpression;
+                    Expression *leftOperand = binary->leftOperand;
+                    Expression *rightOperand = binary->rightOperand;
+                    expressionTAC(functionScope, leftOperand, code);
+                    expressionTAC(functionScope, rightOperand, code);
+
+                    // Determine which operation is taking place
+                    ThreeAddressOperation op;
+                    char *opString = "";
+                    switch(binary->operation) {
+                        case ADD_OP: { op = ASSG_ADD; opString = "+"; break; }
+                        case SUB_OP: { op = ASSG_SUB; opString = "-"; break; }
+                        case MUL_OP: { op = ASSG_MUL; opString = "*"; break; }
+                        case DIV_OP: { op = ASSG_DIV; opString = "/"; break; }
+                        default: { op = NO_OP; opString = "?"; break; }
+                    }
+
+                    ScopeElement *result = newTemporaryVariable(functionScope, expression->inferredType);
+                    TACInstruction *instr = newTAC(op, result, leftOperand->place, rightOperand->place);
+                    vectorAdd(code, instr);
+                    expression->place = result;
+                    debug(E_DEBUG, "%s = %s %s %s\n", result->identifier, leftOperand->place->identifier, opString,
+                            rightOperand->place->identifier);
+                    break;
+                }
         }
     }
 }
