@@ -85,56 +85,44 @@ static void constantToReg(ScopeElement *destElem, char *reg) {
     }
 }
 
+static void arithmeticInstruction(TACInstruction *instruction, char *operation) {
+    ScopeElement *src1 = instruction->src1;
+    ScopeElement *src2 = instruction->src2;
+    varIntoRegister(src1, "$t0");
+    varIntoRegister(src2, "$t1");
+    printf("\t%s $t2, $t0, $t1\n", operation);
+    registerIntoVar(instruction->dest, "$t2");
+}
+
 static void generateMips(TACInstruction *instruction) {
     if(instruction) {
         switch(instruction->op) {
             case ASSG_ADD:
                 {
-                    ScopeElement *src1 = instruction->src1;
-                    ScopeElement *src2 = instruction->src2;
-                    varIntoRegister(src1, "$t0");
-                    varIntoRegister(src2, "$t1");
-                    printf("\t# Add %s to %s\n", src1->identifier, src2->identifier);
-                    printf("\tadd $t2, $t0, $t1\n");
-                    registerIntoVar(instruction->dest, "$t2");
+                    printf("\t# Add %s to %s\n", instruction->src1->identifier, instruction->src2->identifier);
+                    arithmeticInstruction(instruction, "add");
                     break;
                 }
             case ASSG_SUB:
                 {
-                    ScopeElement *src1 = instruction->src1;
-                    ScopeElement *src2 = instruction->src2;
-                    varIntoRegister(src1, "$t0");
-                    varIntoRegister(src2, "$t1");
-                    printf("\t# Subtract %s from %s\n", src1->identifier, src2->identifier);
-                    printf("\tsub $t2, $t0, $t1\n");
-                    registerIntoVar(instruction->dest, "$t2");
+                    printf("\t# Subtract %s from %s\n", instruction->src1->identifier, instruction->src2->identifier);
+                    arithmeticInstruction(instruction, "sub");
                     break;
                 }
             case ASSG_MUL:
                 {
-                    ScopeElement *src1 = instruction->src1;
-                    ScopeElement *src2 = instruction->src2;
-                    varIntoRegister(src1, "$t0");
-                    varIntoRegister(src2, "$t1");
-                    printf("\t# Multiply %s by %s\n", src1->identifier, src2->identifier);
-                    printf("\tmul $t2, $t0, $t1\n");
-                    registerIntoVar(instruction->dest, "$t2");
+                    printf("\t# Multiply %s by %s\n", instruction->src1->identifier, instruction->src2->identifier);
+                    arithmeticInstruction(instruction, "mul");
                     break;
                 }
             case ASSG_DIV:
                 {
-                    ScopeElement *src1 = instruction->src1;
-                    ScopeElement *src2 = instruction->src2;
-                    varIntoRegister(src1, "$t0");
-                    varIntoRegister(src2, "$t1");
-                    printf("\t# Divide %s by %s\n", src1->identifier, src2->identifier);
-                    printf("\tdiv $t2, $t0, $t1\n");
-                    registerIntoVar(instruction->dest, "$t2");
+                    printf("\t# Divide %s by %s\n", instruction->src1->identifier, instruction->src2->identifier);
+                    arithmeticInstruction(instruction, "div");
                     break;
                 }
             case ASSG_UNARY_MINUS:
                 {
-                    // TODO Handle unary minus correctly
                     varIntoRegister(instruction->src1, "$t0");
                     printf("\t# Negate %s\n", instruction->src1->identifier);
                     printf("\tsub $t0, $zero, $t0\n");
