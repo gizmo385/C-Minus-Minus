@@ -425,17 +425,6 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
         declarations = declarations->next;
     }
 
-    // Since we overload function names, we need to jump to main
-    /*printf("main:\n");*/
-    /*printf("\tla $sp, -4($sp) # Allocate space for old $fp and $ra\n");*/
-    /*printf("\tsw $ra, 0($sp) # Save old return address\n");*/
-    /*printf("\tla $fp, 0($sp) # Set up the new frame pointer\n");*/
-    /*printf("\tjal _main\n");*/
-    /*printf("\tla $sp, 0($fp)\n");*/
-    /*printf("\tlw $ra, 0($sp)\n");*/
-    /*printf("\tla $sp, 4($sp)\n");*/
-    /*printf("\tjr $ra\n\n\n");*/
-
     // Generate code for print_string and print_int
     printf("_print_string:\n");
     printf("\tli $v0, 4\n");
