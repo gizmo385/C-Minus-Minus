@@ -304,6 +304,30 @@ void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
         switch(statement->type) {
             case ST_FOR:
                 {
+                    ForStatement *forStatement = statement->stmt_for;
+                    TACInstruction *evalLabel = newRandomLabel();
+                    TACInstruction *topLabel = newRandomLabel();
+                    TACInstruction *afterLabel = newRandomLabel();
+
+                    // Initialize and jump to predicate evaluation
+                    statementTAC(functionScope, forStatement->initial, code);
+                    debug(E_INFO, "GOTO %s\n", evalLabel->dest->identifier);
+                    debug(E_INFO, "%s:\n", topLabel->dest->identifier);
+                    TACInstruction *gotoEval = newTAC(GOTO, evalLabel->dest, NULL, NULL);
+                    vectorAdd(code, gotoEval);
+
+                    // For loop body
+                    vectorAdd(code, topLabel);
+                    statementTAC(functionScope, forStatement->body, code);
+                    statementTAC(functionScope, forStatement->change, code);
+
+                    // Predicate evaluation
+                    debug(E_INFO, "%s:\n", evalLabel->dest->protectedIdentifier);
+                    vectorAdd(code, evalLabel);
+                    booleanTAC(functionScope, forStatement->condition, topLabel->dest,
+                            afterLabel->dest,code);
+                    debug(E_INFO, "%s:\n", afterLabel->dest->protectedIdentifier);
+                    vectorAdd(code, afterLabel);
                     debug(E_WARNING, "For loops: not implemented.\n");
                     break;
                 }
