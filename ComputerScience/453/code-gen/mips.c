@@ -426,8 +426,8 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
 
         // Generate the function's epilogue
         printf("\n");
-        printf("\t# Epilogue for %s\n", functionName);
         printf("%s_epilogue:\n", functionName);
+        printf("\t# Epilogue for %s\n", functionName);
         printf("\tla $sp, 0($fp)\n");
         printf("\tlw $ra, 0($sp)\n");
         printf("\tlw $fp, 4($sp)\n");
