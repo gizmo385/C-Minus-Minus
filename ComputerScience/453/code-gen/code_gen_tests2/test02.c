@@ -115,4 +115,19 @@ void main(void) {
     } else {
         print_string("2 < 3 --> INCORRECT\n");
     }
+
+    print_string("Testing the ! (NOT) operator\n");
+
+    /* Checking ! */
+    if(! (1 == 1)) {
+        print_string("!(1 == 1) --> INCORRECT\n");
+    } else {
+        print_string("!(1 == 1) --> CORRECT\n");
+    }
+
+    if(! (1 != 1)) {
+        print_string("!(1 != 1) --> CORRECT\n");
+    } else {
+        print_string("!(1 != 1) --> INCORRECT\n");
+    }
 }

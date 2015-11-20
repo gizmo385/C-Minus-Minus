@@ -120,53 +120,61 @@ static void relopTAC(Scope *functionScope, ThreeAddressOperation op, char *opStr
 
 void booleanTAC(Scope *functionScope, Expression *e, ScopeElement *trueDest,
         ScopeElement *falseDest, Vector *code) {
-    BinaryExpression *b = e->binaryExpression;
-    Expression *left = b->leftOperand;
-    Expression *right = b->rightOperand;
-    expressionTAC(functionScope, left, code);
-    expressionTAC(functionScope, right, code);
+    if(e->type == BINARY) {
+        BinaryExpression *b = e->binaryExpression;
+        Expression *left = b->leftOperand;
+        Expression *right = b->rightOperand;
+        expressionTAC(functionScope, left, code);
+        expressionTAC(functionScope, right, code);
 
-    switch(b->operation) {
-        case AND_OP:
-            {
-                TACInstruction *separator = newRandomLabel();
-                booleanTAC(functionScope, left, separator->dest, falseDest, code);
-                debug(E_INFO, "%s:\n", separator->dest->protectedIdentifier);
-                debug(E_INFO, "%s:\n", separator->dest->protectedIdentifier);
-                vectorAdd(code, separator);
-                booleanTAC(functionScope, right, trueDest, falseDest, code);
+        switch(b->operation) {
+            case AND_OP:
+                {
+                    TACInstruction *separator = newRandomLabel();
+                    booleanTAC(functionScope, left, separator->dest, falseDest, code);
+                    debug(E_INFO, "%s:\n", separator->dest->protectedIdentifier);
+                    debug(E_INFO, "%s:\n", separator->dest->protectedIdentifier);
+                    vectorAdd(code, separator);
+                    booleanTAC(functionScope, right, trueDest, falseDest, code);
+                    break;
+                }
+            case OR_OP:
+                {
+                    TACInstruction *separator = newRandomLabel();
+                    booleanTAC(functionScope, left, trueDest, separator->dest, code);
+                    debug(E_INFO, "%s:\n", separator->dest->protectedIdentifier);
+                    vectorAdd(code, separator);
+                    booleanTAC(functionScope, right, trueDest, falseDest, code);
+                    break;
+                }
+            case EQ_OP:
+                relopTAC(functionScope, IF_EQ, "==", left, right, trueDest, falseDest, code);
                 break;
-            }
-        case OR_OP:
-            {
-                TACInstruction *separator = newRandomLabel();
-                booleanTAC(functionScope, left, trueDest, separator->dest, code);
-                debug(E_INFO, "%s:\n", separator->dest->protectedIdentifier);
-                vectorAdd(code, separator);
-                booleanTAC(functionScope, right, trueDest, falseDest, code);
+            case NEQ_OP:
+                relopTAC(functionScope, IF_NEQ, "!=", left, right, trueDest, falseDest, code);
                 break;
-            }
-        case EQ_OP:
-            relopTAC(functionScope, IF_EQ, "==", left, right, trueDest, falseDest, code);
-            break;
-        case NEQ_OP:
-            relopTAC(functionScope, IF_NEQ, "!=", left, right, trueDest, falseDest, code);
-            break;
-        case LTE_OP:
-            relopTAC(functionScope, IF_LTE, "<=", left, right, trueDest, falseDest, code);
-            break;
-        case GTE_OP:
-            relopTAC(functionScope, IF_GTE, ">=", left, right, trueDest, falseDest, code);
-            break;
-        case LT_OP:
-            relopTAC(functionScope, IF_LT, "<", left, right, trueDest, falseDest, code);
-            break;
-        case GT_OP:
-            relopTAC(functionScope, IF_GT, ">", left, right, trueDest, falseDest, code);
-            break;
-        default:
-            debug(E_ERROR, "Internal error: Calling booleanTAC on non-boolean expression!\n");
-            break;
+            case LTE_OP:
+                relopTAC(functionScope, IF_LTE, "<=", left, right, trueDest, falseDest, code);
+                break;
+            case GTE_OP:
+                relopTAC(functionScope, IF_GTE, ">=", left, right, trueDest, falseDest, code);
+                break;
+            case LT_OP:
+                relopTAC(functionScope, IF_LT, "<", left, right, trueDest, falseDest, code);
+                break;
+            case GT_OP:
+                relopTAC(functionScope, IF_GT, ">", left, right, trueDest, falseDest, code);
+                break;
+            default:
+                debug(E_ERROR, "Internal error: Calling booleanTAC on non-boolean expression!\n");
+                break;
+        }
+    } else if(e->type == UNARY) {
+        UnaryExpression *unary = e->unaryExpression;
+        Expression *value = unary->operand;
+        booleanTAC(functionScope, value, falseDest, trueDest, code);
+    } else {
+        debug(E_ERROR, "Calling booleanTAC with invalid expression type!\n");
     }
 }
 
