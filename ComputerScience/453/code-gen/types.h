@@ -73,7 +73,7 @@ typedef enum {
     IF_GTE, IF_LTE, IF_GT, IF_LT, IF_EQ, IF_NEQ, GOTO, LABEL,
 
     /* Procedures */
-    ENTER, LEAVE, RETURN_FROM, CALL, RETRIEVE, PARAM,
+    RETVAL, RETURN_FROM_FUNC, CALL, RETRIEVE, PARAM,
 
     /* Other */
     NO_OP

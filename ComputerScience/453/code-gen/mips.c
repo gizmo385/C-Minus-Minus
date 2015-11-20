@@ -94,7 +94,7 @@ static void arithmeticInstruction(TACInstruction *instruction, char *operation) 
     registerIntoVar(instruction->dest, "$t2");
 }
 
-static void generateMips(TACInstruction *instruction) {
+static void generateMips(char *functionName, TACInstruction *instruction) {
     if(instruction) {
         switch(instruction->op) {
             case ASSG_ADD:
@@ -248,10 +248,18 @@ static void generateMips(TACInstruction *instruction) {
             case LABEL:
                 printf("%s:\n", instruction->dest->protectedIdentifier);
                 break;
-            case ENTER:
-            case LEAVE:
-            case RETURN_FROM:
-                break;
+            case RETVAL:
+                {
+                    ScopeElement *returnValue = instruction->dest;
+                    varIntoRegister(returnValue, "$v0");
+                    break;
+                }
+            case RETURN_FROM_FUNC:
+                {
+                    printf("\t# Return from %s\n", functionName);
+                    printf("\tj %s_epilogue\n", functionName);
+                    break;
+                }
             case CALL:
                 {
                     char *id = instruction->dest->protectedIdentifier;
@@ -262,7 +270,10 @@ static void generateMips(TACInstruction *instruction) {
                     break;
                 }
             case RETRIEVE:
-                break;
+                {
+                    registerIntoVar(instruction->dest, "$v0");
+                    break;
+                }
             case PARAM:
                 {
                     // Load the value into $t0
@@ -410,12 +421,13 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
         Vector *declarationCode = declarations->code;
         for(int i = 0; i < declarationCode->size; i++) {
             TACInstruction *instruction = vectorGet(declarationCode, i);
-            generateMips(instruction);
+            generateMips(functionName, instruction);
         }
 
         // Generate the function's epilogue
         printf("\n");
         printf("\t# Epilogue for %s\n", functionName);
+        printf("%s_epilogue:\n", functionName);
         printf("\tla $sp, 0($fp)\n");
         printf("\tlw $ra, 0($sp)\n");
         printf("\tlw $fp, 4($sp)\n");

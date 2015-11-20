@@ -406,7 +406,15 @@ void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
                 }
             case ST_RETURN:
                 {
-                    debug(E_WARNING, "Returns: not implemented.\n");
+                    ReturnStatement *returnStatement = statement->stmt_return;
+                    Expression *value = returnStatement->returnValue;
+                    if(value) {
+                        expressionTAC(functionScope, value, code);
+                        TACInstruction *retval = newTAC(RETVAL, value->place, NULL, NULL);
+                        vectorAdd(code, retval);
+                    }
+                    TACInstruction *ret = newTAC(RETURN_FROM_FUNC, NULL, NULL, NULL);
+                    vectorAdd(code, ret);
                     break;
                 }
             case ST_FUNC:
