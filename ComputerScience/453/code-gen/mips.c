@@ -271,6 +271,7 @@ static void generateMips(char *functionName, TACInstruction *instruction) {
                 }
             case RETRIEVE:
                 {
+                    printf("\t# Store function result in %s\n", instruction->dest->protectedIdentifier);
                     registerIntoVar(instruction->dest, "$v0");
                     break;
                 }
