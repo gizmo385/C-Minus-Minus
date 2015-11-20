@@ -278,6 +278,7 @@ VariableDeclaration *newVariable(Type type, char *identifier) {
     VariableDeclaration *varDecl = malloc(sizeof(VariableDeclaration));
     varDecl->type = type;
     varDecl->identifier = identifier;
+    varDecl->next = NULL;
 
     return varDecl;
 }
