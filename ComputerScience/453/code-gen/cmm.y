@@ -227,23 +227,24 @@ name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
 
 var_decl : ID
             {
-                declareVar(scope, baseDeclType, $1);
+                declareVar(scope, baseDeclType, $1, false);
                 $$ = newVariable(baseDeclType, $1);
             }
          | ID LEFT_SQUARE_BRACKET int_expr RIGHT_SQUARE_BRACKET
             {
                 ScopeElement *elem = NULL;
                 if(baseDeclType == INT_TYPE) {
-                    elem = declareVar(scope, INT_ARRAY_TYPE, $1);
+                    elem = declareVar(scope, INT_ARRAY_TYPE, $1, false);
                     $$ = newVariable(INT_ARRAY_TYPE, $1);
                 } else if(baseDeclType == CHAR_TYPE) {
-                    elem = declareVar(scope, CHAR_ARRAY_TYPE, $1);
+                    elem = declareVar(scope, CHAR_ARRAY_TYPE, $1, false);
                     $$ = newVariable(CHAR_ARRAY_TYPE, $1);
                 } else {
                     fprintf(stderr, "ERROR: Cannot determine type when declaring %s on line %d!\n", $1, mylineno);
                     foundError = true;
                 }
                 elem->variable->size = $3->constantExpression->value->integer_value;
+                elem->variable->value = NULL;
             }
          ;
 
@@ -283,16 +284,16 @@ param_types : void                                              { $$ = NULL; }
 
 non_void_param_type : type ID
                         {
-                            declareVar(scope, baseDeclType, $2);
+                            declareVar(scope, baseDeclType, $2, true);
                             $$ = newFunctionParameter(baseDeclType, $2);
                         }
                     | type ID LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
                         {
                             if(baseDeclType == INT_TYPE) {
-                                declareVar(scope, INT_ARRAY_TYPE, $2);
+                                declareVar(scope, INT_ARRAY_TYPE, $2, true);
                                 $$ = newFunctionParameter(INT_ARRAY_TYPE, $2);
                             } else if(baseDeclType == CHAR_TYPE) {
-                                declareVar(scope, CHAR_ARRAY_TYPE, $2);
+                                declareVar(scope, CHAR_ARRAY_TYPE, $2, true);
                                 $$ = newFunctionParameter(CHAR_ARRAY_TYPE, $2);
                             } else {
                                 fprintf(stderr, "Type error, on line %d: Arrays of type %s are not supported.\n",

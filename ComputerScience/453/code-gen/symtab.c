@@ -9,6 +9,8 @@
 #include "typecheck.h"
 #include "errors.h"
 
+static int variableId = 0;
+
 static inline ScopeElement *inLocalScope(Scope *scope, char *identifier) {
     if(scope) {
         Vector *variables = scope->variables;
@@ -82,7 +84,7 @@ ScopeElement *findScopeElement(Scope *scope, char *identifier) {
     return elem;
 }
 
-ScopeElement* declareVar(Scope *scope, Type type, char *identifier) {
+ScopeElement* declareVar(Scope *scope, Type type, char *identifier, bool parameter) {
     ScopeElement *foundVar = inLocalScope(scope, identifier);
 
     if(foundVar) {
@@ -98,10 +100,12 @@ ScopeElement* declareVar(Scope *scope, Type type, char *identifier) {
         scopeVariable->size = -1;
         scopeVariable->offset = 0;
         scopeVariable->global = false;
+        scopeVariable->parameter = parameter;
 
-        int newIdentifierLength = strlen(identifier) + 2;
+        int newIdentifierLength = strlen(identifier) + 20;
         char *protectedIdentifier = malloc(newIdentifierLength);
-        snprintf(protectedIdentifier, newIdentifierLength, "_%s", identifier);
+        snprintf(protectedIdentifier, newIdentifierLength, "_%s%d", identifier, variableId);
+        variableId += 1;
 
         ScopeElement *elem = malloc(sizeof(ScopeElement));
         elem->identifier = identifier;
@@ -215,5 +219,6 @@ bool declareFunction(Scope *scope, Type returnType, char *identifier, Vector *pa
 
         return true;
     }
+
     return validDeclaration;
 }
