@@ -215,7 +215,7 @@ void expressionTAC(Scope *functionScope, Expression *expression, Vector *code) {
 
                         // Create the instruction
                         TACInstruction *assign;
-                        assign = newTAC(ASSG_TO_INDEX, dest, varLocation, arrayIndexLocation);
+                        assign = newTAC(ASSG_FROM_INDEX, dest, varLocation, arrayIndexLocation);
                         vectorAdd(code, assign);
                         expression->place = dest;
 
@@ -270,8 +270,6 @@ void expressionTAC(Scope *functionScope, Expression *expression, Vector *code) {
                         vectorAdd(code, instr);
                         expression->place = result;
                         debug(E_DEBUG, "%s = -%s\n", result->identifier, operand->place->identifier);
-                    } else {
-                        // TODO Handle NOT operation
                     }
                     break;
                 }
@@ -459,8 +457,22 @@ void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
                     ScopeElement *dest = findScopeElement(functionScope, assignment->identifier);
 
                     if(assignment->arrayIndex) {
-                        // TODO: Handle array indices
-                        debug(E_WARNING, "Array index assignment: not implemented.\n");
+                        // Get the location for the value being assigned
+                        Expression *value = assignment->expression;
+                        expressionTAC(functionScope, value, code);
+
+                        // Get the array index where we're storing
+                        Expression *arrayIndex = assignment->arrayIndex;
+                        expressionTAC(functionScope, arrayIndex, code);
+                        ScopeElement *arrayIndexLocation = arrayIndex->place;
+
+                        // Create the instruction
+                        TACInstruction *assign;
+                        assign = newTAC(ASSG_TO_INDEX, dest, arrayIndexLocation, value->place);
+                        vectorAdd(code, assign);
+
+                        debug(E_INFO, "%s[%s] = %s\n", dest->identifier,
+                                arrayIndexLocation->identifier, value->place->identifier);
                     } else {
                         // Get the location for the value being assigned
                         Expression *value = assignment->expression;
