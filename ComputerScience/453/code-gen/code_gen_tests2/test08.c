@@ -1,3 +1,4 @@
+/* Short circuiting boolean operations */
 extern void print_string(char string[]);
 
 int thisShouldNotExecute(void) {

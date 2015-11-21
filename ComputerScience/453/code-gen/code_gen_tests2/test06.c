@@ -1,3 +1,4 @@
+/* Tests array assignment and retreival */
 extern void print_string(char string[]);
 extern void print_int(int n);
 

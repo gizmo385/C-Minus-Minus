@@ -1,3 +1,4 @@
+/* Variable name safety */
 extern void print_int(int n);
 extern void print_string(char string[]);
 
