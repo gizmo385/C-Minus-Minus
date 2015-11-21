@@ -124,8 +124,6 @@ void booleanTAC(Scope *functionScope, Expression *e, ScopeElement *trueDest,
         BinaryExpression *b = e->binaryExpression;
         Expression *left = b->leftOperand;
         Expression *right = b->rightOperand;
-        expressionTAC(functionScope, left, code);
-        expressionTAC(functionScope, right, code);
 
         switch(b->operation) {
             case AND_OP:
