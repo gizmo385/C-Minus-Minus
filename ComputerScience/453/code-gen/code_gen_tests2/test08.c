@@ -1,24 +1,17 @@
 extern void print_string(char string[]);
 
-int printAndReturn4(void) {
-    print_string("EXECUTED printAndReturn4!\n");
+int thisShouldNotExecute(void) {
+    print_string("THIS SHOULD NOT PRINT!\n");
+    return 4;
+}
+
+int shouldExecute(void) {
     return 4;
 }
 
 void main(void) {
-    print_string("Should NOT print:\n");
-    if((1 == 1) || (4 == printAndReturn4())) { }
-    print_string("---------\n\n");
-
-    print_string("Should print:\n");
-    if((1 != 1) || (4 == printAndReturn4())) { }
-    print_string("---------\n\n");
-
-    print_string("Should NOT print:\n");
-    if((1 != 1) && (4 == printAndReturn4())) { }
-    print_string("---------\n\n");
-
-    print_string("Should print:\n");
-    if((1 == 1) && (4 == printAndReturn4())) { }
-    print_string("---------\n\n");
+    if((1 == 1) || (4 == thisShouldNotExecute())) { }
+    if((1 != 1) || (4 == shouldExecute())) { }
+    if((1 != 1) && (4 == thisShouldNotExecute())) { }
+    if((1 == 1) && (4 == shouldExecute())) { }
 }
