@@ -85,6 +85,10 @@ ScopeElement *newTemporaryVariable(Scope *functionScope, Type type) {
     ScopeVariable *scopeVariable = malloc(sizeof(ScopeVariable));
     scopeVariable->type = type;
     scopeVariable->value = empty;
+    scopeVariable->size = -1;
+    scopeVariable->offset = 0;
+    scopeVariable->global = false;
+    scopeVariable->parameter = false;
 
     // Create its ID
     const int LEN = 20;
