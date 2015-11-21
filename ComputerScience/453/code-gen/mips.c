@@ -7,6 +7,23 @@
 
 static int numberOfParameters = 0;
 
+static int sizeForType(Type type) {
+    int size = 0;
+    switch(type) {
+        case INT_ARRAY_TYPE:
+        case INT_TYPE:
+            size = sizeof(int);
+            break;
+        case CHAR_ARRAY_TYPE:
+        case CHAR_TYPE:
+            size = sizeof(char);
+            break;
+        default: break;
+    }
+    return size;
+}
+
+
 void varIntoRegister(ScopeElement *varElem, char *reg) {
     ScopeVariable *var = varElem->variable;
     Type type = var->type;
@@ -49,12 +66,6 @@ void registerIntoVar(ScopeElement *varElem, char *reg) {
             printf("\tsw %s, %d($fp)\n", reg, var->offset);
         } else if(type == CHAR_TYPE) {
             printf("\tsb %s, %d($fp)\n", reg, var->offset);
-        } else if(type == INT_ARRAY_TYPE) {
-            /*printf("INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-        } else if(type == CHAR_ARRAY_TYPE) {
-            /*printf("CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
-        } else {
-            printf("TYPE: %s\n", typeName(type));
         }
     }
 }
@@ -159,7 +170,58 @@ static void generateMips(char *functionName, TACInstruction *instruction) {
                     break;
                 }
             case ASSG_TO_INDEX:
-                break;
+                {
+                    printf("\t#%s[%s] = %s\n", instruction->dest->protectedIdentifier,
+                            instruction->src1->protectedIdentifier,
+                            instruction->src2->protectedIdentifier);
+                    // Determine the element type
+                    Type type = instruction->src1->variable->type;
+                    type = type == INT_ARRAY_TYPE ? INT_TYPE : CHAR_TYPE;
+
+                    varIntoRegister(instruction->src2, "$t0"); // Location of the value to store
+                    varIntoRegister(instruction->dest, "$t1"); // Location of the destination variable
+                    varIntoRegister(instruction->src1, "$t2"); // Location of the array index
+
+                    // Calculate the position in the array
+                    printf("\taddi $t3, $zero, %d\n", sizeForType(type)); // size
+                    printf("\tmul $t2, $t2, $t3\n"); // array index * size
+                    printf("\tadd $t1, $t1, $t2\n"); // start + (array index * size)
+
+                    // Store the value
+                    if(type == CHAR_TYPE) {
+                        printf("\tsb $t0, ($t1)\n");
+                    } else {
+                        printf("\tsw $t0, ($t1)\n");
+                    }
+                    break;
+                }
+            case ASSG_FROM_INDEX:
+                {
+                    printf("\t#%s = %s[%s]\n", instruction->dest->protectedIdentifier,
+                            instruction->src1->protectedIdentifier,
+                            instruction->src2->protectedIdentifier);
+                    // Determine the element type
+                    Type type = instruction->src1->variable->type;
+                    type = type == INT_ARRAY_TYPE ? INT_TYPE : CHAR_TYPE;
+
+                    varIntoRegister(instruction->src1, "$t0"); // Location of the source variable
+                    varIntoRegister(instruction->src2, "$t1"); // Location of the array index
+
+                    if(type == INT_TYPE) {
+                        printf("\tsll $t1, $t1, 2\n");
+                    }
+                    printf("\tadd $t2, $t0, $t1\n");
+
+                    if(type == CHAR_TYPE) {
+                        printf("\tlb $t3, 0($t2)\n");
+                    } else {
+                        printf("\tlw $t3 0($t2)\n");
+                    }
+
+                    // Store the value in the destination
+                    registerIntoVar(instruction->dest, "$t3");
+                    break;
+                }
             case IF_GTE:
                 {
                     ScopeElement *trueDest = instruction->dest;
@@ -304,32 +366,6 @@ static void generateMips(char *functionName, TACInstruction *instruction) {
     }
 }
 
-static int sizeForType(ScopeVariable *variable) {
-    int size = 0;
-    switch(variable->type) {
-        case INT_TYPE:
-            size = sizeof(int);
-            break;
-        case CHAR_TYPE:
-            size = sizeof(char);
-            break;
-        case CHAR_ARRAY_TYPE:
-            {
-                int arraySize = variable->size;
-                size = arraySize * sizeof(char);
-                break;
-            }
-        case INT_ARRAY_TYPE:
-            {
-                int arraySize = variable->size;
-                size = arraySize * sizeof(int);
-                break;
-            }
-        default: break;
-    }
-    return size;
-}
-
 int calculateRequiredStackSpace(FunctionDeclaration *declaration) {
     int requiredSpace = 0;
 
@@ -340,7 +376,6 @@ int calculateRequiredStackSpace(FunctionDeclaration *declaration) {
     for(int i = 0; i < variables->size; i++) {
         ScopeElement *element = vectorGet(variables, i);
         if(element->elementType == SCOPE_VAR) {
-            /*int elementSize = sizeForType(element->variable);*/
             requiredSpace += 4;
         }
     }
@@ -359,13 +394,21 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
         ScopeElement *element = vectorGet(globalVariables, i);
         if(element->elementType == SCOPE_VAR) {
             ScopeVariable *var = element->variable;
-            int size = sizeForType(var);
+            int size = sizeForType(var->type);
 
-            if(var->type == INT_TYPE) {
+            if(var->type == CHAR_ARRAY_TYPE) {
+                printf("%s:\t.space %d\n", element->protectedIdentifier, var->size * size);
+            } else if(var->type == INT_ARRAY_TYPE) {
                 printf("\t.align 2\n");
+                printf("%s:\t.space %d\n", element->protectedIdentifier, var->size * size);
+            } else {
+                if(var->type == INT_TYPE) {
+                    printf("\t.align 2\n");
+                }
+
+                printf("%s:\t.space %d\n", element->protectedIdentifier, size);
             }
 
-            printf("%s:\t.space %d\n", element->protectedIdentifier, size);
         }
     }
 
@@ -379,18 +422,33 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
         printf(".data\n");
 
         // Calculate stack offsets and populate the data section
+        int startingOffset = 4;
         Vector *variables = declarations->functionScope->variables;
         for(int i = 0; i < variables->size; i++) {
             ScopeElement *element = vectorGet(variables, i);
             if(element->elementType == SCOPE_VAR) {
                 ScopeVariable *var = element->variable;
-                var->offset = (4 * i) + 4;
-                var->offset *= - 1;
-
-                // Handle string constants
                 if(var->type == CHAR_ARRAY_TYPE) {
-                    printf("%s:\t.asciiz %s\n", element->protectedIdentifier,
-                            var->value->char_array_value);
+                    if(var->value != NULL) {
+                        printf("%s:\t.asciiz %s\n", element->protectedIdentifier,
+                                var->value->char_array_value);
+                    } else {
+                        int spaceToAllocate = 4 * var->size;
+                        var->offset = startingOffset;
+                        var->offset *= - 1;
+                        startingOffset += spaceToAllocate;
+                        printf("%s:\t.space %d\n", element->protectedIdentifier, spaceToAllocate);
+                    }
+                } else if(var->type == INT_ARRAY_TYPE) {
+                    int spaceToAllocate = 4 * var->size;
+                    var->offset = startingOffset;
+                    var->offset *= - 1;
+                    startingOffset += spaceToAllocate;
+                    printf("%s:\t.space %d\n", element->protectedIdentifier, spaceToAllocate);
+                } else {
+                    var->offset = (4 * i) + 4;
+                    var->offset *= - 1;
+                    startingOffset += 4;
                 }
             }
         }
