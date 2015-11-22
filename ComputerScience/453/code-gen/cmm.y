@@ -392,11 +392,11 @@ void resetFunctionType() {
 }
 
 int main(int argc, char **argv) {
-    FILE *debugFile = NULL;
 #ifdef DEBUG
+    FILE *debugFile = NULL;
     debugFile = fopen("debug.log", "w");
-    setDebuggingLevel(E_ALL);
     setDebugOutputStream(debugFile);
+    setDebuggingLevel(E_ALL);
 #endif
     globalScope = newScope(NULL);
     scope = newScope(globalScope);
