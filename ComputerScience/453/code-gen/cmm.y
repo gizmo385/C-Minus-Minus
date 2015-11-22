@@ -392,8 +392,11 @@ void resetFunctionType() {
 }
 
 int main(int argc, char **argv) {
+    FILE *debugFile = NULL;
 #ifdef DEBUG
+    debugFile = fopen("debug.log", "w");
     setDebuggingLevel(E_ALL);
+    setDebugOutputStream(debugFile);
 #endif
     globalScope = newScope(NULL);
     scope = newScope(globalScope);
@@ -405,8 +408,14 @@ int main(int argc, char **argv) {
         // Generate code for the syntax tree
         debug(E_DEBUG, "-------------------BEGIN CODE GEN-------------------\n");
         generateCode(root);
-        return 0;
     }
+
+#ifdef DEBUG
+    fclose(debugFile);
+#endif
+
+    return 0;
+
 }
 
 int yyerror() {
