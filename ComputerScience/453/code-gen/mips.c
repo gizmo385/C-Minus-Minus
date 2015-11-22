@@ -171,7 +171,7 @@ static void generateMips(char *functionName, TACInstruction *instruction) {
                             instruction->src1->protectedIdentifier,
                             instruction->src2->protectedIdentifier);
                     // Determine the element type
-                    Type type = instruction->src1->variable->type;
+                    Type type = instruction->dest->variable->type;
                     type = type == INT_ARRAY_TYPE ? INT_TYPE : CHAR_TYPE;
 
                     varIntoRegister(instruction->src2, "$t0"); // Location of the value to store
