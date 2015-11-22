@@ -14,7 +14,7 @@ int globalDebugLevel;
 #ifndef DEBUG_OUTPUT_STREAM
 #define DEBUG_OUTPUT_STREAM
 
-FILE *debugOutputStream;
+FILE *debugOutputStream = NULL;
 
 #endif
 
@@ -24,7 +24,7 @@ void setDebuggingLevel( int debugLevel ) {
 }
 
 void setDebugOutputStream( FILE *outputStream ) {
-    if( ! outputStream ) {
+    if(outputStream ) {
         debugOutputStream = outputStream;
     }
 }
