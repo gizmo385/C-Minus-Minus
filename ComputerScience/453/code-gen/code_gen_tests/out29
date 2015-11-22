@@ -1,0 +1,25 @@
+Testing the == operator
+1 == 1 --> CORRECT
+2 == 1 --> CORRECT
+Testing the != operator
+1 != 1 --> CORRECT
+2 != 1 --> CORRECT
+Testing the >= operator
+3 >= 2 --> CORRECT
+3 >= 3 --> CORRECT
+2 >= 3 --> CORRECT
+Testing the > operator
+3 > 2 --> CORRECT
+3 > 3 --> CORRECT
+2 > 3 --> CORRECT
+Testing the <= operator
+3 <= 2 --> CORRECT
+3 <= 3 --> CORRECT
+2 <= 3 --> CORRECT
+Testing the < operator
+3 < 2 --> CORRECT
+3 < 3 --> CORRECT
+2 < 3 --> CORRECT
+Testing the ! (NOT) operator
+!(1 == 1) --> CORRECT
+!(1 != 1) --> CORRECT
