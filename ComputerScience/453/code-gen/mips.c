@@ -70,23 +70,19 @@ void registerIntoVar(ScopeElement *varElem, char *reg) {
     }
 }
 
-static void constantToReg(ScopeElement *destElem, char *reg) {
+static void constantToReg(ScopeElement *srcElem, char *reg) {
     // Since there is not a source, we're assigning a constant
-    ScopeVariable *dest = destElem->variable;
-    Type type = dest->type;
-    Value *value = dest->value;
+    ScopeVariable *src = srcElem->variable;
+    Type type = src->type;
+    Value *value = src->value;
 
     printf("\t# Assigning constant: %s\n", constantValueString(type, value));
     if(type == CHAR_TYPE) {
         printf("\tli %s, %d\n", reg, value->char_value);
     } else if(type == INT_TYPE) {
         // Load the 32 bit integer register, then store it on the stack
-        int constant = value->integer_value;
-        unsigned int higher = constant & 0xFFFF0000;
-        unsigned int lower = constant & 0x0000FFFF;
-
-        printf("\tlui %s, %d\n", reg, higher);
-        printf("\tori %s, %d\n", reg, lower);
+        int constant = value->integer_value & 0x7FFFFFFF;
+        printf("\tli %s, %d\n", reg, constant);
     } else if(type == INT_ARRAY_TYPE) {
         debug(E_DEBUG, "INT ARRAY ASSIGNMENT NOT SUPPORTED\n");
     } else if(type == CHAR_ARRAY_TYPE) {
