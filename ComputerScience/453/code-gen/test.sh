@@ -22,6 +22,6 @@ for test_num in `seq 1 ${num_tests}`; do
     echo Compiling ${test_file} with compiler:
     ./compile < ${test_file} > ${asm_file}
     spim -file ${asm_file} | tail -n +2 > ${output_file}
-    diff ${output_file} ${correct_out}
+    diff --suppress-common-lines --side-by-side ${output_file} ${correct_out}
     mv debug.log debug_logs/debug${test_num}.log
 done
