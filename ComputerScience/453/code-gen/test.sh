@@ -3,6 +3,12 @@
 directory=code_gen_tests
 num_tests=$(ls -l ${directory} | grep -E "test\d+\.c" | wc -l)
 
+############################### LIMITS ##############################
+        ulimit -c 0
+        ulimit -t 20
+        ulimit -f 1000
+#####################################################################
+
 echo "Compiling compiler..."
 make debug 2>/dev/null >/dev/null
 
