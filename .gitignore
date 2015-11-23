@@ -264,3 +264,12 @@ pom.xml.asc
 *.aux
 *.out
 *.log
+
+# Compiler stuff
+compile
+compile.dSYM/*
+cmm.lex.c
+cmm.tab.c
+cmm.tab.h
+*.output
+*.s
