@@ -1,6 +1,6 @@
 #!/bin/bash
 
-directory=code_gen_tests
+directory=tests/code_gen
 num_tests=$(ls -l ${directory} | grep -E "test\d+\.c" | wc -l)
 
 ############################### LIMITS ##############################
@@ -29,5 +29,5 @@ for test_num in `seq 1 ${num_tests}`; do
     ./compile < ${test_file} > ${asm_file}
     spim -file ${asm_file} | tail -n +2 > ${output_file}
     diff --suppress-common-lines --side-by-side ${output_file} ${correct_out}
-    mv debug.log debug_logs/debug${test_num}.log
+    mv ./debug.log tests/debug_logs/debug${test_num}.log
 done
