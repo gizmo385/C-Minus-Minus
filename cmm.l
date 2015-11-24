@@ -86,6 +86,9 @@ int mycolno = 1;
 <comment>\n                         { mylineno += 1; mycolno = 1;}
 <comment>"*"+"/"                    { mycolno += strlen(yytext); BEGIN(INITIAL); }
 
+\/\/.+\n                            { mycolno = 0; mylineno += 1; }
+
+    /* Newlines */
 \n                                  { mylineno += 1; mycolno = 1; }
 
 %%
