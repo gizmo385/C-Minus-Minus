@@ -15,7 +15,6 @@ int mycolno = 1;
 
 
 %x comment
-%x character_character looking_for_quote char_con_error
 %%
 
 
