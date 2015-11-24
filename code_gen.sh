@@ -10,7 +10,7 @@ num_tests=$(ls -l ${directory} | grep -E "test\d+\.c" | wc -l)
 #####################################################################
 
 echo "Compiling compiler..."
-make debug 2>/dev/null >/dev/null
+make clean debug 2>/dev/null >/dev/null
 
 # Run the passing test code
 echo "Running tests..."
