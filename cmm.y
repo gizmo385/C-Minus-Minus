@@ -32,6 +32,7 @@ FunctionDeclaration *root;
 Vector *parametersVector(FunctionParameter *parameters);
 bool addFunctionDeclarationToScope(Type type, char *identifier, FunctionParameter *parameters);
 void resetFunctionType();
+void markGlobals(Scope *scope);
 
 %}
 
@@ -94,16 +95,12 @@ prog : decl prog { $$ = $2; root = $$; }
      | func prog { $1->next = $2; $$ = $1; root = $$; }
      | epsilon { $$ = NULL; root = $$; }
 
+/**************************************************************************************************
+ * DECLARATIONS
+ *************************************************************************************************/
 decl : type var_decl_list SEMICOLON
         {
-            Vector *vars = scope->variables;
-            for(int i = 0; i < vars->size; i++) {
-                ScopeElement *elem = vectorGet(vars, i);
-                if(elem->elementType == SCOPE_VAR) {
-                    debug(E_DEBUG, "Making global variable %s\n", elem->identifier);
-                    elem->variable->global = true;
-                }
-            }
+            markGlobals(scope);
             globalScope = flattenScope(scope);
             scope = newScope(globalScope); // Clear out the scope the declaration was made in (ew)
             resetFunctionType();
@@ -133,6 +130,26 @@ decl : type var_decl_list SEMICOLON
      | error SEMICOLON
      ;
 
+name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
+                    {
+                        debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $1, typeName(currentFunctionReturnType));
+                        Vector *params = parametersVector($3);
+                        declareFunction(globalScope, currentFunctionReturnType, $1, params, declaredExtern, true);
+                        scope = newScope(globalScope);
+                    }
+                | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
+                    {
+                        debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $3, typeName(currentFunctionReturnType));
+                        Vector *params = parametersVector($5);
+                        declareFunction(globalScope, currentFunctionReturnType, $3, params, declaredExtern, true);
+                        scope = newScope(globalScope);
+                    }
+                ;
+
+
+/**************************************************************************************************
+ * FUNCTION DECLARATIONS
+ *************************************************************************************************/
 extern : EXTERN { declaredExtern = true; }
 
 func_header : type ID LEFT_PAREN param_types RIGHT_PAREN
@@ -165,26 +182,44 @@ func : func_header LEFT_CURLY_BRACKET optional_var_decl_list stmt_list RIGHT_CUR
         }
         ;
 
+optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
+                        { baseDeclType = $1; $2->next = $4; $$ = $2; }
+                       | epsilon                                { $$ = NULL; }
+
+
+/**************************************************************************************************
+ * STATEMENTS
+ *************************************************************************************************/
 stmt : IF LEFT_PAREN expr RIGHT_PAREN stmt %prec WITHOUT_ELSE   { $$ = newIfStatement(scope, $3, $5); }
      | IF LEFT_PAREN expr RIGHT_PAREN stmt ELSE stmt            { $$ = newIfElseStatement(scope, $3, $5, $7); }
      | WHILE LEFT_PAREN expr RIGHT_PAREN stmt                   { $$ = newWhileStatement(scope, $3, $5); }
      | FOR LEFT_PAREN optional_assign SEMICOLON optional_expr SEMICOLON optional_assign RIGHT_PAREN stmt
-        {
-            $$ = newForStatement(scope, $3, $5, $7, $9);
-        }
+        { $$ = newForStatement(scope, $3, $5, $7, $9); }
      | RETURN optional_expr SEMICOLON                           { $$ = newReturnStatement(scope, $2); }
      | assg SEMICOLON                                           { $$ = $1; }
      | ID LEFT_PAREN expr_list RIGHT_PAREN SEMICOLON
-        {
-            Expression *func = newFunctionExpression(scope, $1, $3);
-            $$ = newFunctionCallStatement(scope, func);
-        }
+        { $$ = newFunctionCallStatement(scope, newFunctionExpression(scope, $1, $3)); }
      | LEFT_CURLY_BRACKET stmt_list RIGHT_CURLY_BRACKET         { $$ = $2; }
      | SEMICOLON                                                { $$ = NULL; }
      | error SEMICOLON                                          { $$ = NULL; }
      | error RIGHT_CURLY_BRACKET                                { $$ = NULL; }
      ;
 
+stmt_list : stmt stmt_list
+            {
+                if($1) {
+                    $1->next = $2;
+                    $$ = $1;
+                } else {
+                    $$ = NULL;
+                }
+            }
+          | epsilon                                             { $$ = NULL; }
+          ;
+
+/**************************************************************************************************
+ * EXPRESSIONS
+ *************************************************************************************************/
 expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpression(NEG_OP, $2); }
      | NOT expr %prec UMINUS                            { $$ = newUnaryExpression(NOT_OP, $2); }
      | expr ADD expr %prec add_sub                      { $$ = newBinaryExpression(ADD_OP, $1, $3); }
@@ -209,22 +244,22 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
      | error                                            { $$ = NULL; }
      ;
 
-name_args_lists : ID LEFT_PAREN param_types RIGHT_PAREN
-                    {
-                        debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $1, typeName(currentFunctionReturnType));
-                        Vector *params = parametersVector($3);
-                        declareFunction(globalScope, currentFunctionReturnType, $1, params, declaredExtern, true);
-                        scope = newScope(globalScope);
-                    }
-                | name_args_lists COMMA ID LEFT_PAREN param_types RIGHT_PAREN
-                    {
-                        debug(E_DEBUG, "Declaring prototype for %s with type %s\n", $3, typeName(currentFunctionReturnType));
-                        Vector *params = parametersVector($5);
-                        declareFunction(globalScope, currentFunctionReturnType, $3, params, declaredExtern, true);
-                        scope = newScope(globalScope);
-                    }
-                ;
+optional_expr : expr                                    { $$ = $1; }
+              | epsilon                                 { $$ = NULL; }
+              ;
 
+expr_list : optional_expr                               { $$ = $1; }
+          | expr_list COMMA expr                        { $3->next = $1; $$ = $3; }
+
+int_expr: INTCON                                        { $$ = newIntConstExpression(atoi(strdup(yytext))); }
+        ;
+
+char_expr: CHARCON                                      { $$ = newCharConstExpression(strdup(yytext)); }
+         ;
+
+/**************************************************************************************************
+ * VARIABLE DECLARATIONS
+ *************************************************************************************************/
 var_decl : ID
             {
                 declareVar(scope, baseDeclType, $1, false);
@@ -232,17 +267,9 @@ var_decl : ID
             }
          | ID LEFT_SQUARE_BRACKET int_expr RIGHT_SQUARE_BRACKET
             {
-                ScopeElement *elem = NULL;
-                if(baseDeclType == INT_TYPE) {
-                    elem = declareVar(scope, INT_ARRAY_TYPE, $1, false);
-                    $$ = newVariable(INT_ARRAY_TYPE, $1);
-                } else if(baseDeclType == CHAR_TYPE) {
-                    elem = declareVar(scope, CHAR_ARRAY_TYPE, $1, false);
-                    $$ = newVariable(CHAR_ARRAY_TYPE, $1);
-                } else {
-                    fprintf(stderr, "ERROR: Cannot determine type when declaring %s on line %d!\n", $1, mylineno);
-                    foundError = true;
-                }
+                Type arrayType = baseDeclType == INT_TYPE ? INT_ARRAY_TYPE : CHAR_ARRAY_TYPE;
+                ScopeElement *elem = declareVar(scope, arrayType, $1, false);
+                $$ = newVariable(arrayType, $1);
                 elem->variable->size = $3->constantExpression->value->integer_value;
                 elem->variable->value = NULL;
             }
@@ -252,6 +279,9 @@ var_decl_list : var_decl                        { $$ = $1; }
               | var_decl_list COMMA var_decl    { $1->next = $3; $$ = $1; }
               | epsilon                         { $$ = NULL; }
 
+/**************************************************************************************************
+ * TYPES
+ *************************************************************************************************/
 void : VOID
         {
             if(!funcTypeSet) {
@@ -277,6 +307,9 @@ type : CHAR
         }
      ;
 
+/**************************************************************************************************
+ * FUNCTION PARAMETERS
+ *************************************************************************************************/
 param_types : void                                              { $$ = NULL; }
             | non_void_param_type                               { $$ = $1; }
             | param_types_list COMMA non_void_param_type        { $3->next = $1; $$ = $3; }
@@ -312,33 +345,9 @@ param_types_list : non_void_param_type                          { $$ = $1; }
                  | epsilon                                      { $$ = NULL; }
                  ;
 
-optional_var_decl_list : type var_decl_list SEMICOLON optional_var_decl_list
-                        {
-                            baseDeclType = $1; $2->next = $4; $$ = $2;
-                        }
-                       | epsilon                                { $$ = NULL; }
-
-optional_assign: assg                                           { $$ = $1; }
-               | error                                          { $$ = NULL; }
-               | epsilon                                        { $$ = NULL; }
-               ;
-
-optional_expr : expr                                            { $$ = $1; }
-              | epsilon                                         { $$ = NULL; }
-              ;
-
-stmt_list : stmt stmt_list
-            {
-                if($1) {
-                    $1->next = $2;
-                    $$ = $1;
-                } else {
-                    $$ = NULL;
-                }
-            }
-          | epsilon                                             { $$ = NULL; }
-          ;
-
+/**************************************************************************************************
+ * ASSIGNMENTS
+ *************************************************************************************************/
 assg : ID ASSIGN expr
         {
             $$ = newAssignmentStatement(scope, $1, NULL, $3);
@@ -349,19 +358,26 @@ assg : ID ASSIGN expr
         }
      ;
 
-expr_list : optional_expr                                       { $$ = $1; }
-          | expr_list COMMA expr                                { $3->next = $1; $$ = $3; }
-
-int_expr: INTCON                                                { $$ = newIntConstExpression(atoi(strdup(yytext))); }
-        ;
-
-char_expr: CHARCON                                              { $$ = newCharConstExpression(strdup(yytext)); }
-         ;
+optional_assign: assg                                           { $$ = $1; }
+               | error                                          { $$ = NULL; }
+               | epsilon                                        { $$ = NULL; }
+               ;
 
 epsilon:
        ;
 
 %%
+
+void markGlobals(Scope *scope) {
+    Vector *vars = scope->variables;
+    for(int i = 0; i < vars->size; i++) {
+        ScopeElement *elem = vectorGet(vars, i);
+        if(elem->elementType == SCOPE_VAR) {
+            debug(E_DEBUG, "Making global variable %s\n", elem->identifier);
+            elem->variable->global = true;
+        }
+    }
+}
 
 Vector *parametersVector(FunctionParameter *parameters) {
     Vector *params = newVector(5);
