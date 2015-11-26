@@ -226,4 +226,18 @@ typedef struct FunctionDeclaration {
     struct FunctionDeclaration *next;
 } FunctionDeclaration;
 
+/* Struct declarations */
+typedef struct StructField {
+    char *fieldName;
+    Type type;
+    int size;
+
+    struct StructField *next;
+} StructField;
+
+typedef struct StructDeclaration {
+    char *identifier;
+    StructField *fields;
+} StructDeclaration;
+
 #endif

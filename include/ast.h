@@ -27,6 +27,8 @@ extern Statement *newReturnStatement(Scope *scope, Expression *returnValue);
 extern Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *arrayIndex, Expression *expression);
 
 /* Constructor functions for Declarations */
+extern StructField *newStructField(char *fieldName, Type type);
+extern StructDeclaration *newStructDeclaration(char *identifier, StructField *fields);
 extern FunctionParameter *newFunctionParameter(Type type, char *identifier);
 extern VariableDeclaration *newVariable(Type type, char *identifier);
 extern FunctionDeclaration *newFunction(Type returnType, char *functionName, Vector *parameters,

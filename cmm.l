@@ -33,6 +33,7 @@ int mycolno = 1;
 "void"                              { mycolno += strlen(yytext); return VOID; }
 "int"                               { mycolno += strlen(yytext); return INT; }
 "extern"                            { mycolno += strlen(yytext); return EXTERN; }
+"struct"                            { mycolno += strlen(yytext); return STRUCT; }
 
     /* EQUALITY OPERATORS */
 "=="                                { mycolno += strlen(yytext); return EQ; }

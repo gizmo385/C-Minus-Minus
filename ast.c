@@ -311,6 +311,22 @@ FunctionDeclaration *newFunction(Type returnType, char *functionName, Vector *pa
     return funcDecl;
 }
 
+StructField *newStructField(char *fieldName, Type type) {
+    StructField *field = calloc(1, sizeof(StructField));
+    field->fieldName = fieldName;
+    field->type = type;
+
+    return field;
+}
+
+StructDeclaration *newStructDeclaration(char *identifier, StructField *fields) {
+    StructDeclaration *structDeclaration = calloc(1, sizeof(StructDeclaration));
+    structDeclaration->identifier = identifier;
+    structDeclaration->fields = fields;
+
+    return structDeclaration;
+}
+
 /* Utility Functions */
 char *expressionTypeName(Expression *expression) {
     char *name = "ERROR";

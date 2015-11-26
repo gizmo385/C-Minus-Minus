@@ -43,6 +43,8 @@ void markGlobals(Scope *scope);
     FunctionParameter *parameter;
     FunctionDeclaration *functionDeclaration;
     VariableDeclaration *variableDeclaration;
+    StructField *structField;
+    StructDeclaration *structDeclaration;
     char *string;
 }
 
@@ -51,6 +53,8 @@ void markGlobals(Scope *scope);
 %type<type> type
 %type<functionDeclaration> func prog
 %type<variableDeclaration> optional_var_decl_list var_decl var_decl_list
+%type<structField> field_name field_name_list struct_field struct_field_list
+%type<structDeclaration> struct_declaration
 %type<parameter> param_types param_types_list non_void_param_type
 %type<string> func_header
 
@@ -58,7 +62,7 @@ void markGlobals(Scope *scope);
 %token WHILE FOR
 %token INT CHAR VOID
 %token IF ELSE
-%token EXTERN RETURN
+%token EXTERN RETURN STRUCT
 %token COMMA SEMICOLON
 
 /* Brackets */
@@ -127,6 +131,7 @@ decl : type var_decl_list SEMICOLON
             declaredExtern = false;
             resetFunctionType();
         }
+     | struct_declaration
      | error SEMICOLON
      ;
 
@@ -306,6 +311,43 @@ type : CHAR
             baseDeclType = INT_TYPE; $$ = INT_TYPE;
         }
      ;
+
+/**************************************************************************************************
+ * STRUCT DECLARATIONS
+ *************************************************************************************************/
+field_name : ID { $$ = newStructField($1, baseDeclType); }
+           | ID LEFT_SQUARE_BRACKET int_expr RIGHT_SQUARE_BRACKET
+            {
+                Type arrayType = baseDeclType == INT_TYPE ? INT_ARRAY_TYPE : CHAR_ARRAY_TYPE;
+                StructField *field = newStructField($1, arrayType);
+                field->size = $3->constantExpression->value->integer_value;
+
+                $$ = field;
+            }
+
+field_name_list : field_name { $$ = $1; }
+                | field_name_list COMMA field_name
+                {
+                    StructField *old = $1;
+                    StructField *new = $3;
+                    new->next = old;
+                    $$ = new;
+                }
+
+struct_field : type field_name_list { $$ = $2 }
+
+struct_field_list : struct_field SEMICOLON struct_field_list
+                    {
+                        StructField *old = $3;
+                        StructField *new = $1;
+                        new->next = old;
+
+                        $$ = new;
+                    }
+                  | epsilon { $$ = NULL; }
+
+struct_declaration : STRUCT ID LEFT_CURLY_BRACKET struct_field_list RIGHT_CURLY_BRACKET SEMICOLON
+                    { $$ = newStructDeclaration($2, $4); }
 
 /**************************************************************************************************
  * FUNCTION PARAMETERS
