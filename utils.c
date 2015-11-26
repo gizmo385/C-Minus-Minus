@@ -29,7 +29,7 @@ void setDebugOutputStream( FILE *outputStream ) {
     }
 }
 
-void debug( int debugType, const char *format, ... ) {
+void _debug(int debugType, const char *format, ...) {
     if( (globalDebugLevel & debugType) == debugType ) {
         va_list args;
         va_start(args, format);

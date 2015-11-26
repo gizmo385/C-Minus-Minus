@@ -17,6 +17,13 @@
 #define assertNull(assertionValue, msgFormat, ...) __assert(((assertionValue) == NULL), __FILE__, __LINE__, __func__, msgFormat,  ##__VA_ARGS__ )
 #define assertNotNull(assertionValue, msgFormat, ...) __assert(((assertionValue) != NULL), __FILE__, __LINE__, __func__, msgFormat,  ##__VA_ARGS__ )
 
+/* Debug macro */
+#ifdef DEBUG
+    #define debug(debugType, format, ...) _debug((debugType), (format), ##__VA_ARGS__)
+#else
+    #define debug(debugType, format, ...) if(0) _debug((debugType), (format), ##__VA_ARGS__)
+#endif
+
 extern int globalDebugLevel;
 extern FILE *debugOutputStream;
 
@@ -29,7 +36,7 @@ extern FILE *debugOutputStream;
  * format    -- The format for printing. This follows the same rules as printf
  * VA_ARGS   -- The items that will be printed by printf
  */
-extern void debug( int debugType, const char *format, ... );
+extern void _debug( int debugType, const char *format, ... );
 
 /*
  * Sets the types of debug messages that will be printed.
