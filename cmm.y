@@ -21,9 +21,10 @@ bool foundError = false;
 bool funcTypeSet = false;
 bool declaredExtern = false;
 Type currentFunctionReturnType = VOID_TYPE;
+Type baseDeclType;
+ScopeElement *currentStruct;
 Scope *globalScope;
 Scope *scope;
-Type baseDeclType;
 
 // Root of the syntax tree
 FunctionDeclaration *root;
@@ -63,7 +64,7 @@ void markGlobals(Scope *scope);
 %token INT CHAR VOID
 %token IF ELSE
 %token EXTERN RETURN STRUCT
-%token COMMA SEMICOLON
+%token COMMA SEMICOLON PERIOD
 
 /* Brackets */
 %token LEFT_PAREN RIGHT_PAREN
@@ -267,8 +268,13 @@ char_expr: CHARCON                                      { $$ = newCharConstExpre
  *************************************************************************************************/
 var_decl : ID
             {
-                declareVar(scope, baseDeclType, $1, false);
-                $$ = newVariable(baseDeclType, $1);
+                ScopeElement *var = declareVar(scope, baseDeclType, $1, false);
+                VariableDeclaration *varDecl = newVariable(baseDeclType, $1);
+                if(baseDeclType == STRUCT_TYPE) {
+                    var->variable->structure = currentStruct;
+                    varDecl->structure = currentStruct;
+                }
+                $$ = varDecl;
             }
          | ID LEFT_SQUARE_BRACKET int_expr RIGHT_SQUARE_BRACKET
             {
@@ -294,6 +300,7 @@ void : VOID
                 funcTypeSet = true;
             }
         }
+
 type : CHAR
         {
             if(!funcTypeSet) {
@@ -309,6 +316,16 @@ type : CHAR
                 funcTypeSet = true;
             }
             baseDeclType = INT_TYPE; $$ = INT_TYPE;
+        }
+     | STRUCT ID
+        {
+            baseDeclType = STRUCT_TYPE;
+            ScopeElement *structElem = findScopeElement(globalScope, $2);
+            currentStruct = structElem;
+
+            debug(E_DEBUG, "Declaration of variable with type \"struct %s\"\n", structElem->identifier);
+
+            $$ = STRUCT_TYPE;
         }
      ;
 
@@ -396,11 +413,15 @@ param_types_list : non_void_param_type                          { $$ = $1; }
  *************************************************************************************************/
 assg : ID ASSIGN expr
         {
-            $$ = newAssignmentStatement(scope, $1, NULL, $3);
+            $$ = newAssignmentStatement(scope, $1, NULL, NULL, $3);
         }
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr
         {
-            $$ = newAssignmentStatement(scope, $1, $3, $6);
+            $$ = newAssignmentStatement(scope, $1, NULL, $3, $6);
+        }
+     | ID PERIOD ID ASSIGN expr
+        {
+            $$ = newAssignmentStatement(scope, $1, $3, NULL, $5);
         }
      ;
 

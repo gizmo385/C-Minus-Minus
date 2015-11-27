@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <string.h>
 #include <stdio.h>
 #include "ast.h"
 #include "utils.h"
@@ -310,6 +311,21 @@ static inline void typeCheckAssignmentStatement(Scope *scope, AssignmentStatemen
 
                     } else {
                         error(ARRAY_AS_VAR, identifier);
+                    }
+                } else if(varType == STRUCT_TYPE) {
+                    char *field = stmt->field;
+                    StructDeclaration *structure = var->structure->structure->structure;
+                    StructField *fields = structure->fields;
+
+                    while(fields) {
+                        if(strcmp(field, fields->fieldName) == 0) {
+                            Type fieldType = fields->type;
+                            if(! typesCompatible(fieldType, exprType)) {
+                                error(VAR_TYPE_MISMATCH, typeName(exprType), typeName(fieldType));
+                            }
+                            break;
+                        }
+                        fields = fields->next;
                     }
                 } else {
                     // Type checking for non-array assignment

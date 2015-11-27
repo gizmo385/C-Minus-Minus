@@ -24,7 +24,8 @@ extern Statement *newIfElseStatement(Scope *scope, Expression *condition, Statem
 extern Statement *newFunctionCallStatement(Scope *scope, Expression *functionCall);
 extern Statement *newReturnStatement(Scope *scope, Expression *returnValue);
 extern Statement *newReturnStatement(Scope *scope, Expression *returnValue);
-extern Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *arrayIndex, Expression *expression);
+extern Statement *newAssignmentStatement(Scope *scope, char *identifier, char *field,
+        Expression *arrayIndex, Expression *expression);
 
 /* Constructor functions for Declarations */
 extern StructField *newStructField(char *fieldName, Type type);

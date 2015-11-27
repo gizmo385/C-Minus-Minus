@@ -61,6 +61,8 @@ typedef struct {
     int offset; // Offset from the frame pointer
     bool global;
     bool parameter;
+
+    struct ScopeElement *structure; // only used if type == STRUCT_TYPE
 } ScopeVariable;
 
 typedef struct {
@@ -174,6 +176,7 @@ typedef struct Statement Statement;
 
 typedef struct {
     char *identifier;
+    char *field;
     Expression *arrayIndex;
     Expression *expression;
 } AssignmentStatement;
@@ -232,6 +235,8 @@ typedef struct VariableDeclaration {
     Type type;
     char *identifier;
     struct VariableDeclaration *next;
+
+    ScopeElement *structure;
 } VariableDeclaration;
 
 typedef struct FunctionDeclaration {
@@ -246,19 +251,5 @@ typedef struct FunctionDeclaration {
 
     struct FunctionDeclaration *next;
 } FunctionDeclaration;
-
-/* Struct declarations */
-typedef struct StructField {
-    char *fieldName;
-    Type type;
-    int size;
-
-    struct StructField *next;
-} StructField;
-
-typedef struct StructDeclaration {
-    char *identifier;
-    StructField *fields;
-} StructDeclaration;
 
 #endif

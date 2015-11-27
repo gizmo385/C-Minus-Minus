@@ -69,6 +69,7 @@ int mycolno = 1;
     /* Delimiters */
 ";"                                 { mycolno += strlen(yytext); return SEMICOLON; }
 ","                                 { mycolno += strlen(yytext); return COMMA; }
+"."                                 { mycolno += strlen(yytext); return PERIOD; }
 
     /* IDENTIFIERS */
 [a-zA-Z][a-zA-Z0-9\_]*               { mycolno += strlen(yytext); yylval.string = strdup(yytext); return ID; }

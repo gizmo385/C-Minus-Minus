@@ -259,9 +259,11 @@ Statement *newReturnStatement(Scope *scope, Expression *returnValue) {
     return stmt;
 }
 
-Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *arrayIndex, Expression *expression) {
-    AssignmentStatement *assign = malloc(sizeof(AssignmentStatement));
+Statement *newAssignmentStatement(Scope *scope, char *identifier, char *field,
+        Expression *arrayIndex, Expression *expression) {
+    AssignmentStatement *assign = calloc(1, sizeof(AssignmentStatement));
     assign->identifier = identifier;
+    assign->field = field;
     assign->arrayIndex = arrayIndex;
     assign->expression = expression;
 
@@ -324,6 +326,13 @@ StructDeclaration *newStructDeclaration(char *identifier, StructField *fields) {
     structDeclaration->identifier = identifier;
     structDeclaration->fields = fields;
 
+    debug(E_DEBUG, "Adding struct %s with fields: ", identifier);
+    while(fields) {
+        debug(E_DEBUG, "%s (%s) ", fields->fieldName, typeName(fields->type));
+        fields = fields->next;
+    }
+    debug(E_DEBUG, "\n");
+
     return structDeclaration;
 }
 
@@ -352,6 +361,7 @@ char *typeName(Type type) {
         case INT_ARRAY_TYPE: name = "INT_ARRAY"; break;
         case VOID_TYPE: name = "VOID"; break;
         case BOOL_TYPE: name = "BOOL"; break;
+        case STRUCT_TYPE: name = "STRUCT"; break;
         default: break;
     }
     return name;
