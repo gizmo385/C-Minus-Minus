@@ -423,6 +423,10 @@ assg : ID ASSIGN expr
         {
             $$ = newAssignmentStatement(scope, $1, $3, NULL, $5);
         }
+     | ID PERIOD ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET ASSIGN expr
+        {
+            $$ = newAssignmentStatement(scope, $1, $3, $5, $8);
+        }
      ;
 
 optional_assign: assg                                           { $$ = $1; }
@@ -478,7 +482,7 @@ int main(int argc, char **argv) {
 #ifdef DEBUG
     FILE *debugFile = NULL;
     debugFile = fopen("debug.log", "w");
-    setDebugOutputStream(debugFile);
+    /*setDebugOutputStream(debugFile);*/
     setDebuggingLevel(E_ALL);
 #endif
     globalScope = newScope(NULL);

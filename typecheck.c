@@ -320,6 +320,15 @@ static inline void typeCheckAssignmentStatement(Scope *scope, AssignmentStatemen
                     while(fields) {
                         if(strcmp(field, fields->fieldName) == 0) {
                             Type fieldType = fields->type;
+
+                            // Validate the field type
+                            if(fieldType == INT_ARRAY_TYPE) {
+                                fieldType = INT_TYPE;
+                            } else if(fieldType == CHAR_ARRAY_TYPE) {
+                                fieldType = CHAR_TYPE;
+                            }
+
+                            // Check that it matches the type of the expression
                             if(! typesCompatible(fieldType, exprType)) {
                                 error(VAR_TYPE_MISMATCH, typeName(exprType), typeName(fieldType));
                             }
