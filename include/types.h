@@ -11,6 +11,7 @@ typedef enum {
     INT_ARRAY_TYPE,
     VOID_TYPE,
     BOOL_TYPE,
+    STRUCT_TYPE,
     ERROR_TYPE,
     UNKNOWN
 } Type;
@@ -24,6 +25,21 @@ typedef union {
     int *int_array_value;
 } Value;
 
+/* Struct declarations */
+typedef struct StructField {
+    char *fieldName;
+    Type type;
+    int size;
+
+    struct StructField *next;
+} StructField;
+
+typedef struct StructDeclaration {
+    char *identifier;
+    StructField *fields;
+} StructDeclaration;
+
+
 /* Function Parameters */
 typedef struct FunctionParameter {
     Type type;
@@ -32,7 +48,11 @@ typedef struct FunctionParameter {
 } FunctionParameter;
 
 /* Defining the structure of the Scope */
-typedef enum { SCOPE_VAR, SCOPE_FUNC, SCOPE_LABEL} ScopeElementType;
+typedef enum { SCOPE_VAR, SCOPE_FUNC, SCOPE_LABEL, SCOPE_STRUCT } ScopeElementType;
+
+typedef struct {
+    StructDeclaration *structure;
+} ScopeStruct;
 
 typedef struct {
     Type type;
@@ -57,6 +77,7 @@ typedef struct ScopeElement {
     union {
         ScopeVariable *variable;
         ScopeFunction *function;
+        ScopeStruct *structure;
     };
 } ScopeElement;
 

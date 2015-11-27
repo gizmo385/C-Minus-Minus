@@ -84,6 +84,20 @@ ScopeElement *findScopeElement(Scope *scope, char *identifier) {
     return elem;
 }
 
+void declareStruct(Scope *scope, char *identifier, StructDeclaration *structDeclaration) {
+    ScopeStruct *structure = calloc(1, sizeof(ScopeStruct));
+    structure->structure = structDeclaration;
+
+    ScopeElement *scopeElement = calloc(1, sizeof(ScopeElement));
+    scopeElement->identifier = identifier;
+    scopeElement->protectedIdentifier = identifier;
+    scopeElement->elementType = SCOPE_STRUCT;
+    scopeElement->structure = structure;
+
+    debug(E_DEBUG, "Adding the struct \"%s\" to scope.\n", identifier);
+    vectorAdd(scope->variables, scopeElement);
+}
+
 ScopeElement* declareVar(Scope *scope, Type type, char *identifier, bool parameter) {
     ScopeElement *foundVar = inLocalScope(scope, identifier);
 

@@ -347,7 +347,11 @@ struct_field_list : struct_field SEMICOLON struct_field_list
                   | epsilon { $$ = NULL; }
 
 struct_declaration : STRUCT ID LEFT_CURLY_BRACKET struct_field_list RIGHT_CURLY_BRACKET SEMICOLON
-                    { $$ = newStructDeclaration($2, $4); }
+                    {
+                        StructDeclaration *structure = newStructDeclaration($2, $4);
+                        declareStruct(globalScope, $2, structure);
+                        $$ = structure;
+                    }
 
 /**************************************************************************************************
  * FUNCTION PARAMETERS

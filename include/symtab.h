@@ -10,6 +10,7 @@ extern Scope *stripScope(Scope *scope);
 extern ScopeElement *findScopeElement(Scope *scope, char *identifier);
 
 /* Declaring new variables and functions inside of a scope */
+extern void declareStruct(Scope *scope, char *identifier, StructDeclaration *structDeclaration);
 extern ScopeElement* declareVar(Scope *scope, Type type, char *identifier, bool parameter);
 extern bool declareFunction(Scope *scope, Type returnType, char *identifier, Vector *parameters,
         bool declaredExtern, bool isPrototype);
