@@ -18,13 +18,13 @@ endif
 
 files=utils.o vector.o ast.o symtab.o typecheck.o errors.o three.o codegen.o mips.o cmm.l cmm.y
 
-compile: $(files)
+compile: clean $(files)
 	bison -o cmm.tab.c -d --debug --verbose cmm.y
 	flex -o cmm.lex.c cmm.l
 	${CC} ${CFLAGS} -o compile cmm.tab.c cmm.lex.c *.o ${FLEX_LIB}
 
 debug: CFLAGS += -DDEBUG
-debug: compile
+debug: clean compile
 
 %.o: %.c %.h
 	${CC} ${CFLAGS} -c $^
