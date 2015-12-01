@@ -120,7 +120,7 @@ typedef enum { ADD_OP, SUB_OP, MUL_OP, DIV_OP, AND_OP, OR_OP, EQ_OP, NEQ_OP, LTE
     GT_OP, LT_OP } BinaryOperation;
 
 /* Different kinds of expressions */
-typedef enum { CONST, VARIABLE, FUNCTION, UNARY, BINARY } ExpressionType;
+typedef enum { CONST, VARIABLE, FUNCTION, UNARY, BINARY, STRUCT_EXPR } ExpressionType;
 typedef struct Expression Expression;
 
 typedef struct {
@@ -144,6 +144,13 @@ typedef struct {
 
 typedef struct {
     char *identifier;
+    char *field;
+
+    ScopeElement *structure;
+} StructExpression;
+
+typedef struct {
+    char *identifier;
     Type type;
     Expression *arrayIndex;
 } VariableExpression;
@@ -162,6 +169,7 @@ struct Expression {
         ConstExpression *constantExpression;
         UnaryExpression *unaryExpression;
         BinaryExpression *binaryExpression;
+        StructExpression *structExpression;
     };
     Expression *next;
     Type inferredType;

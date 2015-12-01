@@ -9,6 +9,8 @@ extern Scope *flattenScope(Scope *scope);
 extern Scope *stripScope(Scope *scope);
 extern ScopeElement *findScopeElement(Scope *scope, char *identifier);
 
+extern StructField *getField(ScopeElement *element, char *field);
+
 /* Declaring new variables and functions inside of a scope */
 extern void declareStruct(Scope *scope, char *identifier, StructDeclaration *structDeclaration);
 extern ScopeElement* declareVar(Scope *scope, Type type, char *identifier, bool parameter);

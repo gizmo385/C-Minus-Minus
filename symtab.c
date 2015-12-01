@@ -84,6 +84,25 @@ ScopeElement *findScopeElement(Scope *scope, char *identifier) {
     return elem;
 }
 
+StructField *getField(ScopeElement *element, char *field) {
+    if(element && element->elementType == SCOPE_VAR) {
+        ScopeVariable *var = element->variable;
+
+        if(var->type == STRUCT_TYPE) {
+            StructField *fields = var->structure->structure->structure->fields;
+
+            while(fields) {
+                if(strcmp(fields->fieldName, field)) {
+                    return fields;
+                }
+                fields = fields->next;
+            }
+        }
+    }
+
+    return NULL;
+}
+
 void declareStruct(Scope *scope, char *identifier, StructDeclaration *structDeclaration) {
     ScopeStruct *structure = calloc(1, sizeof(ScopeStruct));
     structure->structure = structDeclaration;
