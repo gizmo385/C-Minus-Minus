@@ -228,6 +228,23 @@ void expressionTAC(Scope *functionScope, Expression *expression, Vector *code) {
                     }
                     break;
                 }
+            case STRUCT_EXPR:
+                {
+                    StructExpression *structExpression = expression->structExpression;
+                    ScopeElement *varLocation = findScopeElement(functionScope, structExpression->identifier);
+                    varLocation->variable->field = structExpression->field;
+                    ScopeElement *dest = newTemporaryVariable(functionScope, expression->inferredType);
+
+                    // Create the instruction
+                    TACInstruction *assign;
+                    assign = newTAC(ASSG_FROM_FIELD, dest, varLocation, NULL);
+                    vectorAdd(code, assign);
+                    expression->place = dest;
+
+                    debug(E_INFO, "%s = %s.%s\n", dest->identifier, structExpression->identifier,
+                            structExpression->field);
+                    break;
+                }
             case FUNCTION:
                 {
                     FunctionExpression *function = expression->functionExpression;
@@ -480,15 +497,17 @@ void statementTAC(Scope *functionScope, Statement *statement, Vector *code) {
                         Expression *value = assignment->expression;
                         expressionTAC(functionScope, value, code);
 
-                        // Create a new TAC instruction that represents this assignment.
-                        if(value->type == CONST) {
-                            TACInstruction *instruction = newTAC(ASSG_CONST, dest, value->place, NULL);
+                        if(assignment->field) {
+                            dest->variable->field = assignment->field;
+                            TACInstruction *instruction = newTAC(ASSG_TO_FIELD, dest, value->place, NULL);
                             vectorAdd(code, instruction);
+                            debug(E_INFO, "%s.%s = %s\n", dest->identifier, assignment->field,
+                                    value->place->identifier);
                         } else {
                             TACInstruction *instruction = newTAC(ASSG_VAR, dest, value->place, NULL);
                             vectorAdd(code, instruction);
+                            debug(E_INFO, "%s = %s\n", dest->identifier, value->place->identifier);
                         }
-                        debug(E_INFO, "%s = %s\n", dest->identifier, value->place->identifier);
                     }
                     break;
                 }

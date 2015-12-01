@@ -32,6 +32,7 @@ typedef struct StructField {
     int size;
 
     struct StructField *next;
+    int offset;
 } StructField;
 
 typedef struct StructDeclaration {
@@ -62,7 +63,9 @@ typedef struct {
     bool global;
     bool parameter;
 
-    struct ScopeElement *structure; // only used if type == STRUCT_TYPE
+    // Struct specific variables
+    struct ScopeElement *structure;
+    char *field;
 } ScopeVariable;
 
 typedef struct {
@@ -92,7 +95,7 @@ typedef struct Scope {
 typedef enum {
     /* Assignment */
     ASSG_ADD, ASSG_SUB, ASSG_MUL, ASSG_DIV, ASSG_UNARY_MINUS, ASSG_VAR, ASSG_CONST, ASSG_TO_INDEX,
-    ASSG_FROM_INDEX,
+    ASSG_FROM_INDEX, ASSG_TO_FIELD, ASSG_FROM_FIELD,
 
     /* Jumps and Labels */
     IF_GTE, IF_LTE, IF_GT, IF_LT, IF_EQ, IF_NEQ, GOTO, LABEL,
