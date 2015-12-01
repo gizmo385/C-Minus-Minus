@@ -23,6 +23,26 @@ static int sizeForType(Type type) {
     return size;
 }
 
+static int sizeForStruct(StructDeclaration *structDeclaration) {
+    StructField *fields = structDeclaration->fields;
+
+    int size = 0;
+    while(fields) {
+        Type type = fields->type;
+
+        if(type == STRUCT_TYPE) {
+            // TODO HANDLE
+        } else if(type == INT_ARRAY_TYPE || type == CHAR_ARRAY_TYPE) {
+            size += sizeForType(type) * fields->size;
+        } else {
+            size += sizeForType(type);
+        }
+
+        fields = fields->next;
+    }
+    return size;
+}
+
 
 void varIntoRegister(ScopeElement *varElem, char *reg) {
     ScopeVariable *var = varElem->variable;
@@ -46,7 +66,7 @@ void varIntoRegister(ScopeElement *varElem, char *reg) {
         } else if(type == INT_ARRAY_TYPE || type == CHAR_ARRAY_TYPE) {
             printf("\tla %s, %s\n", reg, varElem->protectedIdentifier);
         } else {
-            printf("TYPE: %s\n", typeName(type));
+            debug(E_WARNING, "TYPE: %s\n", typeName(type));
         }
     }
 }
@@ -84,9 +104,9 @@ static void constantToReg(ScopeElement *srcElem, char *reg) {
         int constant = value->integer_value & 0x7FFFFFFF;
         printf("\tli %s, %d\n", reg, constant);
     } else if(type == INT_ARRAY_TYPE) {
-        debug(E_DEBUG, "INT ARRAY ASSIGNMENT NOT SUPPORTED\n");
+        /*debug(E_DEBUG, "INT ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
     } else if(type == CHAR_ARRAY_TYPE) {
-        debug(E_DEBUG, "CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");
+        /*debug(E_DEBUG, "CHAR ARRAY ASSIGNMENT NOT SUPPORTED\n");*/
     } else {
         debug(E_DEBUG, "TYPE: %s\n", typeName(type));
     }
@@ -216,6 +236,43 @@ static void generateMips(char *functionName, TACInstruction *instruction) {
 
                     // Store the value in the destination
                     registerIntoVar(instruction->dest, "$t3");
+                    break;
+                }
+            case ASSG_FROM_FIELD:
+                {
+                    ScopeElement *dest = instruction->dest;
+                    ScopeElement *varLocation = instruction->src1;
+                    StructField *field = getField(varLocation, varLocation->variable->field);
+                    int offset = field->offset;
+
+                    // Load the field into a register
+                    printf("\t# Load the address of %s\n", varLocation->identifier);
+                    printf("\tla $t0, %s\n", varLocation->protectedIdentifier);
+                    printf("\t# Load value of %s.%s\n", varLocation->identifier, field->fieldName);
+                    if(field->type == INT_TYPE) {
+                        printf("\tlw $t0, %d($t0)", offset);
+                    } else if(field->type == CHAR_TYPE) {
+                        printf("\tlb $t0, %d($t0)", offset);
+                    }
+                    registerIntoVar(dest, "$t0");
+                    break;
+                }
+            case ASSG_TO_FIELD:
+                {
+                    ScopeElement *dest = instruction->dest;
+                    ScopeElement *value = instruction->src1;
+                    StructField *field = getField(dest, dest->variable->field);
+                    int offset = field->offset;
+
+                    // Load the value into a register
+                    varIntoRegister(value, "$t0");
+                    printf("\t# Load address of %s into register\n", value->identifier);
+                    printf("\tla $t1, %s\n", dest->protectedIdentifier);
+                    if(field->type == CHAR_TYPE) {
+                        printf("sb $t0, %d($t1)\n", offset);
+                    } else if(field->type == INT_TYPE) {
+                        printf("sw $t0, %d($t1)\n", offset);
+                    }
                     break;
                 }
             case IF_GTE:
@@ -379,35 +436,40 @@ int calculateRequiredStackSpace(FunctionDeclaration *declaration) {
     return requiredSpace;
 }
 
+void declareVariables(Vector *variables) {
+    for(int i = 0; i < variables->size; i++) {
+        ScopeElement *element = vectorGet(variables, i);
+
+        if(element->elementType == SCOPE_VAR) {
+            ScopeVariable *var = element->variable;
+            Type type = var->type;
+
+            if(type == INT_TYPE || type == INT_ARRAY_TYPE) {
+                printf("\t.align 2\n");
+            }
+
+            if(type == CHAR_ARRAY_TYPE || type == INT_ARRAY_TYPE) {
+                int size = sizeForType(type);
+                printf("%s:\t.space %d\n", element->protectedIdentifier, var->size * size);
+            } else if(type == STRUCT_TYPE) {
+                int size = sizeForStruct(var->structure->structure->structure);
+                printf("%s:\t.space %d\n", element->protectedIdentifier, size);
+            } else {
+                int size = sizeForType(type);
+                printf("%s:\t.space %d\n", element->protectedIdentifier, size);
+            }
+
+        }
+    }
+}
+
 void generateMipsFunctions(FunctionDeclaration *declarations) {
 
     // Before we handle functions, we should handle the globals
     Vector *globalVariables = globalScope->variables;
 
     printf(".data\n");
-
-    for(int i = 0; i < globalVariables->size; i++) {
-        ScopeElement *element = vectorGet(globalVariables, i);
-        if(element->elementType == SCOPE_VAR) {
-            ScopeVariable *var = element->variable;
-            int size = sizeForType(var->type);
-
-            if(var->type == CHAR_ARRAY_TYPE) {
-                printf("%s:\t.space %d\n", element->protectedIdentifier, var->size * size);
-            } else if(var->type == INT_ARRAY_TYPE) {
-                printf("\t.align 2\n");
-                printf("%s:\t.space %d\n", element->protectedIdentifier, var->size * size);
-            } else {
-                if(var->type == INT_TYPE) {
-                    printf("\t.align 2\n");
-                }
-
-                printf("%s:\t.space %d\n", element->protectedIdentifier, size);
-            }
-
-        }
-    }
-
+    declareVariables(globalVariables);
     printf(".text\n");
 
     // Now we need to figure out where everything on stack will go
@@ -424,26 +486,40 @@ void generateMipsFunctions(FunctionDeclaration *declarations) {
             ScopeElement *element = vectorGet(variables, i);
             if(element->elementType == SCOPE_VAR) {
                 ScopeVariable *var = element->variable;
+                Type type = var->type;
+
                 if(var->type == CHAR_ARRAY_TYPE) {
                     if(var->value != NULL) {
                         printf("%s:\t.asciiz %s\n", element->protectedIdentifier,
                                 var->value->char_array_value);
                     } else {
-                        int spaceToAllocate = 4 * var->size;
+                        int spaceToAllocate = 1 * var->size;
                         var->offset = startingOffset;
-                        var->offset *= - 1;
+                        var->offset *= -1;
                         startingOffset += spaceToAllocate;
                         printf("%s:\t.space %d\n", element->protectedIdentifier, spaceToAllocate);
                     }
                 } else if(var->type == INT_ARRAY_TYPE) {
                     int spaceToAllocate = 4 * var->size;
                     var->offset = startingOffset;
-                    var->offset *= - 1;
+                    var->offset *= -1;
                     startingOffset += spaceToAllocate;
+                    printf("%s:\t.space %d\n", element->protectedIdentifier, spaceToAllocate);
+                } else if(type == STRUCT_TYPE) {
+                    StructDeclaration *structure = var->structure->structure->structure;
+                    StructField *fields = structure->fields;
+
+                    int spaceToAllocate = 0;
+                    while(fields) {
+                        fields->offset = startingOffset;
+                        fields->offset *= -1;
+                        startingOffset += sizeForType(fields->type);
+                        spaceToAllocate += sizeForType(fields->type);
+                    }
                     printf("%s:\t.space %d\n", element->protectedIdentifier, spaceToAllocate);
                 } else {
                     var->offset = (4 * i) + 4;
-                    var->offset *= - 1;
+                    var->offset *= -1;
                     startingOffset += 4;
                 }
             }
