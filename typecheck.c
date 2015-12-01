@@ -101,6 +101,26 @@ static inline Type typeCheckBinaryExpression(BinaryExpression *expression) {
     return finalType;
 }
 
+static inline Type typeCheckStructExpression(StructExpression *expression) {
+    if(expression) {
+        ScopeElement *structure = expression->structure;
+        char *targetFieldName = expression->field;
+
+        StructField *fields = structure->structure->structure->fields;
+        while(fields) {
+            char *fieldName = fields->fieldName;
+            if(strcmp(fieldName, targetFieldName) == 0) {
+                return fields->type;
+            }
+            fields = fields->next;
+        }
+
+        return ERROR_TYPE;
+    }
+
+    return ERROR_TYPE;
+}
+
 /* Type checking unary expressions */
 static inline char *unopString(UnaryOperation op) {
     char *string = "error";
@@ -246,6 +266,9 @@ Type typeCheckExpression(Expression *expression) {
                 break;
             case BINARY:
                 finalType = typeCheckBinaryExpression(expression->binaryExpression);
+                break;
+            case STRUCT_EXPR:
+                finalType = typeCheckStructExpression(expression->structExpression);
                 break;
         }
 
