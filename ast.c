@@ -17,13 +17,34 @@ static inline Statement *newStatement() {
 }
 
 static Expression *newExpression() {
-    Expression *expr = malloc(sizeof(Expression));
+    Expression *expr = calloc(1, sizeof(Expression));
     expr->type = CONST;
     expr->next = NULL;
     expr->inferredType = UNKNOWN;
     expr->variableExpression = NULL;
     expr->place = NULL;
     expr->code = newVector(25);
+
+    return expr;
+}
+
+Expression *newStructExpression(Scope *scope, char *identifier, char *field) {
+    StructExpression *structExpression = calloc(1, sizeof(StructExpression));
+    structExpression->identifier = identifier;
+    structExpression->field = field;
+
+    ScopeElement *varElement = findScopeElement(scope, identifier);
+    ScopeElement *structure = varElement->variable->structure;
+    structExpression->structure = structure;
+
+    Expression *expr = newExpression();
+    expr->type = STRUCT_EXPR;
+    expr->structExpression = structExpression;
+
+    debug(E_DEBUG, "Creating struct expression for %s.%s (%s is a %s)\n", identifier, field,
+            identifier, structure->identifier);
+
+    typeCheckExpression(expr);
 
     return expr;
 }
@@ -347,6 +368,7 @@ char *expressionTypeName(Expression *expression) {
             case FUNCTION: name = "Function"; break;
             case UNARY: name = "Unary"; break;
             case BINARY: name = "Binary"; break;
+            case STRUCT_EXPR: name = "STRUCT"; break;
         }
     }
     return name;

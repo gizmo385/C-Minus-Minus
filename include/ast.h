@@ -13,6 +13,7 @@ extern Expression *newIntConstExpression(int val);
 extern Expression *newCharConstExpression(char *val);
 extern Expression *newCharArrayConstExpression(char val[]);
 extern Expression *newIntArrayConstExpression(int val[]);
+extern Expression *newStructExpression(Scope *scope, char *identifier, char *field);
 
 /* Constructor functions for Statements */
 extern Statement *newForStatement(Scope *scope, Statement *initial, Expression *condition,

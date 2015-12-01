@@ -243,6 +243,7 @@ expr : MINUS expr %prec UMINUS                          { $$ = newUnaryExpressio
      | ID LEFT_PAREN expr_list RIGHT_PAREN              { $$ = newFunctionExpression(scope, $1, $3); }
      | ID LEFT_SQUARE_BRACKET expr RIGHT_SQUARE_BRACKET { $$ = newVariableExpression(scope, $1, $3); }
      | ID                                               { $$ = newVariableExpression(scope, $1, NULL); }
+     | ID PERIOD ID                                     { $$ = newStructExpression(scope, $1, $3); }
      | LEFT_PAREN expr RIGHT_PAREN                      { $$ = $2; }
      | int_expr                                         { $$ = $1; }
      | char_expr                                        { $$ = $1; }
