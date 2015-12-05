@@ -3,12 +3,6 @@
 directory=tests/code_gen
 num_tests=$(ls -l ${directory} | grep -E "test\d+\.c" | wc -l)
 
-############################### LIMITS ##############################
-        ulimit -c 0
-        ulimit -t 5
-        ulimit -f 1000
-#####################################################################
-
 echo "Compiling compiler..."
 make clean debug 2>/dev/null >/dev/null
 
@@ -27,7 +21,7 @@ for test_num in `seq 1 ${num_tests}`; do
 
     echo Compiling ${test_file} with compiler:
     ./compile < ${test_file} > ${asm_file}
-    spim -file ${asm_file} | tail -n +2 > ${output_file}
+    gtimeout 3 spim -file ${asm_file} | tail -n +2 > ${output_file}
     diff --suppress-common-lines --side-by-side ${output_file} ${correct_out}
     mv ./debug.log tests/debug_logs/debug${test_num}.log 2>/dev/null || true
 done
