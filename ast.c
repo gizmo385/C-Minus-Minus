@@ -9,27 +9,23 @@
 #include "vector.h"
 
 static inline Statement *newStatement() {
-    Statement *statement = malloc(sizeof(Statement));
-    statement->next = NULL;
+    Statement *statement = calloc(1, sizeof(Statement));
     statement->code = newVector(25);
 
     return statement;
 }
 
 static Expression *newExpression() {
-    Expression *expr = malloc(sizeof(Expression));
+    Expression *expr = calloc(1, sizeof(Expression));
     expr->type = CONST;
-    expr->next = NULL;
     expr->inferredType = UNKNOWN;
-    expr->variableExpression = NULL;
-    expr->place = NULL;
     expr->code = newVector(25);
 
     return expr;
 }
 
 Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression *right) {
-    BinaryExpression *binaryExpr = malloc(sizeof(BinaryExpression));
+    BinaryExpression *binaryExpr = calloc(1, sizeof(BinaryExpression));
     binaryExpr->operation = op;
     binaryExpr->leftOperand = left;
     binaryExpr->rightOperand = right;
@@ -46,7 +42,7 @@ Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression
 }
 
 Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
-    UnaryExpression *unaryExpr = malloc(sizeof(UnaryExpression));
+    UnaryExpression *unaryExpr = calloc(1, sizeof(UnaryExpression));
     unaryExpr->operation = op;
     unaryExpr->operand = operand;
 
@@ -63,7 +59,7 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
 
 Expression *newVariableExpression(Scope *scope, char *identifier, Expression *arrayIndex) {
     ScopeElement *elem = findScopeElement(scope, identifier);
-    VariableExpression *variableExpression = malloc(sizeof(VariableExpression));
+    VariableExpression *variableExpression = calloc(1, sizeof(VariableExpression));
     Expression *expr = newExpression();
 
     if(elem) {
@@ -99,7 +95,7 @@ Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *ar
 
     if(elem) {
         if(elem->elementType == SCOPE_FUNC) {
-            FunctionExpression *functionExpression = malloc(sizeof(FunctionExpression));
+            FunctionExpression *functionExpression = calloc(1, sizeof(FunctionExpression));
             expr = newExpression();
 
             // Create the function expression
@@ -125,7 +121,7 @@ Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *ar
 }
 
 Expression *newConstExpression(Type type, Value *value) {
-    ConstExpression *constExpr = malloc(sizeof(ConstExpression));
+    ConstExpression *constExpr = calloc(1, sizeof(ConstExpression));
     constExpr->type = type;
     constExpr->value = value;
 
@@ -138,7 +134,7 @@ Expression *newConstExpression(Type type, Value *value) {
 }
 
 Expression *newIntConstExpression(int val) {
-    Value *value = malloc(sizeof(Value));
+    Value *value = calloc(1, sizeof(Value));
     value->integer_value = val;
 
     debug(E_DEBUG, "Creating int const with value %d\n", val);
@@ -146,7 +142,7 @@ Expression *newIntConstExpression(int val) {
 }
 
 Expression *newCharConstExpression(char *val) {
-    Value *value = malloc(sizeof(Value));
+    Value *value = calloc(1, sizeof(Value));
     if(val[1] == '\\') {
         if(val[2] == 0) {
             value->char_value = '\0';
@@ -162,7 +158,7 @@ Expression *newCharConstExpression(char *val) {
 }
 
 Expression *newCharArrayConstExpression(char val[]) {
-    Value *value = malloc(sizeof(Value));
+    Value *value = calloc(1, sizeof(Value));
     value->char_array_value = val;
 
     debug(E_DEBUG, "Creating char array const with value %s\n", val);
@@ -170,7 +166,7 @@ Expression *newCharArrayConstExpression(char val[]) {
 }
 
 Expression *newIntArrayConstExpression(int val[]) {
-    Value *value = malloc(sizeof(Value));
+    Value *value = calloc(1, sizeof(Value));
     value->int_array_value = val;
 
     debug(E_DEBUG, "Creating int array const with value %d\n", val);
@@ -181,7 +177,7 @@ Expression *newIntArrayConstExpression(int val[]) {
 /* Constructor functions for Statements */
 Statement *newForStatement(Scope *scope, Statement *initial, Expression *condition,
         Statement *change, Statement *body) {
-    ForStatement *forStatement = malloc(sizeof(ForStatement));
+    ForStatement *forStatement = calloc(1, sizeof(ForStatement));
     forStatement->initial = initial;
     forStatement->condition = condition;
     forStatement->change = change;
@@ -196,7 +192,7 @@ Statement *newForStatement(Scope *scope, Statement *initial, Expression *conditi
 }
 
 Statement *newWhileStatement(Scope *scope, Expression *condition, Statement *body) {
-    WhileStatement *whileStatement = malloc(sizeof(WhileStatement));
+    WhileStatement *whileStatement = calloc(1, sizeof(WhileStatement));
     whileStatement->condition = condition;
     whileStatement->body = body;
 
@@ -209,7 +205,7 @@ Statement *newWhileStatement(Scope *scope, Expression *condition, Statement *bod
 }
 
 Statement *newFunctionCallStatement(Scope *scope, Expression *functionCall) {
-    FunctionCallStatement *callStatement = malloc(sizeof(FunctionCallStatement));
+    FunctionCallStatement *callStatement = calloc(1, sizeof(FunctionCallStatement));
     callStatement->functionCall = functionCall;
 
     Statement *stmt = newStatement();
@@ -221,7 +217,7 @@ Statement *newFunctionCallStatement(Scope *scope, Expression *functionCall) {
 }
 
 Statement *newIfStatement(Scope *scope, Expression *condition, Statement *body) {
-    IfStatement *ifStatement = malloc(sizeof(IfStatement));
+    IfStatement *ifStatement = calloc(1, sizeof(IfStatement));
     ifStatement->condition = condition;
     ifStatement->satisfied = body;
 
@@ -234,7 +230,7 @@ Statement *newIfStatement(Scope *scope, Expression *condition, Statement *body) 
 }
 
 Statement *newIfElseStatement(Scope *scope, Expression *condition, Statement *satisfied, Statement *unsatisfied) {
-    IfElseStatement *ifElseStatement = malloc(sizeof(IfElseStatement));
+    IfElseStatement *ifElseStatement = calloc(1, sizeof(IfElseStatement));
     ifElseStatement->condition = condition;
     ifElseStatement->satisfied = satisfied;
     ifElseStatement->unsatisfied = unsatisfied;
@@ -248,7 +244,7 @@ Statement *newIfElseStatement(Scope *scope, Expression *condition, Statement *sa
 }
 
 Statement *newReturnStatement(Scope *scope, Expression *returnValue) {
-    ReturnStatement *returnStatement = malloc(sizeof(ReturnStatement));
+    ReturnStatement *returnStatement = calloc(1, sizeof(ReturnStatement));
     returnStatement->returnValue = returnValue;
 
     Statement *stmt = newStatement();
@@ -260,7 +256,7 @@ Statement *newReturnStatement(Scope *scope, Expression *returnValue) {
 }
 
 Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *arrayIndex, Expression *expression) {
-    AssignmentStatement *assign = malloc(sizeof(AssignmentStatement));
+    AssignmentStatement *assign = calloc(1, sizeof(AssignmentStatement));
     assign->identifier = identifier;
     assign->arrayIndex = arrayIndex;
     assign->expression = expression;
@@ -275,21 +271,19 @@ Statement *newAssignmentStatement(Scope *scope, char *identifier, Expression *ar
 
 /* Constructor functions for Declarations */
 VariableDeclaration *newVariable(Type type, char *identifier) {
-    VariableDeclaration *varDecl = malloc(sizeof(VariableDeclaration));
+    VariableDeclaration *varDecl = calloc(1, sizeof(VariableDeclaration));
     varDecl->type = type;
     varDecl->identifier = identifier;
-    varDecl->next = NULL;
 
     return varDecl;
 }
 
 FunctionParameter *newFunctionParameter(Type type, char *identifier) {
-    FunctionParameter *param = malloc(sizeof(FunctionParameter));
+    FunctionParameter *param = calloc(1, sizeof(FunctionParameter));
 
     if(param) {
         param->type = type;
         param->identifier = identifier;
-        param->next = NULL;
     }
 
     return param;
@@ -298,14 +292,12 @@ FunctionParameter *newFunctionParameter(Type type, char *identifier) {
 FunctionDeclaration *newFunction(Type returnType, char *functionName, Vector *parameters,
         VariableDeclaration *declarations, Statement *body) {
 
-    FunctionDeclaration *funcDecl = malloc(sizeof(FunctionDeclaration));
+    FunctionDeclaration *funcDecl = calloc(1, sizeof(FunctionDeclaration));
     funcDecl->returnType = returnType;
     funcDecl->functionName = functionName;
     funcDecl->parameters = parameters;
     funcDecl->declarations = declarations;
     funcDecl->body = body;
-    funcDecl->next = NULL;
-    funcDecl->functionScope = NULL;
     funcDecl->code = newVector(25);
 
     return funcDecl;
