@@ -34,7 +34,7 @@ Expression *newBinaryExpression(BinaryOperation op, Expression *left, Expression
     expr->binaryExpression = binaryExpr;
     expr->type = BINARY;
 
-    debug(E_DEBUG, "Creating binary expression with left operand types %s and %s\n",
+    debug(E_INFO, "Creating binary expression with left operand types %s and %s\n",
             expressionTypeName(left), expressionTypeName(right));
 
     typeCheckExpression(expr);
@@ -50,7 +50,7 @@ Expression *newUnaryExpression(UnaryOperation op, Expression *operand) {
     expr->unaryExpression = unaryExpr;
     expr->type = UNARY;
 
-    debug(E_DEBUG, "Creating unary expression with operand of type %s\n",
+    debug(E_INFO, "Creating unary expression with operand of type %s\n",
             expressionTypeName(operand));
 
     typeCheckExpression(expr);
@@ -75,7 +75,7 @@ Expression *newVariableExpression(Scope *scope, char *identifier, Expression *ar
             expr->variableExpression = variableExpression;
             expr->type = VARIABLE;
 
-            debug(E_DEBUG, "Creating variable expression for ID %s\n", identifier);
+            debug(E_INFO, "Creating variable expression for ID %s\n", identifier);
 
         } else {
             error(VAR_AS_FUNCTION, identifier);
@@ -108,7 +108,7 @@ Expression *newFunctionExpression(Scope *scope, char *identifier, Expression *ar
             expr->functionExpression = functionExpression;
             expr->type = FUNCTION;
 
-            debug(E_DEBUG, "Creating function expression for ID %s\n", identifier);
+            debug(E_INFO, "Creating function expression for ID %s\n", identifier);
         } else {
             error(VAR_AS_FUNCTION, identifier);
         }
@@ -137,7 +137,7 @@ Expression *newIntConstExpression(int val) {
     Value *value = calloc(1, sizeof(Value));
     value->integer_value = val;
 
-    debug(E_DEBUG, "Creating int const with value %d\n", val);
+    debug(E_INFO, "Creating int const with value %d\n", val);
     return newConstExpression(INT_TYPE, value);
 }
 
@@ -153,7 +153,7 @@ Expression *newCharConstExpression(char *val) {
         value->char_value = val[1];
     }
 
-    debug(E_DEBUG, "Creating char const with value %c\n", val);
+    debug(E_INFO, "Creating char const with value %c\n", val);
     return newConstExpression(CHAR_TYPE, value);
 }
 
@@ -161,7 +161,7 @@ Expression *newCharArrayConstExpression(char val[]) {
     Value *value = calloc(1, sizeof(Value));
     value->char_array_value = val;
 
-    debug(E_DEBUG, "Creating char array const with value %s\n", val);
+    debug(E_INFO, "Creating char array const with value %s\n", val);
     return newConstExpression(CHAR_ARRAY_TYPE, value);
 }
 
@@ -169,7 +169,7 @@ Expression *newIntArrayConstExpression(int val[]) {
     Value *value = calloc(1, sizeof(Value));
     value->int_array_value = val;
 
-    debug(E_DEBUG, "Creating int array const with value %d\n", val);
+    debug(E_INFO, "Creating int array const with value %d\n", val);
     return newConstExpression(INT_ARRAY_TYPE, value);
 }
 
