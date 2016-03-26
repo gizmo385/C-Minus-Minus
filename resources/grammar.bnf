@@ -1,0 +1,119 @@
+(* A C grammar for instaparse *)
+
+START = PROGRAM_ELEMENT*
+
+PROGRAM_ELEMENT = DECLARATION
+                | FUNCTION
+
+(* Expression grammar *)
+EXPRESSION  = (MINUS EXPRESSION)
+            | (NOT EXPRESSION)
+            | EXPRESSION PLUS EXPRESSION
+            | EXPRESSION MINUS EXPRESSION
+            | EXPRESSION ASTERISK EXPRESSION
+            | EXPRESSION DIVISION EXPRESSION
+            | EXPRESSION AND EXPRESSION
+            | EXPRESSION OR EXPRESSION
+            | EXPRESSION GTE EXPRESSION
+            | EXPRESSION LTE EXPRESSION
+            | EXPRESSION GT EXPRESSION
+            | EXPRESSION LT EXPRESSION
+            | EXPRESSION EQ EXPRESSION
+            | EXPRESSION NEQ EXPRESSION
+            | FUNCTION_CALL
+            | ARRAY_ACCESS
+            | ID
+            | LEFT_PAREN EXPRESSION RIGHT_PAREN
+            | INTEGER
+            | FLOAT
+            | STRING
+            | CHAR_CONST
+
+FUNCTION_CALL = ID LEFT_PAREN EXPR_LIST RIGHT_PAREN
+ARRAY_ACCESS  = ID LEFT_SQUARE_BRACKET EXPRESSION RIGHT_SQUARE_BRACKET
+
+<EXPR_LIST> = EXPRESSION?
+            | EXPR_LIST <','> EXPRESSION
+
+(* Statements *)
+<STATEMENT> = IF
+            | IF_ELSE
+            | WHILE_LOOP
+            | FOR_LOOP
+            | RETURN
+            | ASSIGNMENT SEMICOLON
+            | FUNCTION_CALL SEMICOLON
+            | SEMICOLON
+
+<STATEMENT_LIST>    = STATEMENT?
+                    | STATEMENT_LIST <','> STATEMENT
+
+FOR_LOOP    = <'for'> LEFT_PAREN ASSIGNMENT? SEMICOLON EXPRESSION? SEMICOLON ASSIGNMENT? RIGHT_PAREN STATEMENT
+IF          = <'if'> LEFT_PAREN EXPRESSION <RIGHT_PAREN> STATEMENT
+IF_ELSE     = <'if'> LEFT_PAREN EXPRESSION <RIGHT_PAREN> STATEMENT <'else'> STATEMENT
+WHILE_LOOP  = <'while'> LEFT_PAREN EXPRESSION <RIGHT_PAREN> STATEMENT
+RETURN      = <'return'> EXPRESSION? SEMICOLON
+ASSIGNMENT  = ID <'='> EXPRESSION
+            | ID LEFT_SQUARE_BRACKET EXPRESSION RIGHT_SQUARE_BRACKET <'='> EXPRESSION
+
+(* Functions and Function Declarations *)
+<FUNCTION_SIGNATURE> = (TYPE | VOID) ID LEFT_PAREN PARAM_LIST RIGHT_PAREN
+FUNCTION_DECL = EXTERN? FUNCTION_SIGNATURE SEMICOLON
+
+FUNCTION = FUNCTION_SIGNATURE LEFT_CURLY_BRACKET VARIABLE_DECLARATION? STATEMENT_LIST RIGHT_CURLY_BRACKET
+
+(* Variable Declarations *)
+VARIABLE_DECLARATION = TYPE VARIABLE_ID (<','> VARIABLE_ID)* SEMICOLON
+VARIABLE_ID = <ID> (LEFT_SQUARE_BRACKET EXPRESSION RIGHT_SQUARE_BRACKET)?
+
+<DECLARATION>   = VARIABLE_DECLARATION
+                | FUNCTION_DECL
+
+PARAM_LIST  = <VOID>
+            | TYPE ID (LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET)? (<','> PARAM_LIST)?
+
+(* Parser atoms *)
+TYPE        = 'int'
+            | 'float'
+            | 'char'
+
+VOID        = <'void'>
+EXTERN      = <'extern'>
+
+ID = #'[a-zA-Z][a-zA-Z0-9_]*'
+
+STRING = #'\"([^\n\"]|\\n)*\"'
+CHAR_CONST = #'\'([^\n\"]|\\n)\''
+
+INTEGER = #'[0-9]+'
+FLOAT = #'[0-9]+\.[0-9]+'
+
+(* Arithmetic Expression Operators  *)
+MINUS = <'-'>
+PLUS = <'+'>
+ASTERISK = <'*'>
+DIVISION = <'/'>
+
+(* Boolean operators *)
+OR  = <'||'>
+AND = <'&&'>
+NOT = <'!'>
+
+(* Comparison operators *)
+LTE = <'<='>
+GTE = <'>='>
+GT  = <'>'>
+LT  = <'<'>
+EQ  = <'=='>
+NEQ = <'!='>
+
+(* Brackets *)
+<LEFT_PAREN>            = <'('>
+<RIGHT_PAREN>           = <')'>
+<LEFT_SQUARE_BRACKET>   = <'['>
+<RIGHT_SQUARE_BRACKET>  = <']'>
+<LEFT_CURLY_BRACKET>    = <'{'>
+<RIGHT_CURLY_BRACKET>   = <'}'>
+
+(* Other tokens *)
+<SEMICOLON>             = <';'>
