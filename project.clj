@@ -5,7 +5,9 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/tools.namespace "0.2.11"]
-                 [instaparse "1.4.1"]]
+                 [instaparse "1.4.1"]
+                 [rhizome "0.2.5"]]
+  :repl-options {:init-ns user}
   :main ^:skip-aot cmm.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}

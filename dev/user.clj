@@ -1,6 +1,7 @@
 (ns user
   "Contains functions that will be automatically loaded into the REPL"
-  (:use [clojure.pprint]
+  (:use [cmm core parser]
+        [clojure.pprint]
         [clojure.repl]
         [clojure.tools.namespace.repl]
         [clojure.stacktrace :only  [print-stack-trace]]))
