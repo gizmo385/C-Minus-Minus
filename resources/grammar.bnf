@@ -58,7 +58,7 @@ ASSIGNMENT  = ID <'='> EXPRESSION
             | ID left_square_bracket EXPRESSION right_square_bracket <'='> EXPRESSION
 
 (* Functions and Function Declarations *)
-<FUNCTION_SIGNATURE> = (TYPE | void) ID left_paren PARAM_LIST right_paren
+<FUNCTION_SIGNATURE> = (TYPE | void) ID left_paren PARAMS right_paren
 FUNCTION_DECL = extern? FUNCTION_SIGNATURE semicolon
 
 FUNCTION = FUNCTION_SIGNATURE left_curly_bracket VARIABLE_DECLARATION* STATEMENT* right_curly_bracket
@@ -71,8 +71,14 @@ VARIABLE_ID = ID ARRAY_SIZE?
 <DECLARATION>   = VARIABLE_DECLARATION
                 | FUNCTION_DECL
 
-PARAM_LIST  = <void>
-            | TYPE ID ARRAY_BRACKETS? (<','> PARAM_LIST)?
+PARAMS = <void>
+       | PARAM_LIST
+
+<PARAM_LIST>  = PARAM
+              | PARAM_LIST (<','> PARAM)?
+
+PARAM = TYPE ID ARRAY_BRACKETS?
+
 ARRAY_BRACKETS = left_square_bracket right_square_bracket
 
 (* Parser atoms *)

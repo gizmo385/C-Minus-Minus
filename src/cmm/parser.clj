@@ -103,11 +103,18 @@
      :function-name function-name
      :arguments (map build-ast args)}))
 
-(defmethod build-ast :PARAM_LIST [params]
+(defmethod build-ast :PARAMS [[_ & params]]
   ;; Destructure unnecssary information out of structure
-  (for [[_ _ param-type _ param-name] (partition 5 (flatten params))]
-    {:name param-name
-     :type param-type}))
+  (map build-ast params))
+
+(defmethod build-ast :PARAM [[_ param-type param-id array-brackets?]]
+  (if array-brackets?
+    {:name (second param-id)
+     :type (second param-type)
+     :array true}
+    {:name (second param-id)
+     :type (second param-type)
+     :array false}))
 
 (defmethod build-ast :VARIABLE_DECLARATION [declaration]
   (let [[[_ variable-type] & ids] (rest declaration)
@@ -127,7 +134,7 @@
   (build-ast expression))
 
 (defmethod build-ast :BINARY_EXPRESSION [expression]
-  (let [[_ left-operand [operator _] right-operand] expression
+  (let [[_ left-operand [operator] right-operand] expression
         left-operand (build-ast left-operand)
         right-operand (build-ast right-operand)]
     {:node-type     :expression
@@ -137,21 +144,21 @@
      :right-operand right-operand}))
 
 (defmethod build-ast :UNARY_EXPRESSION [expression]
-  (let [[_ [operator _] operand] expression
+  (let [[_ [operator] operand] expression
         operand (build-ast operand)]
     {:node-type     :expression
      :type          (compute-type operator (operand :type))
      :operator      operator
      :operand operand}))
 
+(defmethod build-ast :ID [[_ id]]
+  {:node-type :expression
+   :type      :id
+   :id        id})
+
 (defmethod build-ast :INTEGER [n]
   {:node-type :expression
    :type      :integer
-   :value     (edn/read-string (second n))})
-
-(defmethod build-ast :FLOAT [n]
-  {:node-type :expression
-   :type      :float
    :value     (edn/read-string (second n))})
 
 (defmethod build-ast :FLOAT [n]
@@ -192,13 +199,9 @@
 
 (comment
   (parse "int x; char a, b[5];")
-  (parse "void printf(char x[]) { return; } int number_5(void) { return 5; }")
-  (parse "void x(void);")
-  (parse "extern void x(void);")
-  (parse "void x(void) { printf(!(((1 + 4) * 0.5) == 4)); }")
-  (parse "void x(void) { printf('c'); }")
-  (parse "void x(void) { printf(\"test\"); }")
+  (parse "void printf(char x[], int g) { return; }")
+  (parse "void x(void) { printf(testing, 1 + 1, 'c'); }")
+  (parse "void x(void) { /* comment *\\ printf(\"test\"); }")
   (insta/parse c-parser "void x(void) { printf(!(1 == 1)); }")
   (parse example)
-  (build-ast (insta/parse c-parser "void x(int g, char x, float y) { }"))
   )
