@@ -6,31 +6,35 @@ START = PROGRAM_ELEMENT*
                     | FUNCTION
 
 (* Expression grammar *)
-EXPRESSION  = (MINUS EXPRESSION)
-            | (NOT EXPRESSION)
-            | EXPRESSION PLUS EXPRESSION
-            | EXPRESSION MINUS EXPRESSION
-            | EXPRESSION ASTERISK EXPRESSION
-            | EXPRESSION DIVISION EXPRESSION
-            | EXPRESSION AND EXPRESSION
-            | EXPRESSION OR EXPRESSION
-            | EXPRESSION GTE EXPRESSION
-            | EXPRESSION LTE EXPRESSION
-            | EXPRESSION GT EXPRESSION
-            | EXPRESSION LT EXPRESSION
-            | EXPRESSION EQ EXPRESSION
-            | EXPRESSION NEQ EXPRESSION
-            | FUNCTION_CALL
-            | ARRAY_ACCESS
-            | ID
-            | LEFT_PAREN EXPRESSION RIGHT_PAREN
-            | INTEGER
-            | FLOAT
-            | STRING
-            | CHAR_CONST
+UNARY_EXPRESSION    = (minus EXPRESSION)
+                    | (not EXPRESSION)
 
-FUNCTION_CALL = ID LEFT_PAREN EXPR_LIST RIGHT_PAREN
-ARRAY_ACCESS  = ID LEFT_SQUARE_BRACKET EXPRESSION RIGHT_SQUARE_BRACKET
+BINARY_EXPRESSION   = EXPRESSION plus EXPRESSION
+                    | EXPRESSION minus EXPRESSION
+                    | EXPRESSION and EXPRESSION
+                    | EXPRESSION or EXPRESSION
+                    | EXPRESSION multiply EXPRESSION
+                    | EXPRESSION divide EXPRESSION
+                    | EXPRESSION eq EXPRESSION
+                    | EXPRESSION neq EXPRESSION
+                    | EXPRESSION gte EXPRESSION
+                    | EXPRESSION lte EXPRESSION
+                    | EXPRESSION gt EXPRESSION
+                    | EXPRESSION lt EXPRESSION
+
+<EXPRESSION>    = UNARY_EXPRESSION
+                | BINARY_EXPRESSION
+                | FUNCTION_CALL
+                | ARRAY_ACCESS
+                | ID
+                | left_paren EXPRESSION right_paren
+                | INTEGER
+                | FLOAT
+                | STRING
+                | CHAR_CONST
+
+FUNCTION_CALL = ID left_paren EXPR_LIST right_paren
+ARRAY_ACCESS  = ID left_square_bracket EXPRESSION right_square_bracket
 
 <EXPR_LIST> = EXPRESSION?
             | EXPR_LIST <','> EXPRESSION
@@ -41,43 +45,43 @@ ARRAY_ACCESS  = ID LEFT_SQUARE_BRACKET EXPRESSION RIGHT_SQUARE_BRACKET
             | WHILE_LOOP
             | FOR_LOOP
             | RETURN
-            | ASSIGNMENT SEMICOLON
-            | FUNCTION_CALL SEMICOLON
-            | SEMICOLON
+            | ASSIGNMENT semicolon
+            | FUNCTION_CALL semicolon
+            | semicolon
 
-FOR_LOOP    = <'for'> LEFT_PAREN ASSIGNMENT? SEMICOLON EXPRESSION? SEMICOLON ASSIGNMENT? RIGHT_PAREN STATEMENT
-IF          = <'if'> LEFT_PAREN EXPRESSION <RIGHT_PAREN> STATEMENT
-IF_ELSE     = <'if'> LEFT_PAREN EXPRESSION <RIGHT_PAREN> STATEMENT <'else'> STATEMENT
-WHILE_LOOP  = <'while'> LEFT_PAREN EXPRESSION <RIGHT_PAREN> STATEMENT
-RETURN      = <'return'> EXPRESSION? SEMICOLON
+FOR_LOOP    = <'for'> left_paren ASSIGNMENT? semicolon EXPRESSION? semicolon ASSIGNMENT? right_paren STATEMENT
+IF          = <'if'> left_paren EXPRESSION <right_paren> STATEMENT
+IF_ELSE     = <'if'> left_paren EXPRESSION <right_paren> STATEMENT <'else'> STATEMENT
+WHILE_LOOP  = <'while'> left_paren EXPRESSION <right_paren> STATEMENT
+RETURN      = <'return'> EXPRESSION? semicolon
 ASSIGNMENT  = ID <'='> EXPRESSION
-            | ID LEFT_SQUARE_BRACKET EXPRESSION RIGHT_SQUARE_BRACKET <'='> EXPRESSION
+            | ID left_square_bracket EXPRESSION right_square_bracket <'='> EXPRESSION
 
 (* Functions and Function Declarations *)
-<FUNCTION_SIGNATURE> = (TYPE | VOID) ID LEFT_PAREN PARAM_LIST RIGHT_PAREN
-FUNCTION_DECL = EXTERN? FUNCTION_SIGNATURE SEMICOLON
+<FUNCTION_SIGNATURE> = (TYPE | void) ID left_paren PARAM_LIST right_paren
+FUNCTION_DECL = extern? FUNCTION_SIGNATURE semicolon
 
-FUNCTION = FUNCTION_SIGNATURE LEFT_CURLY_BRACKET VARIABLE_DECLARATION* STATEMENT* RIGHT_CURLY_BRACKET
+FUNCTION = FUNCTION_SIGNATURE left_curly_bracket VARIABLE_DECLARATION* STATEMENT* right_curly_bracket
 
 (* Variable Declarations *)
-VARIABLE_DECLARATION = TYPE VARIABLE_ID (<','> VARIABLE_ID)* SEMICOLON
+VARIABLE_DECLARATION = TYPE VARIABLE_ID (<','> VARIABLE_ID)* semicolon
 VARIABLE_ID = ID ARRAY_SIZE?
-<ARRAY_SIZE>  = <LEFT_SQUARE_BRACKET> EXPRESSION <RIGHT_SQUARE_BRACKET>
+<ARRAY_SIZE>  = <left_square_bracket> EXPRESSION <right_square_bracket>
 
 <DECLARATION>   = VARIABLE_DECLARATION
                 | FUNCTION_DECL
 
-PARAM_LIST  = <VOID>
+PARAM_LIST  = <void>
             | TYPE ID ARRAY_BRACKETS? (<','> PARAM_LIST)?
-ARRAY_BRACKETS = LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+ARRAY_BRACKETS = left_square_bracket right_square_bracket
 
 (* Parser atoms *)
 TYPE        = 'int'
             | 'float'
             | 'char'
 
-VOID        = <'void'>
-EXTERN      = <'extern'>
+void        = <'void'>
+extern      = <'extern'>
 
 ID = #'[a-zA-Z][a-zA-Z0-9_]*'
 
@@ -88,31 +92,31 @@ INTEGER = #'[0-9]+'
 FLOAT = #'[0-9]+\.[0-9]+'
 
 (* Arithmetic Expression Operators  *)
-MINUS = <'-'>
-PLUS = <'+'>
-ASTERISK = <'*'>
-DIVISION = <'/'>
+minus = <'-'>
+plus = <'+'>
+multiply = <'*'>
+divide = <'/'>
 
 (* Boolean operators *)
-OR  = <'||'>
-AND = <'&&'>
-NOT = <'!'>
+or  = <'||'>
+and = <'&&'>
+not = <'!'>
 
 (* Comparison operators *)
-LTE = <'<='>
-GTE = <'>='>
-GT  = <'>'>
-LT  = <'<'>
-EQ  = <'=='>
-NEQ = <'!='>
+lte = <'<='>
+gte = <'>='>
+gt  = <'>'>
+lt  = <'<'>
+eq  = <'=='>
+neq = <'!='>
 
 (* Brackets *)
-<LEFT_PAREN>            = <'('>
-<RIGHT_PAREN>           = <')'>
-<LEFT_SQUARE_BRACKET>   = <'['>
-<RIGHT_SQUARE_BRACKET>  = <']'>
-<LEFT_CURLY_BRACKET>    = <'{'>
-<RIGHT_CURLY_BRACKET>   = <'}'>
+<left_paren>            = <'('>
+<right_paren>           = <')'>
+<left_square_bracket>   = <'['>
+<right_square_bracket>  = <']'>
+<left_curly_bracket>    = <'{'>
+<right_curly_bracket>   = <'}'>
 
 (* Other tokens *)
-<SEMICOLON>             = <';'>
+<semicolon>             = <';'>
