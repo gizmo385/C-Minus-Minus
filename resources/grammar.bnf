@@ -47,9 +47,16 @@ ARRAY_ACCESS  = ID left_square_bracket EXPRESSION right_square_bracket
             | RETURN
             | ASSIGNMENT semicolon
             | FUNCTION_CALL semicolon
+            | STATEMENT_LIST
             | semicolon
 
-FOR_LOOP    = <'for'> left_paren ASSIGNMENT? semicolon EXPRESSION? semicolon ASSIGNMENT? right_paren STATEMENT
+STATEMENT_LIST = left_curly_bracket STATEMENT* right_curly_bracket
+
+(* These explicit optional rules make building the syntax tree easier in the end *)
+OPT_ASSG = ASSIGNMENT?
+OPT_EXPR = EXPRESSION?
+
+FOR_LOOP    = <'for'> left_paren OPT_ASSG semicolon OPT_EXPR semicolon OPT_ASSG right_paren STATEMENT
 IF          = <'if'> left_paren EXPRESSION <right_paren> STATEMENT
 IF_ELSE     = <'if'> left_paren EXPRESSION <right_paren> STATEMENT <'else'> STATEMENT
 WHILE_LOOP  = <'while'> left_paren EXPRESSION <right_paren> STATEMENT
