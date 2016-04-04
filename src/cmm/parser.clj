@@ -127,7 +127,7 @@
   (let [left-operand (build-ast symbol-table left-operand)
         right-operand (build-ast symbol-table right-operand)]
     {:node-type :expression
-     :type (compute-type operator (left-operand :type) (right-operand :type))
+     :type (compute-type operator (:type left-operand) (:type right-operand))
      :operator operator
      :left-operand left-operand
      :right-operand right-operand}))
@@ -135,7 +135,7 @@
 (defmethod build-ast :UNARY_EXPRESSION [symbol-table [_ [operator] operand]]
   (let [operand (build-ast operand)]
     {:node-type :expression
-     :type (compute-type operator (operand :type))
+     :type (compute-type operator (:type operand))
      :operator operator
      :operand operand}))
 
@@ -224,9 +224,9 @@
 
 ;; User facing functions
 (defn parse [source]
-  (as-> source <>
-    (insta/parse c-parser <>)
-    (build-ast {} <>)))
+  (->> source
+    (insta/parse c-parser)
+    (build-ast {})))
 
 (def example
   "
