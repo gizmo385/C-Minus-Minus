@@ -84,150 +84,149 @@
     :default :error))
 
 ;; Building the ast
-(defmulti build-ast first)
+(defmulti build-ast (fn [symbol-table program] (first program)))
 
-(defmethod build-ast :START [program]
-  (map build-ast (rest program)))
+(defmethod build-ast :START [symbol-table program]
+  (map (partial build-ast symbol-table) (rest program)))
 
-(defmethod build-ast :FUNCTION [[_ [return-type] [_ function-name] params & body]]
+(defmethod build-ast :FUNCTION [symbol-table [_ [return-type] [_ function-name] params & body]]
   {:name function-name
    :type return-type
-   :params (build-ast params)
-   :body (map build-ast body)})
+   :params (build-ast symbol-table params)
+   :body (map (partial build-ast symbol-table) body)})
 
-(defmethod build-ast :FUNCTION_CALL [[_ [_ function-name] & args]]
+(defmethod build-ast :FUNCTION_CALL [symbol-table [_ [_ function-name] & args]]
   {:node-type :function-call
    :function-name function-name
-   :arguments (map build-ast args)})
+   :arguments (map (partial build-ast symbol-table) args)})
 
-(defmethod build-ast :PARAMS [[_ & params]]
-  (map build-ast params))
+(defmethod build-ast :PARAMS [symbol-table [_ & params]]
+  (map (partial build-ast symbol-table) params))
 
-(defmethod build-ast :PARAM [[_ param-type param-id array-brackets?]]
+(defmethod build-ast :PARAM [symbol-table [_ param-type param-id array-brackets?]]
   {:name (second param-id)
    :type (second param-type)
    :array (some? array-brackets?)})
 
-(defmethod build-ast :VARIABLE_DECLARATION [[_ [_ variable-type] & ids]]
+(defmethod build-ast :VARIABLE_DECLARATION [symbol-table [_ [_ variable-type] & ids]]
   {:node-type :declaration
    :type (keyword variable-type)
-   :vars (map build-ast ids)})
+   :vars (map (partial build-ast symbol-table) ids)})
 
-(defmethod build-ast :VARIABLE_ID [[_ id size?]]
+(defmethod build-ast :VARIABLE_ID [symbol-table [_ id size?]]
   {:name (second id)
-   :array-size (if size? (build-ast size?))})
+   :array-size (if size? (build-ast symbol-table size?))})
 
-(defmethod build-ast :OPT_EXPR [[_ expression]]
-  (if expression (build-ast expression)))
+(defmethod build-ast :OPT_EXPR [symbol-table [_ expression]]
+  (if expression (build-ast symbol-table expression)))
 
-(defmethod build-ast :EXPRESSION [[_ expression]]
-  (build-ast expression))
+(defmethod build-ast :EXPRESSION [symbol-table [_ expression]]
+  (build-ast symbol-table expression))
 
-(defmethod build-ast :BINARY_EXPRESSION [[_ left-operand [operator] right-operand]]
-  (let [left-operand (build-ast left-operand)
-        right-operand (build-ast right-operand)]
+(defmethod build-ast :BINARY_EXPRESSION [symbol-table [_ left-operand [operator] right-operand]]
+  (let [left-operand (build-ast symbol-table left-operand)
+        right-operand (build-ast symbol-table right-operand)]
     {:node-type :expression
      :type (compute-type operator (left-operand :type) (right-operand :type))
      :operator operator
      :left-operand left-operand
      :right-operand right-operand}))
 
-(defmethod build-ast :UNARY_EXPRESSION [[_ [operator] operand]]
+(defmethod build-ast :UNARY_EXPRESSION [symbol-table [_ [operator] operand]]
   (let [operand (build-ast operand)]
     {:node-type :expression
      :type (compute-type operator (operand :type))
      :operator operator
      :operand operand}))
 
-(defmethod build-ast :ID [[_ id]]
+(defmethod build-ast :ID [symbol-table [_ id]]
   {:node-type :expression
    :type :id ;; TODO Figure out symbol table
    :id id})
 
-(defmethod build-ast :INTEGER [n]
+(defmethod build-ast :INTEGER [symbol-table n]
   {:node-type :expression
    :type :integer
    :value (edn/read-string (second n))})
 
-(defmethod build-ast :FLOAT [n]
+(defmethod build-ast :FLOAT [symbol-table n]
   {:node-type :expression
    :type :float
    :value (edn/read-string (second n))})
 
-(defmethod build-ast :CHAR_CONST [c]
+(defmethod build-ast :CHAR_CONST [symbol-table c]
   {:node-type :expression
    :type :char
    :value (char (second (second c)))})
 
-(defmethod build-ast :STRING [s]
+(defmethod build-ast :STRING [symbol-table s]
   {:node-type :expression
    :type      :string
    :value     (second s)})
 
-(defmethod build-ast :STATEMENT_LIST [[_ & statements]]
-  (map build-ast statements))
+(defmethod build-ast :STATEMENT_LIST [symbol-table [_ & statements]]
+  (map (partial build-ast symbol-table) statements))
 
-(defmethod build-ast :IF [[_ condition body]]
+(defmethod build-ast :IF [symbol-table [_ condition body]]
   {:node-type :statement
    :statement-type :conditional
-   :condition (build-ast condition)
-   :then (build-ast body)
+   :condition (build-ast symbol-table condition)
+   :then (build-ast symbol-table body)
    :else nil})
 
-(defmethod build-ast :IF_ELSE [[_ condition then else]]
+(defmethod build-ast :IF_ELSE [symbol-table [_ condition then else]]
   {:node-type :statement
    :statement-type :conditional
-   :condition (build-ast condition)
-   :then (build-ast then)
-   :else (build-ast else)})
+   :condition (build-ast symbol-table condition)
+   :then (build-ast symbol-table then)
+   :else (build-ast symbol-table else)})
 
-(defmethod build-ast :OPT_ASSG [[_ assignment]]
-  (if assignment (build-ast assignment)))
+(defmethod build-ast :OPT_ASSG [symbol-table [_ assignment]]
+  (if assignment (build-ast symbol-table assignment)))
 
-(defmethod build-ast :ASSIGNMENT [[_ id first-expression second-expression]]
+(defmethod build-ast :ASSIGNMENT [symbol-table [_ id first-expression second-expression]]
   (if (and first-expression second-expression)
     ;; Assignment to an array index
     {:node-type :statement
      :statement-type :assignment
      :id (second id)
-     :index (build-ast first-expression)
-     :value (build-ast second-expression)}
+     :index (build-ast symbol-table first-expression)
+     :value (build-ast symbol-table second-expression)}
 
     ;; Assignment to a plain variable
     {:node-type :statement
      :statement-type :assignment
      :id (second id)
      :index nil
-     :value (build-ast first-expression)}))
+     :value (build-ast symbol-table first-expression)}))
 
-(defmethod build-ast :RETURN [[_ return-value?]]
+(defmethod build-ast :RETURN [symbol-table [_ return-value?]]
   {:node-type :statement
    :statement-type :return
-   :value (if return-value? (build-ast return-value?))})
+   :value (if return-value? (build-ast symbol-table return-value?))})
 
-(defmethod build-ast :WHILE_LOOP [[_ condition body]]
+(defmethod build-ast :WHILE_LOOP [symbol-table [_ condition body]]
   {:node-type :statement
    :statement-type :while-loop
-   :condition (build-ast condition)
-   :body (build-ast body)})
+   :condition (build-ast symbol-table condition)
+   :body (build-ast symbol-table body)})
 
-(defmethod build-ast :FOR_LOOP [[_ init? condition? update? body]]
+(defmethod build-ast :FOR_LOOP [symbol-table [_ init? condition? update? body]]
   {:node-type :statement
    :statement-type :for-loop
-   :init (build-ast init?)
-   :condition (build-ast condition?)
-   :update (build-ast update?)
-   :body (build-ast body)})
+   :init (build-ast symbol-table init?)
+   :condition (build-ast symbol-table condition?)
+   :update (build-ast symbol-table update?)
+   :body (build-ast symbol-table body)})
 
-(defmethod build-ast :default [structure]
+(defmethod build-ast :default [symbol-table structure]
   (printf "Can't parse a %s\n" (first structure)))
 
 ;; User facing functions
 (defn parse [source]
   (as-> source <>
     (insta/parse c-parser <>)
-    (do (println <>) <>)
-    (build-ast <>)))
+    (build-ast {} <>)))
 
 (def example
   "
@@ -258,4 +257,4 @@
   (parse "void g(void) { if(x) printf(y); else printf(z); }")
   (parse "void printf(char x[], int g) { return; }")
   (parse "void x(void) { printf(testing, 1 + 1, 'c'); }")
-  (parse example))
+  (pprint (parse example)))
