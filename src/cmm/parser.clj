@@ -1,7 +1,8 @@
 (ns cmm.parser
   (:require [instaparse.core :as insta]
             [clojure.edn :as edn]
-            [clojure.pprint :refer [pprint]]))
+            [clojure.pprint :refer [pprint]]
+            [cmm.symbol-table :as sym]))
 
 ;; Loading the parser from the grammar file
 (def whitespace-or-comments
@@ -97,7 +98,9 @@
 (defmethod build-ast :FUNCTION
   [symbol-table [_ [return-type] [_ function-name] params declarations & body]]
   (let  [params (build-ast symbol-table params)
+         symbol-table (sym/add-parameters symbol-table params)
          declarations (build-ast symbol-table declarations)
+         symbol-table (sym/add-declarations symbol-table declarations)]
     {:name function-name
      :type return-type
      :params params
@@ -152,9 +155,13 @@
      :operand operand}))
 
 (defmethod build-ast :ID [symbol-table [_ id]]
-  {:node-type :expression
-   :type :id ;; TODO Figure out symbol table
-   :id id})
+  (if-let [entries (sym/find-variable-entry symbol-table id)]
+    (if (= 1 (count entries))
+      {:node-type :expression
+       :type (:symbol-type (first entries))
+       :id id}
+      (printf "Error: Multiple symbol table entries found for id \"%s\": %s" id entries))
+    (printf "Error: Could not locate symbol %s\n" id)))
 
 (defmethod build-ast :INTEGER [symbol-table n]
   {:node-type :expression
@@ -238,8 +245,9 @@
 (defn parse [source]
   (->> source
     (insta/parse c-parser)
-    (build-ast {})))
+    (build-ast (sym/new-symbol-table nil []))))
 
 (comment
+  (pprint (parse "void g(int x) { printf(x); }"))
   (pprint (parse (slurp (clojure.java.io/resource "test_code/type_checking/test19.c"))))
   )
