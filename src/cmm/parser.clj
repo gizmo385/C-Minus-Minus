@@ -92,6 +92,8 @@
 (defmethod build-ast :START [symbol-table program]
   (map (partial build-ast symbol-table) (rest program)))
 
+(defmethod build-ast :FUNCTION_DECL [symbol-table decl] nil) ;; TODO
+
 (defmethod build-ast :FUNCTION [symbol-table [_ [return-type] [_ function-name] params & body]]
   {:name function-name
    :type return-type
