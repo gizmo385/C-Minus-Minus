@@ -133,7 +133,7 @@
      :right-operand right-operand}))
 
 (defmethod build-ast :UNARY_EXPRESSION [symbol-table [_ [operator] operand]]
-  (let [operand (build-ast operand)]
+  (let [operand (build-ast symbol-table operand)]
     {:node-type :expression
      :type (compute-type operator (:type operand))
      :operator operator
