@@ -94,11 +94,15 @@
 
 (defmethod build-ast :FUNCTION_DECL [symbol-table decl] nil) ;; TODO
 
-(defmethod build-ast :FUNCTION [symbol-table [_ [return-type] [_ function-name] params & body]]
-  {:name function-name
-   :type return-type
-   :params (build-ast symbol-table params)
-   :body (map (partial build-ast symbol-table) body)})
+(defmethod build-ast :FUNCTION
+  [symbol-table [_ [return-type] [_ function-name] params declarations & body]]
+  (let  [params (build-ast symbol-table params)
+         declarations (build-ast symbol-table declarations)
+    {:name function-name
+     :type return-type
+     :params params
+     :declarations declarations
+     :body (map (partial build-ast symbol-table) body)}))
 
 (defmethod build-ast :FUNCTION_CALL [symbol-table [_ [_ function-name] & args]]
   {:node-type :function-call
@@ -112,6 +116,9 @@
   {:name (second param-id)
    :type (second param-type)
    :array (some? array-brackets?)})
+
+(defmethod build-ast :DECLARATIONS [symbol-table [_ & declarations]]
+  (map (partial build-ast symbol-table) declarations))
 
 (defmethod build-ast :VARIABLE_DECLARATION [symbol-table [_ [_ variable-type] & ids]]
   {:node-type :declaration
