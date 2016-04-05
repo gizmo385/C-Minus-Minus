@@ -4,8 +4,11 @@
             [clojure.pprint :refer [pprint]]))
 
 ;; Loading the parser from the grammar file
+(def whitespace-or-comments
+  (insta/parser (clojure.java.io/resource "whitespace.bnf") :auto-whitespace :standard))
+
 (def c-parser
-  (insta/parser (clojure.java.io/resource "grammar.bnf") :auto-whitespace :standard))
+  (insta/parser (clojure.java.io/resource "grammar.bnf") :auto-whitespace whitespace-or-comments))
 
 ;; Defining operator classes
 (def arithmetic-operations
@@ -228,33 +231,6 @@
     (insta/parse c-parser)
     (build-ast {})))
 
-(def example
-  "
-  void testing(void) {
-   int x, y;
-   printf(5);
-   printf(5.7);
-   printf(1 + 2 - (4 * 7.2));
-
-   for (;;) printf(y);
-   printf(g);
-   }
-   void x(int g) { return 6; }
-   ")
-
 (comment
-  (parse "int x; char a, b[5];")
-  (parse "void g(void) { if(x) { printf(y); }}")
-  (parse "void g(void) { while(x) { printf(x); printf(y); }}")
-  (parse "void g(void) { for(;;) { printf(y); }}")
-  (parse "void g(void) { for(x = 5;;) { printf(y); }}")
-  (parse "void g(void) { for(x = 5; x < 5;) { printf(y); }}")
-  (parse "void g(void) { for(x = 5; x < 5; x = x + 1) { printf(y); }}")
-  (parse "void g(void) { x = 5; }")
-  (parse "void g(void) { return 5; }")
-  (parse "void g(void) { return; }")
-  (parse "void g(void) { x[7] = 5; }")
-  (parse "void g(void) { if(x) printf(y); else printf(z); }")
-  (parse "void printf(char x[], int g) { return; }")
-  (parse "void x(void) { printf(testing, 1 + 1, 'c'); }")
-  (pprint (parse example)))
+  (pprint (parse (slurp (clojure.java.io/resource "test_code/type_checking/test19.c"))))
+  )

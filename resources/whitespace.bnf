@@ -1,0 +1,4 @@
+ws-or-comments = #'\s+' | comments
+comments = comment+
+comment = '/*' inside-comment* '*/'
+inside-comment = !( '/*' | '*/') #'.' | comment
