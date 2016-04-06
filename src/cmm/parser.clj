@@ -246,7 +246,7 @@
 (defn parse [source]
   (->> source
     (insta/parse c-parser)
-    (build-ast (sym/new-symbol-table nil []))))
+    (build-ast (sym/new-symbol-table))))
 
 (comment
   (pprint (parse "void g(int x) { printf(x); }"))
