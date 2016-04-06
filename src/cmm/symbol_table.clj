@@ -5,8 +5,10 @@
 (defrecord TableEntry [symbol-name symbol-type array])
 
 ;; Constructors
-(defn new-symbol-table [parent entries]
-  (SymbolTable. parent entries))
+(defn new-symbol-table
+  ([] (SymbolTable. nil []))
+  ([parent] (SymbolTable. parent []))
+  ([parent entries] (SymbolTable. parent entries)))
 
 ;;; Creating and finding entries
 (defn find-variable-entry
