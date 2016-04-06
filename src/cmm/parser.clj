@@ -12,87 +12,33 @@
 (def c-parser
   (insta/parser (clojure.java.io/resource "grammar.bnf") :auto-whitespace whitespace-or-comments))
 
-;; Defining operator classes
-(def arithmetic-operations
-  "Operations which involve arithmetic"
-  [:plus :minus :multiply :divide])
-
-(def comparison-operations
-  "Operations which involve comparisons between values"
-  [:gte :lte :gt :lt :eq :neq])
-
-(def boolean-operations
-  "Operations which operate on booleans"
-  [:and :or :not])
-
-;; Defining type relationships
-(def number-types
-  "The types of numbers available, ordered based precision."
-  [:float :integer :char])
-
-(defn assert-of-type
-  "Asserts that all of types to check are of one of the types to assert"
-  [types-to-assert types-to-check]
-  (not-any? nil? (for [t types-to-check]
-    (some #{t} types-to-assert))))
-
-(defn operand-types-for-operator
-  "These are the types of operands that can be supplied to the various expression operators. Those
-   which can have multiple operand types are collections, whereas those which have a constant
-   operand type are expressed as static values."
-  [operator]
-  (cond
-    (some #{operator} arithmetic-operations) number-types
-    (some #{operator} comparison-operations) (conj number-types :boolean)
-    (some #{operator} boolean-operations) [:boolean]))
-
-(defn result-types-for-operator
-  "These are the types that can result from various expression operators. Those which can have
-   multiple resultant types are collections, whereas those which have a constant result type are
-   expressed as static values."
-  [operator]
-  (cond
-    (some #{operator} arithmetic-operations)  number-types
-    (some #{operator} comparison-operations)  :boolean
-    (some #{operator} boolean-operations)     :boolean))
-
-(defn filter-types
-  "Filters a list of actual types based on types present."
-  [possible-types actual-types]
-  (filter (fn [t] (some #{t} actual-types)) possible-types))
-
-(defn one-of
-  "Determines if any of the actual-values are one of the possible-values."
-  [possible-values actual-values]
-  (not-every? false?
-    (for [value possible-values
-          actual-value actual-values]
-      (= value actual-value))))
-
-(defn compute-type
-  "Computes the type of an expression based upon its operator and operands"
-  [operator & operand-types]
-  (cond
-    ;; Propogate errors upward
-    (one-of [nil :error] (list operand-types)) :error
-
-    ;; Check operand types
-    (assert-of-type (operand-types-for-operator operator) operand-types)
-    (if (coll? (result-types-for-operator operator))
-      ;; Collections of result types are expressions which can have multiple result types, like
-      ;; those found in arithmetic expressions
-      (first (filter-types (result-types-for-operator operator) operand-types))
-
-      ;; Singular return types are always the same, such as booleans from comparison operations
-      (result-types-for-operator operator))
-
-    :default :error))
-
 ;; Building the ast
 (defmulti build-ast (fn [symbol-table program] (first program)))
 
 (defmethod build-ast :START [symbol-table program]
-  (map (partial build-ast symbol-table) (rest program)))
+  (loop [program (next program)
+         ast []
+         symbol-table symbol-table]
+    (if program
+      (let [element (first program)]
+        ;; Handle proper symbol table entries
+        (condp = (first element)
+          :VARIABLE_DECLARATION
+          (let [element-ast (build-ast symbol-table element)]
+            (recur (next program)
+                   (conj ast element-ast)
+                   (sym/add-declarations symbol-table [element-ast])))
+          :FUNCTION_DECL
+          (let [element-ast (build-ast (sym/new-symbol-table symbol-table) element)]
+            (recur (next program)
+                   (conj ast element-ast)
+                   symbol-table))
+          :FUNCTION
+          (let [element-ast (build-ast (sym/new-symbol-table symbol-table) element)]
+            (recur (next program)
+                   (conj ast element-ast)
+                   symbol-table))))
+      ast)))
 
 (defmethod build-ast :FUNCTION_DECL [symbol-table decl] nil) ;; TODO
 
@@ -249,6 +195,5 @@
     (build-ast (sym/new-symbol-table))))
 
 (comment
-  (pprint (parse "void g(int x) { printf(x); }"))
-  (pprint (parse (slurp (clojure.java.io/resource "test_code/type_checking/test19.c"))))
-  )
+  (pprint (parse "int z; void g(int x) { char z; printf(z); }"))
+  (pprint (parse (slurp (clojure.java.io/resource "test_code/type_checking/test19.c")))))
