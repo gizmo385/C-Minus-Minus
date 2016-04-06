@@ -2,7 +2,8 @@
   (:require [instaparse.core :as insta]
             [clojure.edn :as edn]
             [clojure.pprint :refer [pprint]]
-            [cmm.symbol-table :as sym]))
+            [cmm.symbol-table :as sym]
+            [cmm.types :as types]))
 
 ;; Loading the parser from the grammar file
 (def whitespace-or-comments
@@ -142,7 +143,7 @@
   (let [left-operand (build-ast symbol-table left-operand)
         right-operand (build-ast symbol-table right-operand)]
     {:node-type :expression
-     :type (compute-type operator (:type left-operand) (:type right-operand))
+     :type (types/compute-type operator (:type left-operand) (:type right-operand))
      :operator operator
      :left-operand left-operand
      :right-operand right-operand}))
@@ -150,7 +151,7 @@
 (defmethod build-ast :UNARY_EXPRESSION [symbol-table [_ [operator] operand]]
   (let [operand (build-ast symbol-table operand)]
     {:node-type :expression
-     :type (compute-type operator (:type operand))
+     :type (types/compute-type operator (:type operand))
      :operator operator
      :operand operand}))
 
