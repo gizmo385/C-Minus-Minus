@@ -24,23 +24,36 @@
         ;; Handle proper symbol table entries
         (condp = (first element)
           :VARIABLE_DECLARATION
-          (let [element-ast (build-ast symbol-table element)]
+          (let [variable (build-ast symbol-table element)]
             (recur (next program)
-                   (conj ast element-ast)
-                   (sym/add-declarations symbol-table [element-ast])))
+                   (conj ast variable)
+                   (sym/add-declarations symbol-table [variable])))
           :FUNCTION_DECL
-          (let [element-ast (build-ast (sym/new-symbol-table symbol-table) element)]
+          (let [function-declaration (build-ast (sym/new-symbol-table symbol-table) element)]
             (recur (next program)
-                   (conj ast element-ast)
-                   symbol-table))
+                   (conj ast function-declaration)
+                   (sym/add-function symbol-table function-declaration false)))
           :FUNCTION
-          (let [element-ast (build-ast (sym/new-symbol-table symbol-table) element)]
+          (let [function (build-ast (sym/new-symbol-table symbol-table) element)]
             (recur (next program)
-                   (conj ast element-ast)
-                   symbol-table))))
+                   (conj ast function)
+                   (sym/add-function symbol-table function true)))))
       ast)))
 
-(defmethod build-ast :FUNCTION_DECL [symbol-table decl] nil) ;; TODO
+(defmethod build-ast :FUNCTION_DECL [symbol-table [_ & fields]]
+  (if (= (first (first fields)) :extern)
+    (let  [[_ [return-type] [_ function-name] params] fields]
+      {:function-name function-name
+       :return-type (keyword return-type)
+       :params (map (partial build-ast symbol-table) (next params))
+       :extern true
+       :defined false})
+    (let  [[[return-type] [_ function-name] params] fields]
+      {:function-name function-name
+       :return-type (keyword return-type)
+       :params (map (partial build-ast symbol-table) (next params))
+       :extern false
+       :defined false})))
 
 (defmethod build-ast :FUNCTION
   [symbol-table [_ [return-type] [_ function-name] params declarations & body]]
@@ -48,23 +61,26 @@
          symbol-table (sym/add-parameters symbol-table params)
          declarations (build-ast symbol-table declarations)
          symbol-table (sym/add-declarations symbol-table declarations)]
-    {:name function-name
-     :type return-type
+    {:function-name function-name
+     :return-type return-type
      :params params
      :declarations declarations
      :body (map (partial build-ast symbol-table) body)}))
 
 (defmethod build-ast :FUNCTION_CALL [symbol-table [_ [_ function-name] & args]]
-  {:node-type :function-call
-   :function-name function-name
-   :arguments (map (partial build-ast symbol-table) args)})
+  (if-let [entry (sym/find-function-entry symbol-table function-name)]
+    {:node-type :function-call
+     :function-name function-name
+     :type (:function-type entry)
+     :arguments (map (partial build-ast symbol-table) args)}
+    (printf "Error: Could not find function with name: %s\n" function-name)))
 
 (defmethod build-ast :PARAMS [symbol-table [_ & params]]
   (map (partial build-ast symbol-table) params))
 
 (defmethod build-ast :PARAM [symbol-table [_ param-type param-id array-brackets?]]
   {:name (second param-id)
-   :type (second param-type)
+   :type (keyword (second param-type))
    :array (some? array-brackets?)})
 
 (defmethod build-ast :DECLARATIONS [symbol-table [_ & declarations]]
@@ -102,12 +118,10 @@
      :operand operand}))
 
 (defmethod build-ast :ID [symbol-table [_ id]]
-  (if-let [entries (sym/find-variable-entry symbol-table id)]
-    (if (= 1 (count entries))
-      {:node-type :expression
-       :type (:symbol-type (first entries))
-       :id id}
-      (printf "Error: Multiple symbol table entries found for id \"%s\": %s" id entries))
+  (if-let [entry (sym/find-variable-entry symbol-table id)]
+    {:node-type :expression
+     :type (:symbol-type entry)
+     :id id}
     (printf "Error: Could not locate symbol %s\n" id)))
 
 (defmethod build-ast :INTEGER [symbol-table n]
@@ -193,7 +207,3 @@
   (->> source
     (insta/parse c-parser)
     (build-ast (sym/new-symbol-table))))
-
-(comment
-  (pprint (parse "int z; void g(int x) { char z; printf(z); }"))
-  (pprint (parse (slurp (clojure.java.io/resource "test_code/type_checking/test19.c")))))

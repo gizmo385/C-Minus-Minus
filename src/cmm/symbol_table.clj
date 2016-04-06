@@ -2,7 +2,8 @@
 
 ;;; Symbol table structure
 (defrecord SymbolTable [parent entries])
-(defrecord TableEntry [symbol-name symbol-type array])
+(defrecord Variable [symbol-name symbol-type array])
+(defrecord Function [function-name function-type defined?]) ;; TODO: Add parameter types
 
 ;; Constructors
 (defn new-symbol-table
@@ -22,16 +23,28 @@
   ([{:keys [entries parent]} symbol-name search-depth]
    (if (or (empty? entries) (zero? search-depth))
      nil
-     (if-let [results (not-empty (filter #(= (:symbol-name %) symbol-name) entries))]
+     (if-let [results (->> entries
+                           (filter #(= (:symbol-name %) symbol-name))
+                           (filter #(= (type %) Variable))
+                           (first))]
        results
        (find-variable-entry parent symbol-name (dec search-depth))))))
 
-(defn- add-entry
-  "Makes a new symbol table entry and places it into the table"
+(defn find-function-entry [symbol-table function-name]
+  (loop [symbol-table symbol-table]
+    (if (:parent symbol-table)
+      (recur (:parent symbol-table))
+      (->> (:entries symbol-table)
+           (filter #(= (:function-name %) function-name))
+           (filter #(= (type %) Function))
+           (first)))))
+
+(defn- add-variable-entry
+  "Makes a new symbol table entry for a variable and places it into the table"
   [symbol-table symbol-name symbol-type array]
   (if (find-variable-entry symbol-table symbol-name 1)
     (printf "Error: Cannot add %s to the symbol table, already declared" symbol-name)
-    (let [entry (TableEntry. symbol-name symbol-type array)]
+    (let [entry (Variable. symbol-name symbol-type array)]
       (assoc symbol-table :entries (conj (:entries symbol-table) entry)))))
 
 ;;; Symbol table insertion functions, for paramters and declarations
@@ -42,7 +55,7 @@
   (loop [symbol-table symbol-table
          params params]
     (if-let [param (first params)]
-      (recur (add-entry symbol-table (:name param) (:type param) (:array param))
+      (recur (add-variable-entry symbol-table (:name param) (:type param) (:array param))
              (next params))
       symbol-table)))
 
@@ -54,7 +67,7 @@
          symbol-table symbol-table]
     (if-let [v (first vars)]
       (recur (next vars)
-             (add-entry symbol-table (:name v) symbol-types (not= nil (:array-size v))))
+             (add-variable-entry symbol-table (:name v) symbol-types (not= nil (:array-size v))))
       symbol-table)))
 
 (defn add-declarations
@@ -66,3 +79,9 @@
       (recur (next declarations)
              (add-declaration-vars symbol-table (:type declaration) (:vars declaration)))
       symbol-table)))
+
+(defn add-function [symbol-table {:keys [function-name return-type]} defined?]
+  (if (find-function-entry symbol-table function-name)
+    (printf "Error: Attempting to redeclare function with name %s\n" function-name)
+    (let [function (Function. function-name return-type defined?)]
+      (assoc symbol-table :entries (conj (:entries symbol-table) function)))))
