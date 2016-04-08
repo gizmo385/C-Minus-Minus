@@ -29,15 +29,25 @@
                    (conj ast variable)
                    (sym/add-declarations symbol-table [variable])))
           :FUNCTION_DECL
-          (let [function-declaration (build-ast (sym/new-symbol-table symbol-table) element)]
-            (recur (next program)
-                   (conj ast function-declaration)
-                   (sym/add-function symbol-table function-declaration false)))
+          (let [function (build-ast (sym/new-symbol-table symbol-table) element)]
+            (if (sym/function-declared? symbol-table function)
+              ;; Don't print an error since sym/add-function will handle errors
+              (recur (next program)
+                     ast
+                     (sym/add-function symbol-table function false))
+              (recur (next program)
+                     (conj ast function)
+                     (sym/add-function symbol-table function false))))
           :FUNCTION
           (let [function (build-ast (sym/new-symbol-table symbol-table) element)]
-            (recur (next program)
-                   (conj ast function)
-                   (sym/add-function symbol-table function true)))))
+            (if (sym/function-defined? symbol-table function)
+              ;; Don't print an error since sym/add-function will handle errors
+              (recur (next program)
+                     ast
+                     (sym/add-function symbol-table function true))
+              (recur (next program)
+                     (conj ast function)
+                     (sym/add-function symbol-table function true))))))
       ast)))
 
 (defmethod build-ast :FUNCTION_DECL [symbol-table [_ & fields]]

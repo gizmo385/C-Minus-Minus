@@ -5,13 +5,13 @@
 (defrecord Variable [symbol-name symbol-type array])
 (defrecord Function [function-name function-type defined?]) ;; TODO: Add parameter types
 
-;; Constructors
+;;; Constructors
 (defn new-symbol-table
   ([] (SymbolTable. nil []))
   ([parent] (SymbolTable. parent []))
   ([parent entries] (SymbolTable. parent entries)))
 
-;;; Creating and finding entries
+;;; Finding entries in the symbol table
 (defn find-variable-entry
   "Searches through nested symbol tables (up to an optional max depth) to find an occurrence of a
    particular symbol name."
@@ -39,6 +39,7 @@
            (filter #(= (type %) Function))
            (first)))))
 
+;;; Creating entries in the symbol table
 (defn- add-variable-entry
   "Makes a new symbol table entry for a variable and places it into the table"
   [symbol-table symbol-name symbol-type array]
@@ -47,7 +48,6 @@
     (let [entry (Variable. symbol-name symbol-type array)]
       (assoc symbol-table :entries (conj (:entries symbol-table) entry)))))
 
-;;; Symbol table insertion functions, for paramters and declarations
 (defn add-parameters
   "Traverses the parameter structures and add thoses variables to the symbol table. Returns the
    symbol table"
@@ -80,8 +80,38 @@
              (add-declaration-vars symbol-table (:type declaration) (:vars declaration)))
       symbol-table)))
 
-(defn add-function [symbol-table {:keys [function-name return-type]} defined?]
-  (if (find-function-entry symbol-table function-name)
-    (printf "Error: Attempting to redeclare function with name %s\n" function-name)
+(defn add-function
+  "Adds or modifies a function in the symbol table based on what is currently declared/defined."
+  [symbol-table {:keys [function-name return-type]} defined?]
+  (if-let [entry (find-function-entry symbol-table function-name)]
+    (cond
+      (and defined? (:defined? entry))
+      (do
+        (printf "Error: Attempting to redefine defined function %s\n" function-name)
+        symbol-table)
+
+      (and defined? (not (:defined? entry)))
+      (let [modified-entry (assoc entry :defined? true)]
+        (assoc symbol-table :entries (replace {entry modified-entry} (:entries symbol-table))))
+
+      (and (:defined? entry)  (not defined?))
+      (do
+        (printf "Error: The function %s has already been defined!\n" function-name)
+        symbol-table)
+
+      (not-any? true? [defined? (:defined? entry)])
+      (do
+        (printf "Error: Attempting to redeclare declared function %s\n" function-name)
+        symbol-table))
+
     (let [function (Function. function-name return-type defined?)]
       (assoc symbol-table :entries (conj (:entries symbol-table) function)))))
+
+;;; Symbol table predicates
+(defn function-defined? [symbol-table function]
+  (if-let [function (find-function-entry symbol-table (:function-name function))]
+    (:defined? function)
+    false))
+
+(defn function-declared? [symbol-table function]
+  (some? (find-function-entry symbol-table (:function-name function))))
