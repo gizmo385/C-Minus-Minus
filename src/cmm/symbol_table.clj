@@ -1,4 +1,5 @@
-(ns cmm.symbol-table)
+(ns cmm.symbol-table
+  (:require [cmm.errors :as err]))
 
 ;;; Symbol table structure
 (defrecord SymbolTable [parent entries])
@@ -44,7 +45,7 @@
   "Makes a new symbol table entry for a variable and places it into the table"
   [symbol-table symbol-name symbol-type array]
   (if (find-variable-entry symbol-table symbol-name 1)
-    (printf "Error: Cannot add %s to the symbol table, already declared" symbol-name)
+    (err/raise-error! "Cannot add %s to the symbol table, already declared" symbol-name)
     (let [entry (Variable. symbol-name symbol-type array)]
       (assoc symbol-table :entries (conj (:entries symbol-table) entry)))))
 
@@ -87,7 +88,7 @@
     (cond
       (and defined? (:defined? entry))
       (do
-        (printf "Error: Attempting to redefine defined function %s\n" function-name)
+        (err/raise-error! "Attempting to redefine defined function %s\n" function-name)
         symbol-table)
 
       (and defined? (not (:defined? entry)))
@@ -96,12 +97,12 @@
 
       (and (:defined? entry)  (not defined?))
       (do
-        (printf "Error: The function %s has already been defined!\n" function-name)
+        (err/raise-error! "The function %s has already been defined!\n" function-name)
         symbol-table)
 
       (not-any? true? [defined? (:defined? entry)])
       (do
-        (printf "Error: Attempting to redeclare declared function %s\n" function-name)
+        (err/raise-error! "Attempting to redeclare declared function %s\n" function-name)
         symbol-table))
 
     (let [function (Function. function-name return-type defined?)]

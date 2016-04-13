@@ -3,9 +3,9 @@
    type checking, and error handling."
   (:require [instaparse.core :as insta]
             [clojure.edn :as edn]
-            [clojure.pprint :refer [pprint]]
             [cmm.symbol-table :as sym]
-            [cmm.types :as types]))
+            [cmm.types :as types]
+            [cmm.errors :as err]))
 
 ;;; Loading the parser from the grammar file
 (def whitespace-or-comments
@@ -17,6 +17,10 @@
   "This is the primary C parser. It uses a custom whitespace parser which handles comments and
    whitespace characters. The results of this parser should be sent to the build-ast function."
   (insta/parser (clojure.java.io/resource "grammar.bnf") :auto-whitespace whitespace-or-comments))
+
+;;; State management:
+;;; The parser has one actual state variable, which is reset when parse function is called. This
+;;; state variable maintains whether or not an error has been encountered somewhere in the code.
 
 ;;; Building the ast
 (defmulti build-ast
@@ -62,13 +66,13 @@
     (let  [[_ [return-type] [_ function-name] params] fields]
       {:function-name function-name
        :return-type (keyword return-type)
-       :params (map (partial build-ast symbol-table) (next params))
+       :params (dorun (map (partial build-ast symbol-table) (next params)))
        :extern true
        :defined false})
     (let  [[[return-type] [_ function-name] params] fields]
       {:function-name function-name
        :return-type (keyword return-type)
-       :params (map (partial build-ast symbol-table) (next params))
+       :params (dorun (map (partial build-ast symbol-table) (next params)))
        :extern false
        :defined false})))
 
@@ -82,11 +86,11 @@
      :return-type return-type
      :params params
      :declarations declarations
-     :body (map (partial build-ast symbol-table) body)}))
+     :body (dorun (map (partial build-ast symbol-table) body))}))
 
 
 (defmethod build-ast :PARAMS [symbol-table [_ & params]]
-  (map (partial build-ast symbol-table) params))
+  (dorun (map (partial build-ast symbol-table) params)))
 
 (defmethod build-ast :PARAM [symbol-table [_ param-type param-id array-brackets?]]
   {:name (second param-id)
@@ -95,12 +99,12 @@
 
 ;;; Variable declarations
 (defmethod build-ast :DECLARATIONS [symbol-table [_ & declarations]]
-  (map (partial build-ast symbol-table) declarations))
+  (dorun (map (partial build-ast symbol-table) declarations)))
 
 (defmethod build-ast :VARIABLE_DECLARATION [symbol-table [_ [_ variable-type] & ids]]
   {:node-type :declaration
    :type (keyword variable-type)
-   :vars (map (partial build-ast symbol-table) ids)})
+   :vars (dorun (map (partial build-ast symbol-table) ids))})
 
 ;;; Parsing expressions
 (defmethod build-ast :OPT_EXPR [symbol-table [_ expression]]
@@ -130,9 +134,14 @@
     {:node-type :function-call
      :function-name function-name
      :type (:function-type entry)
-     :arguments (map (partial build-ast symbol-table) args)}
-    (printf "Error: Could not find function with name: %s\n" function-name)))
- 
+     :arguments (dorun (map (partial build-ast symbol-table) args))}
+    (do
+      (err/raise-error! "Could not find function with name: %s\n" function-name)
+      {:node-type :function-call
+       :function-name function-name
+       :type :error
+       :arguments (dorun (map (partial build-ast symbol-table) args))})))
+
 (defmethod build-ast :VARIABLE_ID [symbol-table [_ id size?]]
   {:name (second id)
    :array-size (if size? (build-ast symbol-table size?))})
@@ -142,7 +151,7 @@
     {:node-type :expression
      :type (:symbol-type entry)
      :id id}
-    (printf "Error: Could not locate symbol %s\n" id)))
+    (err/raise-error! "Could not locate symbol %s\n" id)))
 
 (defmethod build-ast :INTEGER [symbol-table n]
   {:node-type :expression
@@ -166,7 +175,7 @@
 
 ;;; Parsing different statement types
 (defmethod build-ast :STATEMENT_LIST [symbol-table [_ & statements]]
-  (map (partial build-ast symbol-table) statements))
+  (dorun (map (partial build-ast symbol-table) statements)))
 
 (defmethod build-ast :IF [symbol-table [_ condition body]]
   {:node-type :statement
@@ -222,11 +231,13 @@
 
 ;;; Handling invalid parse elements
 (defmethod build-ast :default [symbol-table structure]
-  (printf "Can't parse a %s\n" (first structure)))
+  (err/raise-error! "Can't parse a %s\n" (first structure)))
 
 ;;; User facing functions
 (defn parse [source]
-  (let [parse-result (insta/parse c-parser source)]
+  (let [parse-result (insta/add-line-and-column-info-to-metadata source
+                                                                 (insta/parse c-parser source))]
+    (err/reset-error!) ; Reset the global error flag before handling the parse.
     (if-let [failure (insta/get-failure parse-result)]
       failure
       (build-ast (sym/new-symbol-table) parse-result))))
