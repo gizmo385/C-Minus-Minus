@@ -226,6 +226,7 @@
 
 ;;; User facing functions
 (defn parse [source]
-  (->> source
-    (insta/parse c-parser)
-    (build-ast (sym/new-symbol-table))))
+  (let [parse-result (insta/parse c-parser source)]
+    (if-let [failure (insta/get-failure parse-result)]
+      failure
+      (build-ast (sym/new-symbol-table) parse-result))))
