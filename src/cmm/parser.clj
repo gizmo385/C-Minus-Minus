@@ -1,19 +1,32 @@
 (ns cmm.parser
+  "This namespace contains functions related to parsing C files. This process lexical analysis,
+   type checking, and error handling."
   (:require [instaparse.core :as insta]
             [clojure.edn :as edn]
             [clojure.pprint :refer [pprint]]
             [cmm.symbol-table :as sym]
             [cmm.types :as types]))
 
-;; Loading the parser from the grammar file
+;;; Loading the parser from the grammar file
 (def whitespace-or-comments
+  "This parser handles the whitespace and comment parsing. It is used as the whitespace parser in
+   the primary C parser."
   (insta/parser (clojure.java.io/resource "whitespace.bnf") :auto-whitespace :standard))
 
 (def c-parser
+  "This is the primary C parser. It uses a custom whitespace parser which handles comments and
+   whitespace characters. The results of this parser should be sent to the build-ast function."
   (insta/parser (clojure.java.io/resource "grammar.bnf") :auto-whitespace whitespace-or-comments))
 
-;; Building the ast
-(defmulti build-ast (fn [symbol-table program] (first program)))
+;;; Building the ast
+(defmulti build-ast
+  "The build-ast function represents the primary parsing function for CMM. This uses the output
+   from instaparse to generate a more easily understandable, parseable, and easy-to-use tree
+   structure.
+
+   The first argument represents the symbol table of the calling scope. The second argument
+   represents a subsection of the parse result."
+  (fn [symbol-table program] (first program)))
 
 (defmethod build-ast :START [symbol-table program]
   (loop [program (next program)
@@ -30,26 +43,20 @@
                    (sym/add-declarations symbol-table [variable])))
           :FUNCTION_DECL
           (let [function (build-ast (sym/new-symbol-table symbol-table) element)]
-            (if (sym/function-declared? symbol-table function)
               ;; Don't print an error since sym/add-function will handle errors
               (recur (next program)
-                     ast
-                     (sym/add-function symbol-table function false))
-              (recur (next program)
-                     (conj ast function)
-                     (sym/add-function symbol-table function false))))
+                     ast ; Don't add declarations to AST, not useful
+                     (sym/add-function symbol-table function false)))
           :FUNCTION
           (let [function (build-ast (sym/new-symbol-table symbol-table) element)]
-            (if (sym/function-defined? symbol-table function)
-              ;; Don't print an error since sym/add-function will handle errors
-              (recur (next program)
-                     ast
-                     (sym/add-function symbol-table function true))
-              (recur (next program)
-                     (conj ast function)
-                     (sym/add-function symbol-table function true))))))
+            ;; Don't print an error since sym/add-function will handle errors
+            (recur (next program)
+                   (if (sym/function-defined? symbol-table function) ast (conj ast function))
+                   (sym/add-function symbol-table function true)))))
       ast)))
 
+
+;;; Parsing functions and function declarations
 (defmethod build-ast :FUNCTION_DECL [symbol-table [_ & fields]]
   (if (= (first (first fields)) :extern)
     (let  [[_ [return-type] [_ function-name] params] fields]
@@ -77,13 +84,6 @@
      :declarations declarations
      :body (map (partial build-ast symbol-table) body)}))
 
-(defmethod build-ast :FUNCTION_CALL [symbol-table [_ [_ function-name] & args]]
-  (if-let [entry (sym/find-function-entry symbol-table function-name)]
-    {:node-type :function-call
-     :function-name function-name
-     :type (:function-type entry)
-     :arguments (map (partial build-ast symbol-table) args)}
-    (printf "Error: Could not find function with name: %s\n" function-name)))
 
 (defmethod build-ast :PARAMS [symbol-table [_ & params]]
   (map (partial build-ast symbol-table) params))
@@ -93,6 +93,7 @@
    :type (keyword (second param-type))
    :array (some? array-brackets?)})
 
+;;; Variable declarations
 (defmethod build-ast :DECLARATIONS [symbol-table [_ & declarations]]
   (map (partial build-ast symbol-table) declarations))
 
@@ -101,10 +102,7 @@
    :type (keyword variable-type)
    :vars (map (partial build-ast symbol-table) ids)})
 
-(defmethod build-ast :VARIABLE_ID [symbol-table [_ id size?]]
-  {:name (second id)
-   :array-size (if size? (build-ast symbol-table size?))})
-
+;;; Parsing expressions
 (defmethod build-ast :OPT_EXPR [symbol-table [_ expression]]
   (if expression (build-ast symbol-table expression)))
 
@@ -126,6 +124,18 @@
      :type (types/compute-type operator (:type operand))
      :operator operator
      :operand operand}))
+
+(defmethod build-ast :FUNCTION_CALL [symbol-table [_ [_ function-name] & args]]
+  (if-let [entry (sym/find-function-entry symbol-table function-name)]
+    {:node-type :function-call
+     :function-name function-name
+     :type (:function-type entry)
+     :arguments (map (partial build-ast symbol-table) args)}
+    (printf "Error: Could not find function with name: %s\n" function-name)))
+ 
+(defmethod build-ast :VARIABLE_ID [symbol-table [_ id size?]]
+  {:name (second id)
+   :array-size (if size? (build-ast symbol-table size?))})
 
 (defmethod build-ast :ID [symbol-table [_ id]]
   (if-let [entry (sym/find-variable-entry symbol-table id)]
@@ -154,6 +164,7 @@
    :type      :string
    :value     (second s)})
 
+;;; Parsing different statement types
 (defmethod build-ast :STATEMENT_LIST [symbol-table [_ & statements]]
   (map (partial build-ast symbol-table) statements))
 
@@ -209,10 +220,11 @@
    :update (build-ast symbol-table update?)
    :body (build-ast symbol-table body)})
 
+;;; Handling invalid parse elements
 (defmethod build-ast :default [symbol-table structure]
   (printf "Can't parse a %s\n" (first structure)))
 
-;; User facing functions
+;;; User facing functions
 (defn parse [source]
   (->> source
     (insta/parse c-parser)
