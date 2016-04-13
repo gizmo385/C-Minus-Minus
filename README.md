@@ -1,6 +1,8 @@
-# cmm
+# CMM - C Minus Minus
 
-FIXME: description
+This is a C-- Compiler implemented in Clojure using
+[instaparse](https://github.com/Engelberg/instaparse). The project will hopefully evolve to compile
+elements present in the full C language, such as structs, pointers, etc.
 
 ## Installation
 
