@@ -2,7 +2,8 @@
   "This namespace contains convinience macros and functions for handling debugging. Print messages
    meant for debugging can be replaced with calls to debug-msg. These calls will only execute when
    the dynamic debugging-enabled var has been set to true. This can be easily accomplished with the
-   with-debugging macro.")
+   with-debugging macro."
+  (:require [clansi :refer [style]]))
 
 (def ^:dynamic *debugging-enabled*
   "Determines whether or not debugging messages should print."
@@ -20,6 +21,5 @@
   [& args]
   (if *debugging-enabled*
     (do
-      (print "DEBUG: ")
-      (apply printf args)
+      (print (style "DEBUG:" :green) (apply format args))
       (flush))))

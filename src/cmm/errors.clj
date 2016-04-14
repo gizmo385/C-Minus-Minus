@@ -1,7 +1,8 @@
 (ns cmm.errors
   "This namespace encapsulates access to the global error flag in the parser system. If an error
    occurs during parsing, then the raise-error! function should be called, along with appropriate
-   printf arguments.")
+   printf arguments."
+  (:require [clansi :refer [style]]))
 
 (def error-occured?
   "This represents the singular piece of global state within the parser. For the sake of
@@ -25,8 +26,10 @@
    destined for stderr."
   [& args]
   (reset! error-occured? true)
-  (binding [*out* *err*] (print "ERROR:" (apply format args))
-    (flush)))
+  (if (not (empty? args))
+    (binding [*out* *err*]
+      (print (style "ERROR:" :red) (apply format args))
+      (flush))))
 
 (defmacro without-error->>
   "A macro, based off of the some->> macro which continues to thread the previous result when both
