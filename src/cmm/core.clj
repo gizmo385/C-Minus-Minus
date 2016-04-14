@@ -7,6 +7,7 @@
             [cmm.debug :refer [*debugging-enabled*]])
   (:gen-class))
 
+;;; Command line arguments
 (def ^:private cli-options
   [["-d" "--debug" "Debug mode"]
    ["-h" "--help" "Display usage information"]])
@@ -22,6 +23,7 @@
          "Please refer to the manual page for more information."]
        (join \newline)))
 
+;;; Convinience functions for printing/exiting
 (defn- printf-err
   "Calls printf on the arguments with *out* bound to stderr."
   [& msg]
@@ -29,7 +31,9 @@
     (apply printf msg)
     (flush)))
 
-(defn- exit [status message]
+(defn- exit
+  "Prints a message to stdout and then exits with the supplied status code."
+  [status message]
   (println message)
   (System/exit status))
 
@@ -47,6 +51,7 @@
     (printf-err "Could not successfully compile %s\n" (style filename :underline))
     (printf "Successfully compiled %s\n" (style filename :underline))))
 
+;;; Main entry point for the compiler.
 (defn -main [& args]
   (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)]
     ;; Check for help options
