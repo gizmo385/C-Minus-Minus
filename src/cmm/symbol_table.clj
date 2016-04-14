@@ -1,5 +1,7 @@
 (ns cmm.symbol-table
-  (:require [cmm.errors :as err]))
+  (:require [cmm.errors :as err]
+            [cmm.debug :refer [debug-msg]]
+            [clojure.string :as s]))
 
 ;;; Symbol table structure
 (defrecord SymbolTable [parent entries])

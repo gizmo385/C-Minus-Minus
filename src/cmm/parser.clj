@@ -5,7 +5,8 @@
             [clojure.edn :as edn]
             [cmm.symbol-table :as sym]
             [cmm.types :as types]
-            [cmm.errors :as err]))
+            [cmm.errors :as err]
+            [cmm.debug :as dbg :refer [debug-msg]]))
 
 ;;; Loading the parser from the grammar file
 (def whitespace-or-comments
