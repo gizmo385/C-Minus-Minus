@@ -5,6 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/tools.namespace "0.2.11"]
+                 [org.clojure/tools.cli "0.3.3"]
                  [instaparse "1.4.1"]
                  [clansi "1.0.0"]]
   :repl-options {:init-ns user}
