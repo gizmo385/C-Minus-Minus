@@ -66,13 +66,13 @@
     (let  [[_ [return-type] [_ function-name] params] fields]
       {:function-name function-name
        :return-type (keyword return-type)
-       :params (dorun (map (partial build-ast symbol-table) (next params)))
+       :params (doall (map (partial build-ast symbol-table) (next params)))
        :extern true
        :defined false})
     (let  [[[return-type] [_ function-name] params] fields]
       {:function-name function-name
        :return-type (keyword return-type)
-       :params (dorun (map (partial build-ast symbol-table) (next params)))
+       :params (doall (map (partial build-ast symbol-table) (next params)))
        :extern false
        :defined false})))
 
@@ -86,7 +86,7 @@
      :return-type return-type
      :params params
      :declarations declarations
-     :body (dorun (map (partial build-ast symbol-table) body))}))
+     :body (doall (map (partial build-ast symbol-table) body))}))
 
 
 (defmethod build-ast :PARAMS [symbol-table [_ & params]]
@@ -104,7 +104,7 @@
 (defmethod build-ast :VARIABLE_DECLARATION [symbol-table [_ [_ variable-type] & ids]]
   {:node-type :declaration
    :type (keyword variable-type)
-   :vars (dorun (map (partial build-ast symbol-table) ids))})
+   :vars (doall (map (partial build-ast symbol-table) ids))})
 
 ;;; Parsing expressions
 (defmethod build-ast :OPT_EXPR [symbol-table [_ expression]]
@@ -134,13 +134,13 @@
     {:node-type :function-call
      :function-name function-name
      :type (:function-type entry)
-     :arguments (dorun (map (partial build-ast symbol-table) args))}
+     :arguments (doall (map (partial build-ast symbol-table) args))}
     (do
       (err/raise-error! "Could not find function with name: %s\n" function-name)
       {:node-type :function-call
        :function-name function-name
        :type :error
-       :arguments (dorun (map (partial build-ast symbol-table) args))})))
+       :arguments (doall (map (partial build-ast symbol-table) args))})))
 
 (defmethod build-ast :VARIABLE_ID [symbol-table [_ id size?]]
   {:name (second id)
@@ -175,7 +175,7 @@
 
 ;;; Parsing different statement types
 (defmethod build-ast :STATEMENT_LIST [symbol-table [_ & statements]]
-  (dorun (map (partial build-ast symbol-table) statements)))
+  (doall (map (partial build-ast symbol-table) statements)))
 
 (defmethod build-ast :IF [symbol-table [_ condition body]]
   {:node-type :statement
