@@ -6,7 +6,7 @@
 ;;; Symbol table structure
 (defrecord SymbolTable [parent entries])
 (defrecord Variable [symbol-name symbol-type array])
-(defrecord Function [function-name function-type defined?]) ;; TODO: Add parameter types
+(defrecord Function [function-name function-type params defined?]) ;; TODO: Add parameter types
 
 ;;; Constructors
 (defn new-symbol-table
@@ -85,7 +85,7 @@
 
 (defn add-function
   "Adds or modifies a function in the symbol table based on what is currently declared/defined."
-  [symbol-table {:keys [function-name return-type]} defined?]
+  [symbol-table {:keys [function-name params return-type]} defined?]
   (if-let [entry (find-function-entry symbol-table function-name)]
     (cond
       (:defined? entry)
@@ -94,15 +94,24 @@
         symbol-table)
 
       (and defined? (not (:defined? entry)))
-      (let [modified-entry (assoc entry :defined? true)]
-        (assoc symbol-table :entries (replace {entry modified-entry} (:entries symbol-table))))
+      (if (= (map :type params) (:params entry)) ; Ensure parameters match
+        (let [modified-entry (assoc entry :defined? true)]
+          (assoc symbol-table :entries (replace {entry modified-entry} (:entries symbol-table))))
+        (do
+          (err/raise-error! "Attempting to change declared arguments of %s from (%s) to (%s)!\n"
+                            function-name
+                            (s/join ", " (:params entry))
+                            (s/join ", " (map :type params)))
+          symbol-table))
 
       (not-any? true? [defined? (:defined? entry)])
       (do
         (err/raise-error! "Attempting to redeclare declared function %s\n" function-name)
         symbol-table))
 
-    (let [function (Function. function-name return-type defined?)]
+    (let [param-types (map :type params)
+          function (Function. function-name return-type param-types defined?)]
+      (debug-msg "New fn: %s :: (%s) -> %s\n" function-name (s/join ", " param-types) return-type)
       (assoc symbol-table :entries (conj (:entries symbol-table) function)))))
 
 ;;; Symbol table predicates
