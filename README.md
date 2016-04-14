@@ -4,35 +4,22 @@ This is a C-- Compiler implemented in Clojure using
 [instaparse](https://github.com/Engelberg/instaparse). The project will hopefully evolve to compile
 elements present in the full C language, such as structs, pointers, etc.
 
-## Installation
-
-Download from http://example.com/FIXME.
-
 ## Usage
 
-FIXME: explanation
+You can run using leiningen like so:
 
-    $ java -jar cmm-0.1.0-standalone.jar [args]
+    $ lein run -- [options] [filenames ...]
 
 ## Options
 
-FIXME: listing of options this app accepts.
+Currently there are two options:
 
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+  --help: Displays help information
+  --debug: Displays debug messages during compilation
 
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 Christopher Chapline
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
