@@ -235,9 +235,10 @@
 
 ;;; User facing functions
 (defn parse [source]
-  (let [parse-result (insta/add-line-and-column-info-to-metadata source
-                                                                 (insta/parse c-parser source))]
-    (err/reset-error!) ; Reset the global error flag before handling the parse.
+  (let [parse-result (->> source
+                          (insta/parse c-parser)
+                          (insta/add-line-and-column-info-to-metadata source))]
+    (err/reset-error!) ; Reset the global error flag before handling the parse
     (if-let [failure (insta/get-failure parse-result)]
       failure
       (build-ast (sym/new-symbol-table) parse-result))))
