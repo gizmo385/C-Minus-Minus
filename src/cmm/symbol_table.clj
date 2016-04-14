@@ -87,28 +87,29 @@
   "Adds or modifies a function in the symbol table based on what is currently declared/defined."
   [symbol-table {:keys [function-name params return-type]} defined?]
   (if-let [entry (find-function-entry symbol-table function-name)]
-    (cond
-      (:defined? entry)
-      (do
+    (or
+      (cond
+        ;; Attempting to define a function that already has a definition
+        (:defined? entry)
         (err/raise-error! "The function %s has already been defined!\n" function-name)
-        symbol-table)
 
-      (and defined? (not (:defined? entry)))
-      (if (= (map :type params) (:params entry)) ; Ensure parameters match
-        (let [modified-entry (assoc entry :defined? true)]
-          (assoc symbol-table :entries (replace {entry modified-entry} (:entries symbol-table))))
-        (do
+        ;; Function definition for a function with a declared prototype
+        (and defined? (not (:defined? entry)))
+        (if (= (map :type params) (:params entry))
+          (assoc symbol-table :entries
+                 (replace {entry (assoc entry :defined? true)}
+                          (:entries symbol-table)))
           (err/raise-error! "Attempting to change declared arguments of %s from (%s) to (%s)!\n"
                             function-name
                             (s/join ", " (:params entry))
-                            (s/join ", " (map :type params)))
-          symbol-table))
+                            (s/join ", " (map :type params))))
 
-      (not-any? true? [defined? (:defined? entry)])
-      (do
-        (err/raise-error! "Attempting to redeclare declared function %s\n" function-name)
-        symbol-table))
+        ;; Duplicate function prototypes
+        (not-any? true? [defined? (:defined? entry)])
+        (err/raise-error! "Attempting to redeclare declared function %s\n" function-name))
+      symbol-table)
 
+    ;; Function hasn't been previously defined
     (let [param-types (map :type params)
           function (Function. function-name return-type param-types defined?)]
       (debug-msg "New fn: %s :: (%s) -> %s\n" function-name (s/join ", " param-types) return-type)
