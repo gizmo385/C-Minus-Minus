@@ -3,6 +3,7 @@
    type checking, and error handling."
   (:require [instaparse.core :as insta]
             [clojure.edn :as edn]
+            [clojure.string :refer [join]]
             [cmm.symbol-table :as sym]
             [cmm.types :as types]
             [cmm.errors :as err]
@@ -65,13 +66,15 @@
 (defmethod build-ast :FUNCTION_DECL [symbol-table [_ & fields]]
   (if (= (first (first fields)) :extern)
     (let  [[_ [return-type] [_ function-name] params] fields]
-      {:function-name function-name
+      {:node-type :function-declaration
+       :function-name function-name
        :return-type (keyword return-type)
        :params (doall (map (partial build-ast symbol-table) (next params)))
        :extern true
        :defined false})
     (let  [[[return-type] [_ function-name] params] fields]
-      {:function-name function-name
+      {:node-type :function-declaration
+       :function-name function-name
        :return-type (keyword return-type)
        :params (doall (map (partial build-ast symbol-table) (next params)))
        :extern false
@@ -83,7 +86,8 @@
          symbol-table (sym/add-parameters symbol-table params)
          declarations (build-ast symbol-table declarations)
          symbol-table (sym/add-declarations symbol-table declarations)]
-    {:function-name function-name
+    {:node-type :function
+     :function-name function-name
      :return-type return-type
      :params params
      :declarations declarations
@@ -94,7 +98,8 @@
   (map (partial build-ast symbol-table) params))
 
 (defmethod build-ast :PARAM [symbol-table [_ param-type param-id array-brackets?]]
-  {:name (second param-id)
+  {:node-type :param
+   :name (second param-id)
    :type (keyword (second param-type))
    :array (some? array-brackets?)})
 
@@ -102,8 +107,13 @@
 (defmethod build-ast :DECLARATIONS [symbol-table [_ & declarations]]
   (map (partial build-ast symbol-table) declarations))
 
+(defmethod build-ast :VARIABLE_ID [symbol-table [_ id size?]]
+  {:node-type :variable-id
+   :name (second id)
+   :array-size (if size? (build-ast symbol-table size?))})
+
 (defmethod build-ast :VARIABLE_DECLARATION [symbol-table [_ [_ variable-type] & ids]]
-  {:node-type :declaration
+  {:node-type :variable-declaration
    :type (keyword variable-type)
    :vars (doall (map (partial build-ast symbol-table) ids))})
 
@@ -117,7 +127,7 @@
 (defmethod build-ast :BINARY_EXPRESSION [symbol-table [_ left-operand [operator] right-operand]]
   (let [left-operand (build-ast symbol-table left-operand)
         right-operand (build-ast symbol-table right-operand)]
-    {:node-type :expression
+    {:node-type :binary-expression
      :type (types/compute-type operator (:type left-operand) (:type right-operand))
      :operator operator
      :left-operand left-operand
@@ -148,34 +158,30 @@
        :type :error
        :arguments (doall (map (partial build-ast symbol-table) args))})))
 
-(defmethod build-ast :VARIABLE_ID [symbol-table [_ id size?]]
-  {:name (second id)
-   :array-size (if size? (build-ast symbol-table size?))})
-
 (defmethod build-ast :ID [symbol-table [_ id]]
   (if-let [entry (sym/find-variable-entry symbol-table id)]
-    {:node-type :expression
+    {:node-type :literal-expression
      :type (:symbol-type entry)
      :id id}
     (err/raise-error! "Could not locate symbol %s\n" id)))
 
 (defmethod build-ast :INTEGER [symbol-table n]
-  {:node-type :expression
+  {:node-type :literal-expression
    :type :int
    :value (edn/read-string (second n))})
 
 (defmethod build-ast :FLOAT [symbol-table n]
-  {:node-type :expression
+  {:node-type :literal-expression
    :type :float
    :value (edn/read-string (second n))})
 
 (defmethod build-ast :CHAR_CONST [symbol-table c]
-  {:node-type :expression
+  {:node-type :literal-expression
    :type :char
    :value (char (second (second c)))})
 
 (defmethod build-ast :STRING [symbol-table s]
-  {:node-type :expression
+  {:node-type :literal-expression
    :type      :string
    :value     (second s)})
 
@@ -248,3 +254,8 @@
     (if-let [failure (insta/get-failure parse-result)]
       failure
       (build-ast (sym/new-symbol-table) parse-result))))
+
+(comment
+  (parse "void g(int a, char b); void h(void) { g(1, 'c'); }")
+  (parse "void g(int a, char b); void h(void) { g(1 == 2, 'c'); }")
+  )
