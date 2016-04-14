@@ -2,7 +2,8 @@
   (:require [clojure.string :refer [join]]
             [clojure.tools.cli :refer [parse-opts]]
             [clansi :refer [style]]
-            [cmm.parser :refer [parse]]
+            [cmm.parser :as parser]
+            [cmm.three :as three]
             [cmm.errors :as err]
             [cmm.debug :refer [*debugging-enabled*]])
   (:gen-class))
@@ -45,7 +46,8 @@
   ;; The actual parsing of the file
   (err/without-error->> filename
     (slurp)
-    (parse))
+    (parser/parse)
+    (three/generate-tac))
   ;; Determine if compilation failed
   (if (err/error?)
     (printf-err "Could not successfully compile %s\n" (style filename :underline))
