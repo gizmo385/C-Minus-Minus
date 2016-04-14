@@ -1,4 +1,5 @@
 (ns cmm.types
+  "Handles the various type checking responsibilities for the parser."
   (:require [cmm.errors :as err]
             [clojure.string :refer [join]]))
 
@@ -43,8 +44,7 @@
     (some #{operator} comparison-operations) (conj number-types :boolean)
     (some #{operator} boolean-operations) [:boolean]))
 
-(defn result-types-for-operator
-  "These are the types that can result from various expression operators. Those which can have
+(defn result-types-for-operator "These are the types that can result from various expression operators. Those which can have
    multiple resultant types are collections, whereas those which have a constant result type are
    expressed as static values."
   [operator]
@@ -84,3 +84,25 @@
       (result-types-for-operator operator))
 
     :default :error))
+
+(defn types-compatible?
+  "Determines whether or not two types are compatible. They're compatible under 3 circumstances:
+
+   1: They are equal
+   2: One of them is an error type. This prevents a single error from triggering multiple type
+      checking errors
+   3: They belong to the same class of types (number types for example)"
+  [t1 t2]
+  (cond
+    (= t1 t2) true
+    (or (= t1 :error) (= t2 :error)) true
+    (some #{t2} number-types) (some? (some #{t1} number-types))))
+
+(defn type-check-args
+  "Type checks a function's arguments and raises an error if there is a type mismatch."
+  [argument-types expected-types function-name]
+  (doall
+    (for [[ord t expected] (map vector (map inc (range)) argument-types expected-types)]
+      (if (not (types-compatible? t expected))
+        (err/raise-error! "Argument %d to %s, expected one of [%s], got %s"
+                          ord function-name t expected)))))

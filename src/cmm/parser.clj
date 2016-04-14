@@ -125,17 +125,22 @@
 
 (defmethod build-ast :UNARY_EXPRESSION [symbol-table [_ [operator] operand]]
   (let [operand (build-ast symbol-table operand)]
-    {:node-type :expression
+    {:node-type :unary-expression
      :type (types/compute-type operator (:type operand))
      :operator operator
      :operand operand}))
 
 (defmethod build-ast :FUNCTION_CALL [symbol-table [_ [_ function-name] & args]]
-  (if-let [entry (sym/find-function-entry symbol-table function-name)]
-    {:node-type :function-call
-     :function-name function-name
-     :type (:function-type entry)
-     :arguments (doall (map (partial build-ast symbol-table) args))}
+  (if-let [function (sym/find-function-entry symbol-table function-name)]
+    (let [arguments (doall (map (partial build-ast symbol-table) args))
+          argument-types (map :type arguments)
+          expected-types (:params function)]
+      ;; Type check arguments
+      (types/type-check-args argument-types expected-types function-name)
+      {:node-type :function-call
+       :function-name function-name
+       :type (:function-type function)
+       :arguments arguments})
     (do
       (err/raise-error! "Could not find function with name: %s\n" function-name)
       {:node-type :function-call
