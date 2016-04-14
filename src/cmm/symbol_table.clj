@@ -86,19 +86,14 @@
   [symbol-table {:keys [function-name return-type]} defined?]
   (if-let [entry (find-function-entry symbol-table function-name)]
     (cond
-      (and defined? (:defined? entry))
+      (:defined? entry)
       (do
-        (err/raise-error! "Attempting to redefine defined function %s\n" function-name)
+        (err/raise-error! "The function %s has already been defined!\n" function-name)
         symbol-table)
 
       (and defined? (not (:defined? entry)))
       (let [modified-entry (assoc entry :defined? true)]
         (assoc symbol-table :entries (replace {entry modified-entry} (:entries symbol-table))))
-
-      (and (:defined? entry)  (not defined?))
-      (do
-        (err/raise-error! "The function %s has already been defined!\n" function-name)
-        symbol-table)
 
       (not-any? true? [defined? (:defined? entry)])
       (do
