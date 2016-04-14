@@ -11,5 +11,5 @@
       (slurp)
       (parse))
     (if (err/error?)
-      (printf "Could not successfully compile %s\n" filename)
+      (binding [*out* *err*] (printf "Could not successfully compile %s\n" filename))
       (printf "Successfully compiled %s\n" filename))))
