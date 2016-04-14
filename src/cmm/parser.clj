@@ -90,7 +90,7 @@
 
 
 (defmethod build-ast :PARAMS [symbol-table [_ & params]]
-  (dorun (map (partial build-ast symbol-table) params)))
+  (map (partial build-ast symbol-table) params))
 
 (defmethod build-ast :PARAM [symbol-table [_ param-type param-id array-brackets?]]
   {:name (second param-id)
@@ -99,7 +99,7 @@
 
 ;;; Variable declarations
 (defmethod build-ast :DECLARATIONS [symbol-table [_ & declarations]]
-  (dorun (map (partial build-ast symbol-table) declarations)))
+  (map (partial build-ast symbol-table) declarations))
 
 (defmethod build-ast :VARIABLE_DECLARATION [symbol-table [_ [_ variable-type] & ids]]
   {:node-type :declaration
