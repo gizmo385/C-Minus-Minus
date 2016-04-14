@@ -156,7 +156,7 @@
 
 (defmethod build-ast :INTEGER [symbol-table n]
   {:node-type :expression
-   :type :integer
+   :type :int
    :value (edn/read-string (second n))})
 
 (defmethod build-ast :FLOAT [symbol-table n]

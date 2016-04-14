@@ -16,7 +16,7 @@
 ;; Defining type relationships
 (def number-types
   "The types of numbers available, ordered based precision."
-  [:float :integer :char])
+  [:float :int :char])
 
 (defn assert-of-type
   "Asserts that all of types to check are of one of the types to assert"
