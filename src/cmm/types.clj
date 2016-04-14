@@ -1,4 +1,6 @@
-(ns cmm.types)
+(ns cmm.types
+  (:require [cmm.errors :as err]
+            [clojure.string :refer [join]]))
 
 ;; Defining operator classes
 (def arithmetic-operations
@@ -18,11 +20,18 @@
   "The types of numbers available, ordered based precision."
   [:float :int :char])
 
+(defn match-type [actual-type valid-types operator]
+  (if-let [t (some #{actual-type} valid-types)]
+    t
+    (err/raise-error! "Expected one of [%s] for operator %s, found %s\n"
+                      (join ", " valid-types)
+                      operator
+                      actual-type)))
+
 (defn assert-of-type
   "Asserts that all of types to check are of one of the types to assert"
-  [types-to-assert types-to-check]
-  (not-any? nil? (for [t types-to-check]
-    (some #{t} types-to-assert))))
+  [types-to-assert types-to-check operator]
+  (not-any? nil? (for [t types-to-check] (match-type t types-to-assert operator))))
 
 (defn operand-types-for-operator
   "These are the types of operands that can be supplied to the various expression operators. Those
@@ -65,7 +74,7 @@
     (one-of [nil :error] (list operand-types)) :error
 
     ;; Check operand types
-    (assert-of-type (operand-types-for-operator operator) operand-types)
+    (assert-of-type (operand-types-for-operator operator) operand-types operator)
     (if (coll? (result-types-for-operator operator))
       ;; Collections of result types are expressions which can have multiple result types, like
       ;; those found in arithmetic expressions
