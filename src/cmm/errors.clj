@@ -28,6 +28,19 @@
   (binding [*out* *err*] (print "ERROR:" (apply format args))
     (flush)))
 
+(defmacro without-error->>
+  "A macro, based off of the some->> macro which continues to thread the previous result when both
+   of the following conditions are true:
+
+   1: The previous step did not return nil
+   2: An error has not been raised anywhere in the system (via raise-error!)"
+  [expr & forms]
+  (let [g (gensym)
+        pstep (fn [step] `(if (or (error?) (nil? ~g)) nil (->> ~g ~step)))]
+    `(let [~g ~expr
+           ~@(interleave (repeat g) (map pstep forms))]
+       ~g)))
+
 (defn reset-error!
   "Resets the global error flag to false. This function should be called in-between independent
    parses. This will return true if resetting the flag was successful, false otherwise."
