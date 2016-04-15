@@ -9,12 +9,12 @@ START = PROGRAM_ELEMENT*
 UNARY_EXPRESSION    = (minus EXPRESSION)
                     | (not EXPRESSION)
 
-BINARY_EXPRESSION   = EXPRESSION plus EXPRESSION
+BINARY_EXPRESSION   = EXPRESSION multiply EXPRESSION
+                    | EXPRESSION divide EXPRESSION
+                    | EXPRESSION plus EXPRESSION
                     | EXPRESSION minus EXPRESSION
                     | EXPRESSION and EXPRESSION
                     | EXPRESSION or EXPRESSION
-                    | EXPRESSION multiply EXPRESSION
-                    | EXPRESSION divide EXPRESSION
                     | EXPRESSION eq EXPRESSION
                     | EXPRESSION neq EXPRESSION
                     | EXPRESSION gte EXPRESSION
