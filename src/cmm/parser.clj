@@ -160,7 +160,8 @@
 
 (defmethod build-ast :ID [symbol-table [_ id]]
   (if-let [entry (sym/find-variable-entry symbol-table id)]
-    {:node-type :literal-expression
+    {:node-type :id-expression
+     :expression-type :id
      :type (:symbol-type entry)
      :id id}
     (err/raise-error! "Could not locate symbol %s\n" id)))
@@ -252,7 +253,9 @@
                           (insta/add-line-and-column-info-to-metadata source))]
     (err/reset-error!) ; Reset the global error flag before handling the parse
     (if-let [failure (insta/get-failure parse-result)]
-      failure
+      (binding [*out* *err*]
+        (println failure)
+        (System/exit 1))
       (build-ast (sym/new-symbol-table) parse-result))))
 
 (comment

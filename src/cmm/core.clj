@@ -1,6 +1,7 @@
 (ns cmm.core
   (:require [clojure.string :refer [join]]
             [clojure.tools.cli :refer [parse-opts]]
+            [clojure.pprint :refer [pprint]]
             [clansi :refer [style]]
             [cmm.parser :as parser]
             [cmm.three :as three]
@@ -47,7 +48,8 @@
   (err/without-error->> filename
     (slurp)
     (parser/parse)
-    (three/generate-tac))
+    (three/generate-tac)
+    (pprint))
   ;; Determine if compilation failed
   (if (err/error?)
     (printf-err "Could not successfully compile %s\n" (style filename :underline))
