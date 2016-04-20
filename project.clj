@@ -9,10 +9,10 @@
                  [instaparse "1.4.1"]
                  [clansi "1.0.0"]]
   :repl-options {:init-ns user}
-  :main ^:skip-aot cmm.core
+  :main cmm.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
   :source-paths ["dev" "src"]
 
   :jar-name "cmm.jar"
-  :uberjar-name "cmm.jar")
+  )
