@@ -79,6 +79,15 @@
     (map generate-tac-helper (:body function))))
 
 ;;; TAC generation for statements
+(defmethod generate-tac-helper :return [return]
+  (if (:value return)
+    (let [[place code] (generate-tac-helper (:value return))]
+      (tac-list
+        code
+        (new-tac :retval place)
+        (new-tac :return-from-func))))
+  (tac-list (new-tac :return-from-func)))
+
 (defmethod generate-tac-helper :while-loop [while-loop]
   (debug-msg "Generating TAC for while-loop\n")
   (let [eval-label (new-random-label)
