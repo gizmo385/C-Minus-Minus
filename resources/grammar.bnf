@@ -46,9 +46,12 @@ ARRAY_ACCESS  = ID left_square_bracket EXPRESSION right_square_bracket
             | FOR_LOOP
             | RETURN
             | ASSIGNMENT semicolon
-            | FUNCTION_CALL semicolon
+            | FUNCTION_CALL_STATEMENT semicolon
             | STATEMENT_LIST
             | semicolon
+
+
+FUNCTION_CALL_STATEMENT = ID left_paren EXPR_LIST right_paren
 
 STATEMENT_LIST = left_curly_bracket STATEMENT* right_curly_bracket
 

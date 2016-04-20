@@ -173,25 +173,37 @@
         [right-place right-code] (generate-tac-helper (:right-operand expr))]
     (debug-msg "TAC: %s %s %s\n" left-place (:operator expr) right-place)
     [result
-     (concat
+     (tac-list
        left-code
        right-code
-       (list (new-tac (:operator expr) result left-place right-place)))]))
+       (new-tac (:operator expr) result left-place right-place))]))
+
+(defn- function-call-helper
+  "Functions can be present in an expression or statment. The generated TAC code is very similar
+   except for the value of result. This is the area that the result of the function call is stored
+   in. For statements this is nil, and for expressions is the name of a variable."
+  [func result]
+  (tac-list
+    ;; Handle arguments
+    (for [param (:arguments func)
+          :let [[place code] (generate-tac-helper param)]]
+      (tac-list
+        code
+        (new-tac :param place)))
+
+    ;; The actual function call
+    (new-tac :call result (:function-name func))))
+
+(defmethod generate-tac-helper :function-call-statement
+  [func]
+  (function-call-helper func nil))
 
 (defmethod generate-tac-helper :function-call
   [func]
-  (debug-msg "(TODO) Generating TAC for call to function: %s\n" (:function-name func))
+  (debug-msg "Generating TAC for call to function: %s\n" (:function-name func))
   (let [result (new-temporary-variable)]
-    [result
-     (flatten
-       (concat
-         ;; Handle arguments
-         (for [param (:arguments func)
-               :let [[place code] (generate-tac-helper param)]]
-           (concat
-             code
-             (list (new-tac :param place))))
-         (list (new-tac :call result (:function-name func)))))]))
+    ;; For function calls in expressions, the result is expected by our caller
+    [result (function-call-helper func result)]))
 
 ;;; TAC generation for various literal expressions
 (defmethod generate-tac-helper :id-expression [expr]
