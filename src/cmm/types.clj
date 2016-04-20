@@ -105,4 +105,4 @@
     (for [[ord t expected] (map vector (map inc (range)) argument-types expected-types)]
       (if (not (types-compatible? t expected))
         (err/raise-error! "Argument %d to %s, expected one of [%s], got %s"
-                          ord function-name t expected)))))
+                          ord function-name expected t)))))
