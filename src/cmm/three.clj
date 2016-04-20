@@ -21,6 +21,13 @@
 (defn- new-temporary-variable []
   (str (gensym "_tmp")))
 
+;;; Convinience functions
+(defn- tac-list
+  "This takes a sequence of Three Address Codes (or lists of Three Address Codes) and puts them
+   all into a single, flattened list"
+  [& tacs]
+  (filter some? (flatten (mapcat (fn [l] (if (list? l) l (list l))) tacs))))
+
 ;;; Define TAC generation multimethod
 (defmulti generate-tac-helper
   "Generates a list of three address codes based on the AST supplied."
@@ -32,11 +39,11 @@
   [operator left right true-destination false-destination]
   (let [[left-place left-code] (generate-tac-helper left)
         [right-place right-code] (generate-tac-helper right)]
-    (concat
+    (tac-list
       left-code
       right-code
-      (list (new-tac operator true-destination left-place right-place)
-            (new-tac :goto false-destination)))))
+      (new-tac operator true-destination left-place right-place)
+      (new-tac :goto false-destination))))
 
 (defn- boolean-jumping-tac
   "Generates three address codes that represent a boolean computation followed by a jump based on
@@ -46,15 +53,15 @@
     ;; Boolean operations
     :and
     (let [separator (new-random-label)]
-      (concat
+      (tac-list
         (boolean-jumping-tac (:left-operand condition) separator false-destination)
-        (list (new-tac :label separator))
+        (new-tac :label separator)
         (boolean-jumping-tac (:right-operand condition) true-destination false-destination)))
     :or
     (let [separator (new-random-label)]
-      (concat
+      (tac-list
         (boolean-jumping-tac (:left-operand condition) true-destination separator)
-        (list (new-tac :label separator))
+        (new-tac :label separator)
         (boolean-jumping-tac (:right-operand condition) true-destination false-destination)))
     :not
     (boolean-jumping-tac (:operand condition) false-destination true-destination)
@@ -67,9 +74,9 @@
 ;;; TAC generation for functions
 (defmethod generate-tac-helper :function [function]
   (debug-msg "Generating TAC for function: %s\n" (:function-name function))
-  (concat
-    (list (new-tac :label (:function-name function)))
-    (doall (mapcat generate-tac-helper (:body function)))))
+  (tac-list
+    (new-tac :label (:function-name function))
+    (map generate-tac-helper (:body function))))
 
 ;;; TAC generation for statements
 (defmethod generate-tac-helper :while-loop [while-loop]
@@ -77,76 +84,75 @@
   (let [eval-label (new-random-label)
         top-label (new-random-label)
         after-label (new-random-label)]
-    (concat
+    (tac-list
       ;; Jump to the condition
-      (list (new-tac :goto eval-label))
+      (new-tac :goto eval-label)
 
       ;; The loop body
-      (list (new-tac :label top-label))
+      (new-tac :label top-label)
       (doall (mapcat generate-tac-helper (:body while-loop)))
 
       ;; The condition check
-      (list (new-tac :label eval-label))
+      (new-tac :label eval-label)
       (boolean-jumping-tac (:condition while-loop) top-label after-label)
-      (list (new-tac :label after-label)))))
+      (new-tac :label after-label))))
 
 (defmethod generate-tac-helper :for-loop [for-loop]
   (debug-msg "Generating TAC for for-loop\n")
   (let [eval-label (new-random-label)
         top-label (new-random-label)
         after-label (new-random-label)]
-    (concat
+    (tac-list
       ;; Jump to the predicate evaluation
-      (list (new-tac :goto eval-label))
+      (new-tac :goto eval-label)
 
       ;; For loop body
-      (list (new-tac :label top-label))
+      (new-tac :label top-label)
       (doall (mapcat generate-tac-helper (:body for-loop)))
       (generate-tac-helper (:update for-loop))
 
       ;; Predicate evaluation
-      (list (new-tac :label eval-label))
+      (new-tac :label eval-label)
       (boolean-jumping-tac (:condition for-loop) top-label after-label)
-      (list (new-tac :label after-label)))))
+      (new-tac :label after-label))))
 
 (defmethod generate-tac-helper :conditional [conditional]
   (let [then-label (new-random-label)
         else-label (new-random-label)
         after-label (new-random-label)]
-    (concat
+    (tac-list
       ;; Check the condition
       (boolean-jumping-tac (:condition conditional)
                            then-label
                            (if (:else conditional) else-label after-label))
 
       ;; Then body
-      (list (new-tac :label then-label))
+      (new-tac :label then-label)
       (doall (mapcat generate-tac-helper (:then conditional)))
 
       ;; Else body, if present
       (if (:else conditional)
-        (concat
-          (list (new-tac :label else-label))
+        (tac-list
+          (new-tac :label else-label)
           (doall (mapcat generate-tac-helper (:else conditional)))))
 
       ;; After loop
-      (list (new-tac :label after-label)))))
+      (new-tac :label after-label))))
 
 (defmethod generate-tac-helper :assignment [assg]
   (if (:index assg)
     (let [[index-place index-code] (generate-tac-helper (:index assg))
           [value-place value-code] (generate-tac-helper (:value assg))]
       (debug-msg "TAC: %s[%s] = %s\n" (:id assg) index-place value-place)
-      (concat
+      (tac-list
         value-code
         index-code
-        (list
-          (new-tac :index-assignment (:id assg) index-place value-place))))
+        (new-tac :index-assignment (:id assg) index-place value-place)))
     (let [[value-place value-code] (generate-tac-helper (:value assg))]
       (debug-msg "TAC: %s = %s\n" (:id assg) value-place)
-      (concat
+      (tac-list
         value-code
-        (list (new-tac :assignment (:id assg) value-place))))))
+        (new-tac :assignment (:id assg) value-place)))))
 
 ;;; TAC generation for expressions
 (defmethod generate-tac-helper :unary-expression [expr]
@@ -156,9 +162,9 @@
           [place code] (generate-tac-helper (:operand expr))]
       (debug-msg "TAC: %s = %s %s\n" result :unary-minus place)
       [result
-       (concat
+       (tac-list
          code
-         (list (new-tac :unary-minus result place)))])
+         (new-tac :unary-minus result place))])
     (err/raise-error! "Invalid unary operator: %s\n" (:operator expr))))
 
 (defmethod generate-tac-helper :binary-expression [expr]
@@ -196,7 +202,7 @@
   (let [result (new-temporary-variable)]
     (debug-msg "%s = %s\n" result (:value expr))
     [result
-     (list (new-tac :assg-literal result (:value expr)))]))
+     (tac-list (new-tac :assg-literal result (:value expr)))]))
 
 ;;; Handling invalid node-types
 (defmethod generate-tac-helper :default [ast]
