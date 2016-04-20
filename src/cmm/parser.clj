@@ -20,10 +20,6 @@
    whitespace characters. The results of this parser should be sent to the build-ast function."
   (insta/parser (clojure.java.io/resource "grammar.bnf") :auto-whitespace whitespace-or-comments))
 
-;;; State management:
-;;; The parser has one actual state variable, which is reset when parse function is called. This
-;;; state variable maintains whether or not an error has been encountered somewhere in the code.
-
 ;;; Building the ast
 (defmulti build-ast
   "The build-ast function represents the primary parsing function for CMM. This uses the output
