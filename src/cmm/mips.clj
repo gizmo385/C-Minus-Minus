@@ -32,6 +32,8 @@
 
 ;;; Function generation
 (defn- function-prologue
+  "Generates the prologue for a function with a specific name that requires a particular number of
+   bytes on the stack."
   [function-name required-stack-space]
   (as-> [".text"
          "%s:"
@@ -47,6 +49,7 @@
     (format code function-name function-name required-stack-space)))
 
 (defn- function-epilogue
+  "Generates the MIPS function epilogue for a function of a particular name."
   [function-name]
   (as-> [""
          "%s_epilogue:"
@@ -73,12 +76,16 @@
 
 ;;; Functions to break down the TAC structure and properly format the output
 (defn- handle-function-code
-  "This generates the MIPS code for a function body. It returns the code in addition to the amount
-   of stack space that the function will require."
+  "This generates the MIPS code for a function body. It returns the code and the variables that are
+   declared in that code. These variables can be used to determine the amount of stack space to
+   allocate.
+
+   This function is expressed as a reduction over the code using tac->mips."
   [code]
   (reduce tac->mips {:vars {} :mips []} code))
 
 (defn generate-function
+  "Generates MIPS code for a particular function"
   [{:keys [function-name code]}]
   (let [function-name (protected-name function-name)
         {:keys [vars mips]} (handle-function-code code)]
