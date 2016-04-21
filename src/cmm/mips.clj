@@ -71,6 +71,7 @@
  (let [instruction (format "%s:" (protected-name (:destination tac)))]
    (assoc result :mips (conj mips instruction))))
 
+;;; Functions to break down the TAC structure and properly format the output
 (defn- handle-function-code
   "This generates the MIPS code for a function body. It returns the code in addition to the amount
    of stack space that the function will require."
