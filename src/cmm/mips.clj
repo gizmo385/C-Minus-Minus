@@ -67,3 +67,8 @@
       (function-prologue function-name required-stack-space)
       ; (generate-mips code)
       (function-epilogue function-name))))
+
+;;; Translation from Three Address Codes to MIPS
+(defmulti tac->mips
+  "Primary translation function between three address code and MIPS assembly."
+  :operation)
