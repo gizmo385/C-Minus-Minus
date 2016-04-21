@@ -60,28 +60,42 @@
     (join \newline code)
     (format code function-name function-name)))
 
-(defn generate-function
-  [function-name required-stack-space code]
-  (let [function-name (protected-name function-name)]
-    (str
-      (function-prologue function-name required-stack-space)
-      (doall (map tac->mips code))
-      (function-epilogue function-name))))
-
-(defn calculate-required-stack-space [function]
-  ;; TODO
-  )
-
 ;;; Translation from Three Address Codes to MIPS
 (defmulti tac->mips
   "Primary translation function between three address code and MIPS assembly."
-  :operation)
+  (fn [{:keys [vars mips] :as result} tac]
+    (:operation tac)))
+
+(defmethod tac->mips :label
+ [{:keys [vars mips] :as result} tac]
+ (let [instruction (format "%s:" (protected-name (:destination tac)))]
+   (assoc result :mips (conj mips instruction))))
+
+(defn- handle-function-code
+  "This generates the MIPS code for a function body. It returns the code in addition to the amount
+   of stack space that the function will require."
+  [code]
+  (reduce tac->mips {:vars {} :mips []} code))
+
+(defn generate-function
+  [{:keys [function-name code]}]
+  (let [function-name (protected-name function-name)
+        {:keys [vars mips]} (handle-function-code code)]
+    (str
+      (function-prologue function-name (count vars))
+      (join \newline mips)
+      "\n"
+      (function-epilogue function-name))))
 
 ;;; User facing functions
 (defn generate-mips
   "Given a collection of functions that have been translated into three address code, returns a
    colleciton of MIPs instructions that are equivalent"
   [functions]
-  (for [function functions
-        :let [required-stack-space (calculate-required-stack-space function)]]
-    (generate-function (:function-name function) required-stack-space (:code function))))
+  (for [function functions]
+    (generate-function function)))
+
+(comment
+  (print (generate-function {:function-name "test-function"
+                             :code [{:operation :label :destination "test1"}
+                                    {:operation :label :destination "test2"}]})))
