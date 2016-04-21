@@ -65,10 +65,23 @@
   (let [function-name (protected-name function-name)]
     (str
       (function-prologue function-name required-stack-space)
-      ; (generate-mips code)
+      (doall (map tac->mips code))
       (function-epilogue function-name))))
+
+(defn calculate-required-stack-space [function]
+  ;; TODO
+  )
 
 ;;; Translation from Three Address Codes to MIPS
 (defmulti tac->mips
   "Primary translation function between three address code and MIPS assembly."
   :operation)
+
+;;; User facing functions
+(defn generate-mips
+  "Given a collection of functions that have been translated into three address code, returns a
+   colleciton of MIPs instructions that are equivalent"
+  [functions]
+  (for [function functions
+        :let [required-stack-space (calculate-required-stack-space function)]]
+    (generate-function (:function-name function) required-stack-space (:code function))))
