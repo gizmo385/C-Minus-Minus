@@ -17,7 +17,7 @@
 (defn- usage [options-summary]
   (->>  ["This is a small C compiler implemented in Clojure."
          ""
-         "Usage: program-name [options] filenames ..."
+         "Usage: lein run -- [options] filenames ..."
          ""
          "Options:"
          options-summary
