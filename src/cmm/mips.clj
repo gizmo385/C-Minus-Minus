@@ -62,7 +62,8 @@
 
 (defn generate-function
   [function-name required-stack-space code]
-  (str
-    (function-prologue function-name required-stack-space)
-    ; (generate-mips code)
-    (function-epilogue function-name)))
+  (let [function-name (protected-name function-name)]
+    (str
+      (function-prologue function-name required-stack-space)
+      ; (generate-mips code)
+      (function-epilogue function-name))))
