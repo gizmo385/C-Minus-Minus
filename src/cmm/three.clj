@@ -74,9 +74,10 @@
 ;;; TAC generation for functions
 (defmethod ast->tac :function [function]
   (debug-msg "Generating TAC for function: %s\n" (:function-name function))
-  (tac-list
-    (new-tac :label (:function-name function))
-    (map ast->tac (:body function))))
+  {:function-name (:function-name function)
+   :code (tac-list
+           (new-tac :label (:function-name function))
+           (map ast->tac (:body function)))})
 
 ;;; TAC generation for statements
 (defmethod ast->tac :return [return]
@@ -231,5 +232,5 @@
 
 ;;; User facing functions
 (defn generate-tac [program]
-  (mapcat ast->tac program))
+  (map ast->tac program))
 
