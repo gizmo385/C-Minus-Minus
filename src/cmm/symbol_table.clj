@@ -1,18 +1,20 @@
 (ns cmm.symbol-table
   (:require [cmm.errors :as err]
             [cmm.debug :refer [debug-msg]]
+            [cmm.types :refer [type-size]]
             [clojure.string :as s]))
 
 ;;; Symbol table structure
-(defrecord SymbolTable [parent entries])
-(defrecord Variable [symbol-name symbol-type array])
+(defrecord SymbolTable [parent entries offset])
+(defrecord Variable [symbol-name symbol-type array offset])
 (defrecord Function [function-name function-type params defined?]) ;; TODO: Add parameter types
 
 ;;; Constructors
 (defn new-symbol-table
-  ([] (SymbolTable. nil []))
-  ([parent] (SymbolTable. parent []))
-  ([parent entries] (SymbolTable. parent entries)))
+  ([] (SymbolTable. nil [] 0))
+  ([parent] (SymbolTable. parent [] 0))
+  ([parent entries] (SymbolTable. parent entries 0)))
+
 
 ;;; Finding entries in the symbol table
 (defn find-variable-entry
@@ -38,8 +40,8 @@
     (if (:parent symbol-table)
       (recur (:parent symbol-table))
       (->> (:entries symbol-table)
+           (filter (partial instance? Function))
            (filter #(= (:function-name %) function-name))
-           (filter #(= (type %) Function))
            (first)))))
 
 ;;; Creating entries in the symbol table
@@ -48,8 +50,10 @@
   [symbol-table symbol-name symbol-type array]
   (if (find-variable-entry symbol-table symbol-name 1)
     (err/raise-error! "Cannot add %s to the symbol table, already declared" symbol-name)
-    (let [entry (Variable. symbol-name symbol-type array)]
-      (assoc symbol-table :entries (conj (:entries symbol-table) entry)))))
+    (let [entry (Variable. symbol-name symbol-type array (:offset symbol-table))]
+      (assoc symbol-table
+             :entries (conj (:entries symbol-table) entry)
+             :offset (+ (:offset symbol-table) (type-size symbol-type))))))
 
 (defn add-parameters
   "Traverses the parameter structures and add thoses variables to the symbol table. Returns the
