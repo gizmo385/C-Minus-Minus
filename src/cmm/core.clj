@@ -6,6 +6,7 @@
             [cmm.parser :as parser]
             [cmm.three :as three]
             [cmm.errors :as err]
+            [cmm.mips :as mips]
             [cmm.debug :refer [*debugging-enabled*]])
   (:gen-class))
 
@@ -49,6 +50,7 @@
     (slurp)
     (parser/parse)
     (three/generate-tac)
+    (mips/generate-mips)
     (pprint))
   ;; Determine if compilation failed
   (if (err/error?)
