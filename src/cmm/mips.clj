@@ -96,7 +96,7 @@
 (defn constant->register
   "Places a constant value into a register."
   [value dest-register]
-  (case (type value)
+  (condp instance? value
     Long      (format "\tli %s, %d\n" dest-register value)
     Character (format "\tli %s, %d\n" dest-register value)
     Double    (format "\tli.f %s, %d\n" dest-register value)))
