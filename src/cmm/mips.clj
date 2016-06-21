@@ -63,6 +63,44 @@
     (join \newline code)
     (format code function-name function-name)))
 
+;;; Loading and storing
+(def type-loading
+  {:char "lb"
+   :int "lw"
+   :float "lw"})
+
+
+(def type-storing
+  {:char "sb"
+   :int "sw"
+   :float "sw"})
+
+
+;;; TODO: Handle storing/loading globals
+
+(defn register->variable
+  "Generates MIPS code to move a value from a register into a variable's storage location."
+  [src-register {:keys [symbol-type offset] :as dest-var}]
+  (format "\t%s, %s, %d($fp)\n" (type-storing symbol-type) src-register offset)
+  )
+
+
+(defn variable->register
+  "Generates MIPS code to move a value from a variable's storage location into a register."
+  [{:keys [array symbol-type symbol-name offset] :as src-var} dest-register]
+  (if array
+    (format "la %s, %s" dest-register (protected-name symbol-name))
+    (format "%s %s, %d($fp)" (type-loading symbol-type) dest-register offset)))
+
+
+(defn constant->register
+  "Places a constant value into a register."
+  [value dest-register]
+  (case (type value)
+    Long      (format "\tli %s, %d\n" dest-register value)
+    Character (format "\tli %s, %d\n" dest-register value)
+    Double    (format "\tli.f %s, %d\n" dest-register value)))
+
 ;;; Translation from Three Address Codes to MIPS
 (defmulti tac->mips
   "Primary translation function between three address code and MIPS assembly."
@@ -73,6 +111,11 @@
  [{:keys [vars mips] :as result} tac]
  (let [instruction (format "%s:" (protected-name (:destination tac)))]
    (assoc result :mips (conj mips instruction))))
+
+(defmethod tac->mips :assg-literal
+  [{:keys [vars mips] :as result} tac]
+  ;; TODO: Load literal into register, register into variable
+  )
 
 ;;; Functions to break down the TAC structure and properly format the output
 (defn- handle-function-code
