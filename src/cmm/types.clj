@@ -21,6 +21,13 @@
   "The types of numbers available, ordered based precision."
   [:float :int :char])
 
+(def type-size
+  "Size of bytes of the default types"
+  {:float 4
+   :int 4
+   :char 2})
+
+
 (defn match-type [actual-type valid-types operator]
   (if-let [t (some #{actual-type} valid-types)]
     t
