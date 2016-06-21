@@ -107,6 +107,14 @@
   (fn [{:keys [vars mips] :as result} tac]
     (:operation tac)))
 
+(defmethod tac->mips :default
+  [{:keys [errors] :or {errors []} :as result} {:keys [operation]}]
+  (assoc result :errors (conj errors (format "Error: %s is not a recognized TAC." operation))))
+
+(defmethod tac->mips nil
+  [{:keys [errors] :or {errors []} :as result} tac]
+  (assoc result :errors (conj errors (format "Error: Could not generate MIPS for %s." tac))))
+
 (defmethod tac->mips :label
  [{:keys [vars mips] :as result} tac]
  (let [instruction (format "%s:" (protected-name (:destination tac)))]
