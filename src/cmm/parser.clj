@@ -4,6 +4,7 @@
   (:require [instaparse.core :as insta]
             [clojure.edn :as edn]
             [clojure.string :refer [join]]
+            [clojure.pprint :refer [pprint]]
             [cmm.symbol-table :as sym]
             [cmm.types :as types]
             [cmm.errors :as err]
@@ -61,20 +62,20 @@
 ;;; Parsing functions and function declarations
 (defmethod build-ast :FUNCTION_DECL [symbol-table [_ & fields]]
   (if (= (first (first fields)) :extern)
-    (let  [[_ [return-type] [_ function-name] params] fields]
+    (let  [[[_ return-type] [_ function-name] params] fields]
+      {:node-type     :function-declaration
+       :function-name function-name
+       :return-type   (keyword return-type)
+       :params        (doall (map (partial build-ast symbol-table) (next params)))
+       :extern        true
+       :defined       false})
+    (let  [[[_ return-type] [_ function-name] params] fields]
       {:node-type :function-declaration
        :function-name function-name
-       :return-type (keyword return-type)
-       :params (doall (map (partial build-ast symbol-table) (next params)))
-       :extern true
-       :defined false})
-    (let  [[[return-type] [_ function-name] params] fields]
-      {:node-type :function-declaration
-       :function-name function-name
-       :return-type (keyword return-type)
-       :params (doall (map (partial build-ast symbol-table) (next params)))
-       :extern false
-       :defined false})))
+       :return-type   (keyword return-type)
+       :params        (doall (map (partial build-ast symbol-table) (next params)))
+       :extern        false
+       :defined       false})))
 
 (defmethod build-ast :FUNCTION
   [symbol-table [_ [return-type] [_ function-name] params declarations & body]]
@@ -132,9 +133,9 @@
 (defmethod build-ast :UNARY_EXPRESSION [symbol-table [_ [operator] operand]]
   (let [operand (build-ast symbol-table operand)]
     {:node-type :unary-expression
-     :type (types/compute-type operator (:type operand))
-     :operator operator
-     :operand operand}))
+     :type      (types/compute-type operator (:type operand))
+     :operator  operator
+     :operand   operand}))
 
 ;;; Function calls
 (defn- function-call-helper
@@ -142,15 +143,15 @@
    node-type is different to allow for specified parsing further down the compiler toolchain."
   [symbol-table node-type [_ [_ function-name] & args]]
   (if-let [function (sym/find-function-entry symbol-table function-name)]
-    (let [arguments (doall (map (partial build-ast symbol-table) args))
-          argument-types (map :type arguments)
-          expected-types (:params function)]
+    (let [arguments       (doall (map (partial build-ast symbol-table) args))
+          argument-types  (map :type arguments)
+          expected-types  (:params function)]
       ;; Type check arguments
       (types/type-check-args argument-types expected-types function-name)
-      {:node-type node-type
+      {:node-type     node-type
        :function-name function-name
-       :type (:function-type function)
-       :arguments arguments})
+       :type          (:function-type function)
+       :arguments     arguments})
     (do
       (err/raise-error! "Could not find function with name: %s\n" function-name)
       {:node-type node-type
@@ -179,8 +180,8 @@
 
 (defmethod build-ast :FLOAT [symbol-table n]
   {:node-type :literal-expression
-   :type :float
-   :value (edn/read-string (second n))})
+   :type      :float
+   :value     (edn/read-string (second n))})
 
 (defmethod build-ast :CHAR_CONST [symbol-table c]
   {:node-type :literal-expression
@@ -197,18 +198,18 @@
   (doall (map (partial build-ast symbol-table) statements)))
 
 (defmethod build-ast :IF [symbol-table [_ condition body]]
-  {:node-type :statement
-   :statement-type :conditional
-   :condition (build-ast symbol-table condition)
-   :then (build-ast symbol-table body)
-   :else nil})
+  {:node-type       :statement
+   :statement-type  :conditional
+   :condition       (build-ast symbol-table condition)
+   :then            (build-ast symbol-table body)
+   :else            nil})
 
 (defmethod build-ast :IF_ELSE [symbol-table [_ condition then else]]
-  {:node-type :statement
-   :statement-type :conditional
-   :condition (build-ast symbol-table condition)
-   :then (build-ast symbol-table then)
-   :else (build-ast symbol-table else)})
+  {:node-type         :statement
+   :statement-type    :conditional
+   :condition         (build-ast symbol-table condition)
+   :then              (build-ast symbol-table then)
+   :else              (build-ast symbol-table else)})
 
 (defmethod build-ast :OPT_ASSG [symbol-table [_ assignment]]
   (if assignment (build-ast symbol-table assignment)))
@@ -223,22 +224,22 @@
      :value (build-ast symbol-table second-expression)}
 
     ;; Assignment to a plain variable
-    {:node-type :statement
-     :statement-type :assignment
-     :id (second id)
-     :index nil
-     :value (build-ast symbol-table first-expression)}))
+    {:node-type       :statement
+     :statement-type  :assignment
+     :id              (second id)
+     :index           nil
+     :value           (build-ast symbol-table first-expression)}))
 
 (defmethod build-ast :RETURN [symbol-table [_ return-value?]]
-  {:node-type :statement
-   :statement-type :return
-   :value (if return-value? (build-ast symbol-table return-value?))})
+  {:node-type       :statement
+   :statement-type  :return
+   :value           (if return-value? (build-ast symbol-table return-value?))})
 
 (defmethod build-ast :WHILE_LOOP [symbol-table [_ condition body]]
-  {:node-type :statement
-   :statement-type :while-loop
-   :condition (build-ast symbol-table condition)
-   :body (build-ast symbol-table body)})
+  {:node-type       :statement
+   :statement-type  :while-loop
+   :condition       (build-ast symbol-table condition)
+   :body            (build-ast symbol-table body)})
 
 (defmethod build-ast :FOR_LOOP [symbol-table [_ init? condition? update? body]]
   {:node-type :statement
@@ -257,6 +258,7 @@
   (let [parse-result (->> source
                           (insta/parse c-parser)
                           (insta/add-line-and-column-info-to-metadata source))]
+    (pprint parse-result)
     (err/reset-error!) ; Reset the global error flag before handling the parse
     (if-let [failure (insta/get-failure parse-result)]
       (binding [*out* *err*]
