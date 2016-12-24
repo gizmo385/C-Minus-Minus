@@ -27,6 +27,10 @@
        (join \newline)))
 
 ;;; Convinience functions for printing/exiting
+(defn object-print-passthrough [obj]
+  (pprint obj)
+  obj)
+
 (defn- printf-err
   "Calls printf on the arguments with *out* bound to stderr."
   [& msg]
@@ -49,9 +53,11 @@
   (err/without-error->> filename
     (slurp)
     (parser/parse)
+    (object-print-passthrough)
     (three/generate-tac)
     (mips/generate-mips)
-    (pprint))
+    (print)
+    )
   ;; Determine if compilation failed
   (if (err/error?)
     (printf-err "Could not successfully compile %s\n" (style filename :underline))
