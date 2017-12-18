@@ -39,7 +39,8 @@
 (defn assert-of-type
   "Asserts that all of types to check are of one of the types to assert"
   [types-to-assert types-to-check operator]
-  (not-any? nil? (for [t types-to-check] (match-type t types-to-assert operator))))
+  (not-any? nil? (for [t types-to-check]
+                   (match-type t types-to-assert operator))))
 
 (defn operand-types-for-operator
   "These are the types of operands that can be supplied to the various expression operators. Those
@@ -51,7 +52,8 @@
     (some #{operator} comparison-operations) (conj number-types :boolean)
     (some #{operator} boolean-operations) [:boolean]))
 
-(defn result-types-for-operator "These are the types that can result from various expression operators. Those which can have
+(defn result-types-for-operator
+  "These are the types that can result from various expression operators. Those which can have
    multiple resultant types are collections, whereas those which have a constant result type are
    expressed as static values."
   [operator]
@@ -109,7 +111,8 @@
   "Type checks a function's arguments and raises an error if there is a type mismatch."
   [argument-types expected-types function-name]
   (doall
-    (for [[ord t expected] (map vector (map inc (range)) argument-types expected-types)]
-      (if (not (types-compatible? t expected))
-        (err/raise-error! "Argument %d to %s, expected one of [%s], got %s"
-                          ord function-name expected t)))))
+    (let [enumerated-args (map vector (map inc (range)) argument-types expected-types)]
+      (for [[ord t expected] enumerated-args]
+        (if (not (types-compatible? t expected))
+          (err/raise-error! "Argument %d to %s, expected one of [%s], got %s"
+                            ord function-name expected t))))))

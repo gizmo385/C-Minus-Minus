@@ -50,5 +50,4 @@
          "void x(float a);"
          "void x(int a, char b);"
          "void x(int a, char b, float h184814949313_);"))
-  (testing "Correctly various statement types")
-  )
+  (testing "Correctly parses various statement types"))

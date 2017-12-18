@@ -4,9 +4,7 @@
             [clojure.pprint :refer [pprint]]
             [clansi :refer [style]]
             [cmm.parser :as parser]
-            [cmm.three :as three]
             [cmm.errors :as err]
-            [cmm.mips :as mips]
             [cmm.debug :refer [*debugging-enabled*]])
   (:gen-class))
 
@@ -19,6 +17,7 @@
   (->>  ["This is a small C compiler implemented in Clojure."
          ""
          "Usage: lein run -- [options] filenames ..."
+
          ""
          "Options:"
          options-summary
@@ -52,12 +51,8 @@
   ;; The actual parsing of the file
   (err/without-error->> filename
     (slurp)
-    (parser/parse)
-    (object-print-passthrough)
-    (three/generate-tac)
-    (mips/generate-mips)
-    (print)
-    )
+    (parser/parse))
+
   ;; Determine if compilation failed
   (if (err/error?)
     (printf-err "Could not successfully compile %s\n" (style filename :underline))
