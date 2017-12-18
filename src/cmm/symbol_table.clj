@@ -9,7 +9,7 @@
             [cmm.debug :as dbg :refer [debug-msg]]))
 
 ;; For symbol-keeping purposes, a variable is just a name and a type
-(defrecord Variable [type name])
+(defrecord Variable [type name array? array-size])
 
 ;; For symbol-keeping purposes, a funtion is similar to a variable, but it also has argument types
 (defrecord Function [return-type name argument-types])
@@ -74,7 +74,6 @@
                                   (filter (fn [f] (= argument-types (:argument-types f))))
                                   (filter (fn [f] (= return-type (:return-type f))))
                                   (first))]
-       (printf "Matching function: %s\n" matching-function)
        (cond
          ;; If the symbol table is nil, then we've bottomed out in the scope tree and nothing is
          ;; defined
@@ -107,9 +106,15 @@
 (defn add-variable
   "Adds a new variable to the symbol table. If a variable of the same name has been defined in the
    current scope, then an error is raised. If the variable was defined in a parent scope, no error
-   is raised."
-  [symbol-table type name]
-  (if (variable-defined? symbol-table name 1)
-    (err/raise-error! "Redeclaring variable %s of type %s\n" name type)
-    (let [new-variable (Variable. type name)]
-      (assoc-in symbol-table [:variables name] new-variable))))
+   is raised.
+
+   Optionally, a 4th array size parameter can be supplied. This will mark the variable as an array
+   and store its size."
+  ([symbol-table type name]
+   (add-variable symbol-table type name nil))
+
+  ([symbol-table type name array-size]
+   (if (variable-defined? symbol-table name 1)
+     (err/raise-error! "Redeclaring variable %s of type %s\n" name type)
+     (let [new-variable (Variable. type name (some? array-size) array-size)]
+       (assoc-in symbol-table [:variables name] new-variable)))))

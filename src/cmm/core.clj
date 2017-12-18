@@ -51,7 +51,8 @@
   ;; The actual parsing of the file
   (err/without-error->> filename
     (slurp)
-    (parser/parse))
+    (parser/parse)
+    (pprint))
 
   ;; Determine if compilation failed
   (if (err/error?)
