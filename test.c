@@ -1,10 +1,7 @@
-void g(int a, char b) {
-    int h, j, k;
-    int x;
-    char y[5];
-    float z;
-    x = 1;
-    h = x;
+/*int h(int a, int b) { }*/
 
-    j = 1 + (3 / -4) * 2 - 5;
+void g(int a) {
+    int x;
+    x = 5 - 5;
+    x = -5;
 }

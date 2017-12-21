@@ -46,7 +46,7 @@
               start-column  (:instaparse.gll/start-column metadata)
               end-column    (:instaparse.gll/end-column metadata)]
           (print (str (style "ERROR" :red)
-                      (format " - (line %d:%d-%d): " end-line start-column end-column)
+                      (format " - (line %d:%d-%d): " start-line start-column end-column)
                       (apply format args)))
           (flush))
         (do

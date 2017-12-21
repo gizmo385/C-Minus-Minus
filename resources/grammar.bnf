@@ -6,7 +6,7 @@ START = PROGRAM_ELEMENT*
                     | FUNCTION
 
 (* Expression grammar *)
-UNARY_EXPRESSION    = (minus EXPRESSION)
+UNARY_EXPRESSION    = (negate EXPRESSION)
                     | (not EXPRESSION)
 
 BINARY_EXPRESSION   = EXPRESSION multiply EXPRESSION
@@ -110,6 +110,7 @@ FLOAT = #'[0-9]+\.[0-9]+'
 
 (* Arithmetic Expression Operators  *)
 minus = <'-'>
+negate = <'-'>
 plus = <'+'>
 multiply = <'*'>
 divide = <'/'>

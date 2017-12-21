@@ -62,29 +62,26 @@
    You can optionally supply a 5th argument, the max depth in the symbol table tree that will be
    traversed searching for a definition. By default, this is nil meaning that there is not limit to
    how deep it will traverse."
-  ([symbol-table return-type name argument-types]
+  ([symbol-table name argument-types]
    ;; Our default value for max-depth is "nil", meaning we'll traverse all the way to the end of
    ;; the symbol-table
-   (function-defined? symbol-table return-type name argument-types nil))
-  ([symbol-table return-type name argument-types max-depth]
+   (function-defined? symbol-table name argument-types nil))
+  ([symbol-table name argument-types max-depth]
    (loop [symbol-table symbol-table
           max-depth max-depth]
      (let [functions-with-name (get-in symbol-table [:functions name])
            matching-function (->> functions-with-name
                                   (filter (fn [f] (= argument-types (:argument-types f))))
-                                  (filter (fn [f] (= return-type (:return-type f))))
                                   (first))]
        (cond
+          (some? matching-function) matching-function
+
          ;; If the symbol table is nil, then we've bottomed out in the scope tree and nothing is
          ;; defined
          (nil? symbol-table) nil
 
          ;; If the max-depth is zero, we're not traversing any deeper in the scope tree
          (and (some? max-depth) (zero? max-depth))  nil
-
-         ;; If any of the functions with the supplied name has the same argument types as those
-         ;; queried, then we'll return true
-         (= return-type (:return-type matching-function)) matching-function
 
          ;; In our default case, we'll go check the parent scope
          :default (recur (:parent symbol-table)
@@ -95,7 +92,7 @@
   "Adds a new function to the symbol table. If a function of the same name, return type, and with
    the same argument types has already been a defined, an error is raised."
   [symbol-table return-type name argument-types]
-  (if (function-defined? symbol-table return-type name argument-types)
+  (if (function-defined? symbol-table name argument-types)
     (err/raise-error! "Attempting to redeclare function %s with return type %s and arguments %s\n"
                       name
                       return-type

@@ -54,8 +54,8 @@
     (err/reset-error!)
     (let [table (add-function (new-symbol-table) :int "testing" [])
           declaration-result (add-function table :char "testing" [])]
-      (is (some? declaration-result) "Declaration result is nil")
-      (is (not (err/error?)) "The error flag is set.")))
+      (is (nil? declaration-result) "Declaration result is not nil")
+      (is (err/error?) "The error flag is not set.")))
 
   (testing "Overloading function argument types"
     (err/reset-error!)
