@@ -222,7 +222,21 @@
 
 (defn check-operator
   "Checks that the argument types supplied are valid for the supplied operator"
-  [operator argument-types]
+  [operator arg-types]
   (let [type-check-predicate (:predicate operator)]
-    (type-check-predicate argument-types)))
+    (type-check-predicate arg-types)))
 
+;;; Passing the return type of a function down throughout a parse tree. This allows for easy parsing
+;;; of return statements in a function body. This could also help with the addition of nested
+;;; function definitions at a later date.
+(def ^:dynamic *current-return-type*
+  "A dynamic variable representing the current return type for the function that is being parsed at
+   the moment."
+  VOID)
+
+(defmacro with-return-type
+  "Locally rebinds the current-return-type dynamic variable and executes the body within the context
+   of that local binding"
+  [return-type & body]
+  `(binding [*current-return-type* ~return-type]
+     ~@body))

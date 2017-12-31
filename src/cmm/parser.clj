@@ -61,6 +61,9 @@
                (conj ast sub-ast)))
       [symbol-table ast])))
 
+
+;;; TODO: Handle function declarations without implementations
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Parsing functions and parameters
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -85,24 +88,24 @@
 
         ;; Let's create our inner and outer symbol tables for this function
         updated-outer-scope                   (sym/add-function symbol-table return-type name arg-types)
-        function-inner-scope                  (sym/new-symbol-table updated-outer-scope)
+        function-inner-scope                  (sym/new-symbol-table updated-outer-scope)]
 
-        ;; Now we'll build ASTs and update symbol table based on the arguments, declarations, and
-        ;; the statements inside of the body of the function
-        [argument-scope argument-ast]         (->ast function-inner-scope arguments)
-        [declaration-scope declaration-ast]   (->ast argument-scope declarations)
-        [statement-scope statement-ast]       (handle-statements declaration-scope statements)
-
-        ;; Lastly we'll join the ASTs for the declarations and the statements, as they make up the
-        ;; AST for the entire body of the function
-        body-ast                              (concat declaration-ast statement-ast)]
-    [statement-scope
-     {:node-type    :function
-      :name         name
-      :return-type  return-type
-      :arguments    argument-ast
-      :body         body-ast
-      :symbol-table statement-scope}]))
+    ;; Once we've defined our scope and return type, we'll parse the various elements of the
+    ;; function within the context of this function's expected return type. This allows us to type
+    ;; check return statements and ensure that they match up to the current function's expected
+    ;; return type
+    (types/with-return-type return-type
+      (let [[argument-scope argument-ast]         (->ast function-inner-scope arguments)
+            [declaration-scope declaration-ast]   (->ast argument-scope declarations)
+            [statement-scope statement-ast]       (handle-statements declaration-scope statements)
+            body-ast                              (concat declaration-ast statement-ast)]
+        [statement-scope
+         {:node-type    :function
+          :name         name
+          :return-type  return-type
+          :arguments    argument-ast
+          :body         body-ast
+          :symbol-table statement-scope}]))))
 
 (defmethod build-ast :PARAMS
   [symbol-table [_ & parameters]]
@@ -374,8 +377,20 @@
 
 (defmethod build-ast :RETURN
   [symbol-table [_ return]]
-  (let [return-ast (if (some? return)
-                     (expression->ast symbol-table return))]
+  (let [return-ast  (if (some? return) (expression->ast symbol-table return))
+        return-type (:type return-ast)]
+    ;; We need to type check the return statement and ensure that the type of the expression matches
+    ;; the expected return type of the current function.
+    (if (some? return-type)
+      ;; Check to see if the type of the expression is not a child of the declared return type.
+      (if (not (types/parent? types/*current-return-type* return-type))
+        (err/raise-error! "Cannot return %s from function declared to return %s.\n"
+                          (:name return-type) (:name types/*current-return-type*)))
+      ;; If there is no expression associated with this return statement, then the function must
+      ;; have been declared as VOID, otherwise this is a type error.
+      (if (not= types/VOID types/*current-return-type*)
+        (err/raise-error! "Cannot return nothing from a function declared to return %s\n"
+                          (:name types/*current-return-type*))))
     [symbol-table
      {:node-type     :return-statement
       :return-value  return-ast}]))
@@ -393,7 +408,7 @@
    "float"    :FLOAT
    "double"   :DOUBLE
    "boolean"  :BOOLEAN
-   "char"     :CHAR
+   "char"     :CHAR_CONST
    "void"     :VOID})
 
 (defonce transformation-map
