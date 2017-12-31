@@ -258,6 +258,7 @@
 (defn- parse-expression-assignment
   [symbol-table destination-variable array-index expression]
   (let [[_ expression-ast] (->ast symbol-table expression)]
+    (types/check-assignment destination-variable (:type expression-ast))
     [symbol-table
      {:node-type        :expression-assignment
       :destination      (:name destination-variable)
@@ -268,15 +269,29 @@
 (defn- parse-variable-assignment
   [symbol-table destination-variable array-index [_ source]]
   (if-let [source-variable (sym/variable-defined? symbol-table source)]
-    [symbol-table
-     {:node-type        :variable-assignment
-      :destination      (:name destination-variable)
-      :destination-type (:type destination-variable)
-      :array-index      array-index
-      :source           source
-      :source-type      (:type source-variable)}]
+    (do
+      (types/check-assignment destination-variable (:type source-variable))
+      [symbol-table
+       {:node-type        :variable-assignment
+        :destination      (:name destination-variable)
+        :destination-type (:type destination-variable)
+        :array-index      array-index
+        :source           source
+        :source-type      (:type source-variable)}])
     (err/raise-error! "Cannot assign '%s' to '%s', cannot find variable '%s'\n"
                       source (:name destination-variable) source)))
+
+(defn- parse-literal-assignment
+  [symbol-table destination-variable array-index value value-type]
+  (let [value-type (types/keyword->type value-type)]
+    (types/check-assignment destination-variable value-type)
+    [symbol-table
+     {:node-type        :literal-assignment
+      :destination      destination-variable
+      :destination-type (:type destination-variable)
+      :array-index      array-index
+      :source           value
+      :source-type      value-type}]))
 
 (defmethod build-ast :ASSIGNMENT
   [symbol-table [_ [_ destination] & assignment-body]]
@@ -304,14 +319,8 @@
                                                          array-index source)
 
           ;; In the default case (literal assignment), we'll just create a simple AST node
-          ;; TODO: Type check the literal/destination
-          [symbol-table
-           {:node-type        :literal-assignment
-            :destination      destination
-            :destination-type (:type destination-variable)
-            :array-index      array-index
-            :source           value
-            :source-type      value-type}]))
+          (parse-literal-assignment
+            symbol-table destination-variable array-index value value-type)))
       (err/raise-error! "Cannot assign to '%s', variable does not exist!\n" destination))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -365,7 +374,6 @@
 
 (defmethod build-ast :RETURN
   [symbol-table [_ return]]
-  (debug-msg "Parsing return statement: %s\n" return)
   (let [return-ast (if (some? return)
                      (expression->ast symbol-table return))]
     [symbol-table

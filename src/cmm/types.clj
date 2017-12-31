@@ -33,12 +33,13 @@
 (defonce BOOLEAN (Type. "Boolean" BOTTOM))
 
 (defonce keyword-type-map
-  {:INTEGER   INTEGER
-   :FLOAT     FLOAT
-   :DOUBLE    DOUBLE
-   :CHAR      CHARACTER
-   :BOOLEAN   BOOLEAN
-   :VOID      VOID})
+  {:INTEGER     INTEGER
+   :FLOAT       FLOAT
+   :DOUBLE      DOUBLE
+   :CHAR        CHARACTER
+   :CHAR_CONST  CHARACTER
+   :BOOLEAN     BOOLEAN
+   :VOID        VOID})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Some type-checking helper functions
@@ -167,24 +168,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; User-facing functions for type-checking
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn check-operator
-  "Checks that the argument types supplied are valid for the supplied operator"
-  [operator argument-types]
-  (let [type-check-predicate (:predicate operator)]
-    (type-check-predicate argument-types)))
-
-(defn expression-result-type
-  "Given an operator and a series of operands, determines the return-type that the expression is
-   going to have."
-  [operator & operands]
-  (let [widest-operand-type   (widest-type (map :type operands))
-        operator-result-type  (:result-type operator)]
-    (if (parent? operator-result-type widest-operand-type)
-      widest-operand-type
-      (err/raise-error!
-        "Error while determining operator result type of %s expression: %s is not a child of %s\n"
-        (:name operator) (:name widest-operand-type) (:name operator-result-type)))))
-
+;;; Easy conversion functions between the keywords returned by the parser to the relevant Types or
+;;; Operators defined in the type system.
 (defn keyword->operator
   "Retrieves the proper Operator based on the keyword returned by the parser."
   [kw]
@@ -200,8 +185,44 @@
       type
       (err/raise-error! "Unrecognized type: %s\n" kw))))
 
+;;; Functions that infer the types of various parse tree elements based on the type constraints
+;;; defined above
+(defn expression-result-type
+  "Given an operator and a series of operands, determines the return-type that the expression is
+   going to have."
+  [operator & operands]
+  (let [widest-operand-type   (widest-type (map :type operands))
+        operator-result-type  (:result-type operator)]
+    (if (parent? operator-result-type widest-operand-type)
+      widest-operand-type
+      (err/raise-error!
+        "Error while determining operator result type of %s expression: %s is not a child of %s\n"
+        (:name operator) (:name widest-operand-type) (:name operator-result-type)))))
+
+
 (defn argument-types
   "Given the parameter declarations from a function definition, determine what the argument types
    should be"
   [[_ & parameters]]
-  (for [[_ arg-type _] parameters] (keyword->type arg-type)))
+  (for [[_ arg-type _] parameters]
+    (keyword->type arg-type)))
+
+;;; Functions to type check different aspects of the parse tree
+(defn check-assignment
+  "Checks that some expression being assigned to a variable is a valid assignment. If the assignment
+   violates the rules of the type system, an error message will be generated. Regardless of
+   whether or not an error is raised, the expression AST passed as the second argument to this
+   function is returned to allow for the easy continuation of the parsing process."
+  [destination-variable source-type]
+  (let [destination-type (:type destination-variable)]
+    (if (not (parent? destination-type source-type))
+      (err/raise-error!
+        "Error while type checking assignment statement: Expected %s, found %s.\n"
+        (:name destination-type) (:name source-type)))))
+
+(defn check-operator
+  "Checks that the argument types supplied are valid for the supplied operator"
+  [operator argument-types]
+  (let [type-check-predicate (:predicate operator)]
+    (type-check-predicate argument-types)))
+
