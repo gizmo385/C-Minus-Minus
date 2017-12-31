@@ -1,6 +1,8 @@
 (ns cmm.types
   "Handles the various type checking responsibilities for the parser."
   (:require [cmm.errors :as err]
+            [cmm.debug :refer [debug-msg]]
+            [clojure.pprint :as pp]
             [clojure.string :refer [join lower-case upper-case]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -8,15 +10,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defrecord Type [name parent])
 
+(defmethod print-method Type
+  [v ^java.io.Writer w]
+  (.write w (format "<Type: %s>" (:name v))))
+
+(defmethod pp/simple-dispatch Type [t] (pr t))
+
 ;;; Bottom is the base type in the type system and is the eventual parent type for ALL types (except Void)
 (defonce BOTTOM (Type. "Bottom" nil))
 (defonce VOID (Type. "Void" nil))
 
-;;; Numeric types
+;;; Building our numeric tower
 (defonce NUMBER   (Type. "Number" BOTTOM))
-(defonce INTEGER  (Type. "Integer" NUMBER))
-(defonce FLOAT    (Type. "Float" NUMBER))
 (defonce DOUBLE   (Type. "Double" NUMBER))
+(defonce FLOAT    (Type. "Float" DOUBLE))
+(defonce INTEGER  (Type. "Integer" FLOAT))
 
 ;;; A character is under the Numeric tree, but is not a conventional Number Type
 (defonce CHARACTER (Type. "Character" INTEGER))
@@ -45,6 +53,19 @@
       (= child parent) true
       :default (recur (:parent child)))))
 
+(defn widest-type
+  "Given a series of types, returns the type that is the highest up the type hierarchy. This is used
+   when determining the type of an expression where the types of the operands supplied to an
+   operator conflict (ex: Integer + Float)."
+  [types]
+  (loop [widest         (first types)
+         types          (rest types)]
+    (if-let [current-type  (first types)]
+      (if (parent? current-type widest)
+        (recur current-type (rest types))
+        (recur widest (rest types)))
+      widest)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Defining some different type-checking predicates for our operators
 ;
@@ -58,7 +79,6 @@
     2: Each of those arguments is a descendant of the supplied 'base-type'."
   [base-type expected-arg-count]
   (fn [args]
-    (printf "Checking against args: %s\n" args)
     (let [arg-count (count args)]
       (cond
         ;; We want to verify that the right number of arguments were supplied
@@ -101,14 +121,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defrecord Operator [name symbol result-type predicate])
 
+(defmethod print-method Operator
+  [v ^java.io.Writer w]
+  (.write w (format "<Operator: %s (%s)>" (:name v) (:symbol v))))
+
+(defmethod pp/simple-dispatch Operator [o] (pr o))
+
 ;;; Binary mathematical operators
 (defonce PLUS     (Operator. "Plus"     "+" NUMBER (descendants-of? NUMBER 2)))
 (defonce MULTIPLY (Operator. "Multiply" "*" NUMBER (descendants-of? NUMBER 2)))
 (defonce SUBTRACT (Operator. "Subtract" "-" NUMBER (descendants-of? NUMBER 2)))
 (defonce DIVIDE   (Operator. "Divide"   "/" NUMBER (descendants-of? NUMBER 2)))
 
-;;; Unary mathematical operators
+;;; Unary Mathematical Operators
 (defonce NEGATE   (Operator. "Negate"   "-" NUMBER (descendants-of? NUMBER 1)))
+
+;;; Unary Boolean Operators
+(defonce NOT      (Operator. "Not"      "!" BOOLEAN (descendants-of? BOOLEAN 1)))
 
 ;;; Binary Comparison Operators
 (defonce LESS-THAN              (Operator. "Less Than"              "<"   BOOLEAN (descendants-of? NUMBER 2)))
@@ -117,6 +146,10 @@
 (defonce GREATER-THAN-OR-EQUAL  (Operator. "Greater Than Or Equal"  ">="  BOOLEAN (descendants-of? NUMBER 2)))
 (defonce IS-EQUAL-TO            (Operator. "Is Equal To"            "=="  BOOLEAN (identical-descendants-of? BOTTOM 2)))
 (defonce NOT-EQUAL-TO           (Operator. "Not Equal To"           "!="  BOOLEAN (identical-descendants-of? BOTTOM 2)))
+
+;;; Binary Boolean Operators
+(defonce AND                    (Operator. "And"                    "&&" BOOLEAN (descendants-of? BOOLEAN 2)))
+(defonce OR                     (Operator. "Or"                     "||" BOOLEAN (descendants-of? BOOLEAN 2)))
 
 (defonce keyword-operator-map
   {:plus                  PLUS
@@ -140,6 +173,18 @@
   (let [type-check-predicate (:predicate operator)]
     (type-check-predicate argument-types)))
 
+(defn expression-result-type
+  "Given an operator and a series of operands, determines the return-type that the expression is
+   going to have."
+  [operator & operands]
+  (let [widest-operand-type   (widest-type (map :type operands))
+        operator-result-type  (:result-type operator)]
+    (if (parent? operator-result-type widest-operand-type)
+      widest-operand-type
+      (err/raise-error!
+        "Error while determining operator result type of %s expression: %s is not a child of %s\n"
+        (:name operator) (:name widest-operand-type) (:name operator-result-type)))))
+
 (defn keyword->operator
   "Retrieves the proper Operator based on the keyword returned by the parser."
   [kw]
@@ -154,3 +199,9 @@
     (if-let [type (get keyword-type-map kw)]
       type
       (err/raise-error! "Unrecognized type: %s\n" kw))))
+
+(defn argument-types
+  "Given the parameter declarations from a function definition, determine what the argument types
+   should be"
+  [[_ & parameters]]
+  (for [[_ arg-type _] parameters] (keyword->type arg-type)))

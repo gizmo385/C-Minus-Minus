@@ -79,14 +79,13 @@
 
 (defmethod build-ast :FUNCTION
   [symbol-table [_ type [_ name] arguments declarations & statements]]
-  (let [arg-types []
-        ;; First we want to add the function to the current symbol table
-        updated-outer-scope                   (sym/add-function symbol-table type name arg-types)
-
-        ;; Then we'll create a nested symbol table for the inside of the function
-        function-inner-scope                  (sym/new-symbol-table updated-outer-scope)
-
+  (let [arg-types                             (types/argument-types arguments)
+        ;; Let's determine what the return type for this function is going to be
         return-type                           (types/keyword->type type)
+
+        ;; Let's create our inner and outer symbol tables for this function
+        updated-outer-scope                   (sym/add-function symbol-table return-type name arg-types)
+        function-inner-scope                  (sym/new-symbol-table updated-outer-scope)
 
         ;; Now we'll build ASTs and update symbol table based on the arguments, declarations, and
         ;; the statements inside of the body of the function
@@ -112,7 +111,7 @@
          asts []]
     (if (first parameters)
       ;; We'll destructure the parameter to retrieve type and name information. We'll also create a
-      ;; new AST node
+     ;; new AST node
       (let [[_ type [_ name]] (first parameters)
             parameter-type (types/keyword->type type)
             param-ast {:node-type :parameter
@@ -209,9 +208,10 @@
 (defmethod build-ast :BINARY_EXPRESSION
   [symbol-table [_ left [operator] right]]
   ;; First we want to create ASTs for the left and right hand sides of the expression.
-  (let [left-ast  (expression->ast symbol-table left)
-        right-ast (expression->ast symbol-table right)
-        operator  (types/keyword->operator operator)]
+  (let [left-ast      (expression->ast symbol-table left)
+        right-ast     (expression->ast symbol-table right)
+        operator      (types/keyword->operator operator)
+        result-type   (types/expression-result-type operator left-ast right-ast)]
     ;; We'll ensure that the left and right operands match the expected types for the operator
     (types/check-operator operator [(:type left-ast) (:type right-ast)])
 
@@ -220,33 +220,31 @@
      {:node-type      :binary-expression
       :left-operand   left-ast
       :right-operand  right-ast
-      :type           (:type operator)
+      :type           result-type
       :operator       operator}]))
 
 (defmethod build-ast :UNARY_EXPRESSION
   [symbol-table [_ [operator] operand]]
   ;; We need to create an AST for the operand.
   (let [operand-ast (expression->ast symbol-table operand)
-        operator    (types/keyword->operator operator)]
+        operator    (types/keyword->operator operator)
+        result-type (types/expression-result-type operator operand-ast)]
     (types/check-operator operator [(:type operand-ast)])
     [symbol-table
-     {:node-type :unary-expression
-      :operator operator
-      :type     (:type operator)
-      :operand operand-ast}]))
+     {:node-type  :unary-expression
+      :operator   operator
+      :type       result-type
+      :operand    operand-ast}]))
 
 (defmethod build-ast :FUNCTION_CALL
   [symbol-table [_ [_ function-name] & arguments]]
   (let [argument-ast    (into [] (map (partial expression->ast symbol-table) arguments))
-        ;; TODO: Infer the argument types
-        argument-types  (into [] (map :type argument-ast))
+        argument-types  (map :type argument-ast)
         function        (sym/function-defined? symbol-table function-name argument-types)]
-    (debug-msg "Arguments: %s\n" argument-ast)
-    (debug-msg "Argument Types: %s\n" argument-types)
     (cond
       ;; Ensure that the function is actually defined
       (nil? function) (err/raise-error! "Cannot find function '%s' with argument types %s\n"
-                                        function-name argument-types)
+                                        function-name (into [] argument-types))
 
       :default [symbol-table
                 {:node-type     :function-call-expression

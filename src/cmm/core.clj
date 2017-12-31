@@ -26,10 +26,6 @@
        (join \newline)))
 
 ;;; Convinience functions for printing/exiting
-(defn object-print-passthrough [obj]
-  (pprint obj)
-  obj)
-
 (defn- printf-err
   "Calls printf on the arguments with *out* bound to stderr."
   [& msg]
