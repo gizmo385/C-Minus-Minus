@@ -340,9 +340,14 @@
 (defmethod build-ast :FOR_LOOP
   [symbol-table [_ [_ initialization] [_ condition] [_ afterthought] body]]
   (let [[_ initialization-ast]  (->ast symbol-table initialization)
-        [_ condition-ast]       (->ast symbol-table condition)
+        condition-ast           (expression->ast symbol-table condition)
         [_ afterthought-ast]    (->ast symbol-table afterthought)
         [_ body-ast]            (->ast symbol-table body)]
+    ;; We want to ensure that the return type of the expression in the condition AST is a boolean
+    ;; expression, otherwise the condition doesn't make sense.
+    (if (not (types/parent? types/BOOLEAN (:type condition-ast)))
+      (err/raise-error! "Expected Boolean expression in for loop condition, found %s\n"
+                        (-> condition-ast :type :name)))
     [symbol-table
      {:node-type       :for-loop
       :initialization  initialization-ast
@@ -366,8 +371,13 @@
 
 (defmethod build-ast :IF
   [symbol-table [_ condition then]]
-  (let [[_ condition-ast] (->ast symbol-table condition)
+  (let [condition-ast     (expression->ast symbol-table condition)
         [_ then-ast]      (->ast symbol-table then)]
+    ;; We want to ensure that the return type of the expression in the condition AST is a boolean
+    ;; expression, otherwise the condition doesn't make sense.
+    (if (not (types/parent? types/BOOLEAN (:type condition-ast)))
+      (err/raise-error! "Expected Boolean expression in if condition, found %s\n"
+                        (-> condition-ast :type :name)))
     [symbol-table
      {:node-type :if-statement
       :condition condition-ast
@@ -375,9 +385,14 @@
 
 (defmethod build-ast :IF_ELSE
   [symbol-table [_ condition then else]]
-  (let [[_ condition-ast] (->ast symbol-table condition)
+  (let [condition-ast     (expression->ast symbol-table condition)
         [_ then-ast]      (->ast symbol-table then)
         [_ else-ast]      (->ast symbol-table else)]
+    ;; We want to ensure that the return type of the expression in the condition AST is a boolean
+    ;; expression, otherwise the condition doesn't make sense.
+    (if (not (types/parent? types/BOOLEAN (:type condition-ast)))
+      (err/raise-error! "Expected Boolean expression in if/else condition, found %s\n"
+                        (-> condition-ast :type :name)))
     [symbol-table
      {:node-type  :if-else-statement
       :condition  condition-ast
