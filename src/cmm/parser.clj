@@ -80,6 +80,8 @@
                (rest statements)))
       [symbol-table ast])))
 
+;; TODO: Ensure that SOMETHING is returned from a function with a declared return type in every
+;; situation
 (defmethod build-ast :FUNCTION
   [symbol-table [_ type [_ name] arguments declarations & statements]]
   (let [arg-types                             (types/argument-types arguments)
@@ -257,6 +259,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Assignment Parsing
+;
+; TODO: Ensure that everything related to assignments to array indices is functioning correctly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- parse-expression-assignment
   [symbol-table destination-variable array-index expression]
@@ -348,8 +352,13 @@
 
 (defmethod build-ast :WHILE_LOOP
   [symbol-table [_ condition body]]
-  (let [[_ condition-ast] (->ast symbol-table condition)
+  (let [condition-ast     (expression->ast symbol-table condition)
         [_ body-ast]      (->ast symbol-table body)]
+    ;; We want to ensure that the return type of the expression in the condition AST is a boolean
+    ;; expression, otherwise the condition doesn't make sense.
+    (if (not (types/parent? types/BOOLEAN (:type condition-ast)))
+      (err/raise-error! "Expected Boolean expression in while loop condition, found %s\n"
+                        (-> condition-ast :type :name)))
     [symbol-table
      {:node-type  :while-loop
       :condition  condition-ast
@@ -399,10 +408,11 @@
 
 (defmethod build-ast :default [symbol-table unrecognized-node]
   (let [unrecognized-tag (first unrecognized-node)]
-    (err/raise-error! "Unrecognized symbol of with tag %s: %s\n" unrecognized-tag unrecognized-node)))
+    (err/raise-error! "Unrecognized symbol of with tag %s: %s\n"
+                      unrecognized-tag unrecognized-node)))
 
 ;;; These are functions to help us simplify aspects of our parsing (such as converting
-;;; integers and floats)
+;;; integers and floats) or handling some quick type assignment
 (defonce c-names->keyword
   {"int"      :INTEGER
    "float"    :FLOAT
