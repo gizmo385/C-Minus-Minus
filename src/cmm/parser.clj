@@ -174,7 +174,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Expression Parsing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn- literal->ast
+(defn literal->ast
   "This wraps a simple value type's parser node into an AST node. For example, [:INTEGER 5] would
    get returned as:
       {:node-type  :literal
@@ -185,7 +185,7 @@
    :type      (types/keyword->type type)
    :value     value})
 
-(defn- expression->ast
+(defn expression->ast
   "Handles parsing and building out the AST for a nested expression tree."
   [symbol-table expression]
   (let [expression-type (first expression)]
