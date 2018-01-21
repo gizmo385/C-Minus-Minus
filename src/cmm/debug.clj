@@ -21,5 +21,5 @@
   [& args]
   (if *debugging-enabled*
     (do
-      (print (style "DEBUG:" :green) (apply format args))
+      (print (style "DEBUG:" :yellow) (apply format args))
       (flush))))
