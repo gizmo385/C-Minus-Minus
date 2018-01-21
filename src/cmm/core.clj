@@ -66,4 +66,7 @@
     ;; Begin parsing files
     (binding [*debugging-enabled* (:debug options)]
       (doseq [filename arguments]
-        (handle-file filename)))))
+        (handle-file filename))
+      (if (err/error?)
+        (exit 1 (style "Compilation failed." :red))
+        (exit 0 (style "Compilation succeeded." :green))))))
