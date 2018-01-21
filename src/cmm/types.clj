@@ -68,7 +68,7 @@
       widest)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Defining some different type-checking predicates for our operators
+; Defining some different type-checking predicates for our operators.
 ;
 ; These predicates will return functions which take a variable number of arguments and check them
 ; against various constraints.
@@ -195,9 +195,7 @@
         operator-result-type  (:result-type operator)]
     (if (parent? operator-result-type widest-operand-type)
       widest-operand-type
-      (err/raise-error!
-        "Error while determining operator result type of %s expression: %s is not a child of %s\n"
-        (:name operator) (:name widest-operand-type) (:name operator-result-type)))))
+      operator-result-type)))
 
 
 (defn argument-types
