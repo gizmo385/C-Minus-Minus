@@ -51,7 +51,7 @@ ARRAY_ACCESS  = ID left_square_bracket EXPRESSION right_square_bracket
             | semicolon
 
 
-FUNCTION_CALL_STATEMENT = ID left_paren EXPR_LIST right_paren
+FUNCTION_CALL_STATEMENT = FUNCTION_CALL
 
 STATEMENT_LIST = left_curly_bracket STATEMENT* right_curly_bracket
 

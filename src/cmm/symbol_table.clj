@@ -66,6 +66,7 @@
    ;; Our default value for max-depth is "nil", meaning we'll traverse all the way to the end of
    ;; the symbol-table
    (function-defined? symbol-table name argument-types nil))
+
   ([symbol-table name argument-types max-depth]
    (loop [symbol-table symbol-table
           max-depth max-depth]

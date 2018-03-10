@@ -419,7 +419,12 @@
      {:node-type     :return-statement
       :return-value  return-ast}]))
 
-;;; TODO: Function call statements
+(defmethod build-ast :FUNCTION_CALL_STATEMENT
+  [symbol-table [_ function-call-statement]]
+  (let [call-ast (expression->ast symbol-table function-call-statement)]
+    [symbol-table
+     {:node-type      :function-call-statement
+      :function-call  call-ast}]))
 
 (defmethod build-ast :default [symbol-table unrecognized-node]
   (let [unrecognized-tag (first unrecognized-node)]
