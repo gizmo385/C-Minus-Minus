@@ -82,6 +82,10 @@
 
 ;; TODO: Ensure that SOMETHING is returned from a function with a declared return type in every
 ;; situation
+;;
+;; Note: 5/10/2018 - This is trickier than possible since a branch could lack a return without issue
+;; so long as it is not a terminal branch. I'll have to find a way to scan for terminal branches in
+;; the code (i.e. branches that are the last statements in their code blocks
 (defmethod build-ast :FUNCTION
   [symbol-table [_ type [_ name] arguments declarations & statements]]
   (let [arg-types                             (types/argument-types arguments)
