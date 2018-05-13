@@ -4,6 +4,7 @@
             [clojure.pprint :refer [pprint]]
             [clansi :refer [style]]
             [cmm.parser :as parser]
+            [cmm.three :as three]
             [cmm.errors :as err]
             [cmm.debug :refer [*debugging-enabled*]])
   (:gen-class))
@@ -46,8 +47,14 @@
   (flush)
   ;; The actual parsing of the file
   (err/without-error->> filename
+    ;; First things first - we'll read the file off of the disk
     (slurp)
+
+    ;; Then we'll parse the source code and create an AST.
     (parser/parse)
+
+    ;; We call apply here since parser/parse returns a list and ast->tac takes positional arguments.
+    (apply three/ast->tac)
     (pprint))
 
   ;; Determine if compilation failed
