@@ -127,7 +127,7 @@
                        :name      parameter-type
                        :type      type}]
         ;; We'll add this new variable to the symbol table and proceed onto the next argument
-        (recur (sym/add-variable symbol-table parameter-type name)
+        (recur (sym/add-variable symbol-table parameter-type name nil)
                (rest parameters)
                (conj asts param-ast)))
       [symbol-table asts])))
@@ -155,7 +155,7 @@
         (recur
           (rest declarations)
           (conj ast-nodes new-ast-node)
-          (sym/add-variable symbol-table type name array-size)))
+          (sym/add-variable symbol-table type name array-size nil)))
       [symbol-table ast-nodes])))
 
 (defmethod build-ast :DECLARATIONS
@@ -182,7 +182,7 @@
   "This wraps a simple value type's parser node into an AST node. For example, [:INTEGER 5] would
    get returned as:
       {:node-type  :literal
-      :type        :INTEGER
+      :type        INTEGER
       :value       5}"
   [[type value]]
   {:node-type :literal
@@ -199,7 +199,7 @@
       :BINARY_EXPRESSION  (second (->ast symbol-table expression))
       :UNARY_EXPRESSION   (second (->ast symbol-table expression))
       :FUNCTION_CALL      (second (->ast symbol-table expression))
-      :ARRAY_ACCESS       (second (->ast symbol-table expression))
+      :ARRAY_ACCESS       (second (->ast symbol-table expression)) ;; TODO
 
       ;; For an ID, we'll just create a simple variable node after checking that the name is defined
       ;; in the supplied symbol table
@@ -257,7 +257,7 @@
 
       :default [symbol-table
                 {:node-type     :function-call-expression
-                 :type          (:return-type function)
+                 :function-type (:return-type function)
                  :function-name function-name
                  :arguments     argument-ast}])))
 

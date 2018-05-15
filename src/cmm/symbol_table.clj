@@ -8,8 +8,9 @@
             [cmm.types :as types]
             [cmm.debug :as dbg :refer [debug-msg]]))
 
-;; For symbol-keeping purposes, a variable is just a name and a type
-(defrecord Variable [type name array? array-size])
+;; For symbol-keeping purposes, a variable is just a name and a type. A value can additionally be
+;; set after creation.
+(defrecord Variable [type name array? array-size value])
 
 ;; For symbol-keeping purposes, a funtion is similar to a variable, but it also has argument types
 (defrecord Function [return-type name argument-types])
@@ -108,11 +109,11 @@
 
    Optionally, a 4th array size parameter can be supplied. This will mark the variable as an array
    and store its size."
-  ([symbol-table type name]
-   (add-variable symbol-table type name nil))
+  ([symbol-table type name value]
+   (add-variable symbol-table type name nil value))
 
-  ([symbol-table type name array-size]
+  ([symbol-table type name value array-size]
    (if (variable-defined? symbol-table name 1)
      (err/raise-error! "Redeclaring variable %s of type %s\n" name type)
-     (let [new-variable (Variable. type name (some? array-size) array-size)]
+     (let [new-variable (Variable. type name (some? array-size) array-size value)]
        (assoc-in symbol-table [:variables name] new-variable)))))

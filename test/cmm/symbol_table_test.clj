@@ -7,19 +7,20 @@
 (deftest variable-test
   (testing "Adding variables to empty symbol table works"
     (err/reset-error!)
-    (is (some? (variable-defined?  (add-variable (new-symbol-table) :int "testing") "testing")))
+    (is (some? (variable-defined?  (add-variable (new-symbol-table) :int "testing" nil) "testing")))
     (is (not (err/error?)) "The error flag has been set"))
 
   (testing "Adding variables to a non-empty symbol table works"
     (err/reset-error!)
-    (is (some? (add-variable (add-variable (new-symbol-table) :int "testing1") :int "testing2")))
+    (let [non-empty-table (add-variable (new-symbol-table) :int "testing1" nil nil)]
+      (is (some? (add-variable non-empty-table :int "testing2" nil))))
     (is (not (err/error?)) "The error flag has been set"))
 
   (testing "Redeclaring variable in nested scope works"
     (err/reset-error!)
-    (let [parent-scope (add-variable (new-symbol-table) :int "testing")
+    (let [parent-scope (add-variable (new-symbol-table) :int "testing" nil)
           test-scope (new-symbol-table parent-scope)
-          redeclaration-result (add-variable test-scope :int "testing")]
+          redeclaration-result (add-variable test-scope :int "testing" nil)]
       (is (some? redeclaration-result) "Redeclaration result is nil")
       (is (variable-defined? parent-scope "testing") "'testing' NOT defined in parent scope")
       (is (variable-defined? test-scope "testing") "'testing' NOT defined in test scope")
@@ -27,8 +28,8 @@
 
   (testing "Cannot redeclare variable already declared in same scope"
     (err/reset-error!)
-    (let [table (add-variable (new-symbol-table) :int "testing1")
-          redeclaration-result(add-variable table :int "testing1")]
+    (let [table (add-variable (new-symbol-table) :int "testing1" nil)
+          redeclaration-result(add-variable table :int "testing1" nil)]
       (is (nil? redeclaration-result) "Redeclaration result is 'nil'.")
       (is (true? (err/error?)) "The error flag has NOT been set to true."))))
 
